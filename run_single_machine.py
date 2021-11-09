@@ -505,6 +505,7 @@ def main(argv):
     x_val = dataset[0:50000]
     x_train = dataset[50000:200000]
 
+
     strategy = tf.distribute.MirroredStrategy()
     train_global_batch = FLAGS.train_batch_size * strategy.num_replicas_in_sync
     val_global_batch = FLAGS.val_batch_size * strategy.num_replicas_in_sync

@@ -12,7 +12,7 @@ FLAGS = flags.FLAGS
 
 class imagenet_dataset_single_machine():
 
-    def __init__(self, img_size, train_batch, val_batch, img_path=None, x_val=None, x_train=None):
+    def __init__(self, img_size, train_batch, val_batch, img_path=None, x_val=None, x_train=None,):
         '''
         args: 
         IMG_SIZE: Image training size 
@@ -28,7 +28,44 @@ class imagenet_dataset_single_machine():
 
         self.seed = FLAGS.SEED
         self.x_train = x_train
+        
         self.x_val = x_val
+       
+
+        # For training 
+        all_train_class = []
+        for image_path in x_train:
+            label = tf.strings.split(image_path, os.path.sep)[5]
+            all_train_class.append(label.numpy())
+        number_class = set(all_train_class)
+        all_cls = np.array(number_class)
+        
+        class_dic = dict()
+        for i in range(999):
+            class_dic[all_cls[i]] = i+1
+        
+        numeric_train_cls = []
+        for i in range(len(all_train_class)):
+            for k, v in class_dic.items():
+                if all_train_class[i] == k:
+                    numeric_train_cls.append(v)
+
+        ## For Validation
+        all_val_class = []
+        for image_path in x_val:
+            label = tf.strings.split(image_path, os.path.sep)[5]
+            all_val_class.append(label.numpy())
+
+    
+        numeric_train_cls = []
+        for i in range(len(all_val_class)):
+            for k, v in class_dic.items():
+                if all_train_class[i] == k:
+                    numeric_train_cls.append(v)
+
+        self.x_train_lable = tf.one_hot(numeric_train_cls, depth=999)
+        self.x_val_lable = tf.one_hot(numeric_val_cls, depth=999)
+
 
         if img_path is not None:
             dataset = list(paths.list_images(img_path))
@@ -42,8 +79,18 @@ class imagenet_dataset_single_machine():
         img = tf.io.read_file(image_path)
         img = tf.io.decode_jpeg(img, channels=3)
         #img=tf.image.convert_image_dtype(img, tf.float32)
-
         return img
+
+    @classmethod
+    def parse_images_lable_pair(self, image_path, lable):
+        # Loading and reading Image
+        img = tf.io.read_file(image_path)
+        img = tf.io.decode_jpeg(img, channels=3)
+        #img=tf.image.convert_image_dtype(img, tf.float32)
+
+        
+        return img, lable
+
 
     @classmethod
     def parse_images_label(self, image_path):
@@ -57,9 +104,9 @@ class imagenet_dataset_single_machine():
     def supervised_validation(self):
         '''This for Supervised validation training'''
 
-        val_ds = (tf.data.Dataset.from_tensor_slices(self.x_val)
+        val_ds = (tf.data.Dataset.from_tensor_slices((self.x_val, self.x_val_lable))
                   .shuffle(self.val_batch * 100, seed=self.seed)
-                  .map(self.parse_images_label,  num_parallel_calls=AUTO)
+                  .map(lambda x, y: (self.parse_images_lable_pair(x, y)),  num_parallel_calls=AUTO)
 
                   .map(lambda x, y: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE)), y),
                        num_parallel_calls=AUTO,)
@@ -75,9 +122,10 @@ class imagenet_dataset_single_machine():
         This class property return self-supervised training data
         '''
 
-        train_ds_one = (tf.data.Dataset.from_tensor_slices(self.x_train)
+        train_ds_one = (tf.data.Dataset.from_tensor_slices((self.x_train, self.x_train_lable))
                         .shuffle(self.BATCH_SIZE * 100, seed=self.seed)
-                        .map(self.parse_images_label,  num_parallel_calls=AUTO)
+                        #.map(self.parse_images_label,  num_parallel_calls=AUTO)
+                        .map(lambda x, y: (self.parse_images_lable_pair(x, y)),  num_parallel_calls=AUTO)
                         .map(lambda x, y: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE)), y),
                              num_parallel_calls=AUTO,
                              )
@@ -86,9 +134,10 @@ class imagenet_dataset_single_machine():
                         .prefetch(AUTO)
                         )
 
-        train_ds_two = (tf.data.Dataset.from_tensor_slices(self.x_train)
+        train_ds_two = (tf.data.Dataset.from_tensor_slices((self.x_train, self.x_train_lable))
                         .shuffle(self.BATCH_SIZE * 100, seed=self.seed)
-                        .map(self.parse_images_label,  num_parallel_calls=AUTO)
+                        #.map(self.parse_images_label,  num_parallel_calls=AUTO)
+                        .map(lambda x, y: (self.parse_images_lable_pair(x, y)),  num_parallel_calls=AUTO)
                         .map(lambda x, y: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE)), y),
                              num_parallel_calls=AUTO,
                              )
@@ -105,52 +154,33 @@ class imagenet_dataset_single_machine():
 
         return train_ds
 
-    def simclr_random_global_crop(self, input_context):
-        '''
-            This class property return self-supervised training data
-        '''
-
-        dis_tributed_batch = input_context.get_per_replica_batch_size(
-            self.BATCH_SIZE)
-        logging.info('Global batch size: %d', self.BATCH_SIZE)
-        logging.info('Per-replica batch size: %d', dis_tributed_batch)
-        logging.info('num_input_pipelines: %d',
-                     input_context.num_input_pipelines)
-
-        option = tf.data.Options()
-
-        option.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.DATA
-
-        train_ds_one = (tf.data.Dataset.from_tensor_slices(self.x_train)
+    def simclr_random_global_crop(self):
+  
+        train_ds_one = (tf.data.Dataset.from_tensor_slices((self.x_train, self.x_train_lable))
                         .shuffle(self.BATCH_SIZE * 100, seed=self.seed)
-                        .map(self.parse_images,  num_parallel_calls=AUTO)
-                        .map(lambda x: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE))),
+                        #.map(self.parse_images_label,  num_parallel_calls=AUTO)
+                        .map(lambda x, y: (self.parse_images_lable_pair(x, y)),  num_parallel_calls=AUTO)
+                        .map(lambda x, y: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE)), y),
                              num_parallel_calls=AUTO,
                              )
-                        .map(lambda x: (simclr_augment_randcrop_global_views(x, self.IMG_SIZE)), num_parallel_calls=AUTO)
-                        # .batch(self.BATCH_SIZE)
-                        # .prefetch(AUTO)
+                        .map(lambda x, y: (simclr_augment_randcrop_global_views(x, self.IMG_SIZE), y), num_parallel_calls=AUTO)
+                        .batch(self.BATCH_SIZE)
+                        .prefetch(AUTO)
                         )
-        train_ds_one.with_options(option)
 
-        train_ds_two = (tf.data.Dataset.from_tensor_slices(self.x_train)
+        train_ds_two = (tf.data.Dataset.from_tensor_slices((self.x_train, self.x_train_lable))
                         .shuffle(self.BATCH_SIZE * 100, seed=self.seed)
-                        .map(self.parse_images,  num_parallel_calls=AUTO)
-                        .map(lambda x: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE))),
+                        #.map(self.parse_images_label,  num_parallel_calls=AUTO)
+                        .map(lambda x, y: (self.parse_images_lable_pair(x, y)),  num_parallel_calls=AUTO)
+                        .map(lambda x, y: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE)), y),
                              num_parallel_calls=AUTO,
                              )
-                        .map(lambda x: (simclr_augment_randcrop_global_views(x, self.IMG_SIZE)), num_parallel_calls=AUTO)
-                        # .batch(self.BATCH_SIZE)
-                        # .prefetch(AUTO)
+                        .map(lambda x, y: (simclr_augment_randcrop_global_views(x, self.IMG_SIZE), y), num_parallel_calls=AUTO)
+                        .batch(self.BATCH_SIZE)
+                        .prefetch(AUTO)
                         )
-        train_ds_two.with_options(option)
-
         train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
-        train_ds = train_ds.shard(input_context.num_input_pipelines,
-                                  input_context.input_pipeline_id)
-        train_ds = train_ds.batch(dis_tributed_batch)
-        # 2. modify dataset with prefetch
-        train_ds = train_ds.prefetch(AUTO)
+
 
         return train_ds
 
