@@ -1,0 +1,629 @@
+
+You are implement LARS optimizer
+INFO:tensorflow:Reduce to /job:localhost/replica:0/task:0/device:CPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:CPU:0',).
+I1108 10:43:41.378010 140292175578880 cross_device_ops.py:563] Reduce to /job:localhost/replica:0/task:0/device:CPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:CPU:0',).
+INFO:tensorflow:Reduce to /job:localhost/replica:0/task:0/device:CPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:CPU:0',).
+I1108 10:43:41.380373 140292175578880 cross_device_ops.py:563] Reduce to /job:localhost/replica:0/task:0/device:CPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:CPU:0',).
+INFO:tensorflow:Reduce to /job:localhost/replica:0/task:0/device:CPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:CPU:0',).
+I1108 10:43:41.384937 140292175578880 cross_device_ops.py:563] Reduce to /job:localhost/replica:0/task:0/device:CPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:CPU:0',).
+INFO:tensorflow:Reduce to /job:localhost/replica:0/task:0/device:CPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:CPU:0',).
+I1108 10:43:41.386249 140292175578880 cross_device_ops.py:563] Reduce to /job:localhost/replica:0/task:0/device:CPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:CPU:0',).
+INFO:tensorflow:Reduce to /job:localhost/replica:0/task:0/device:CPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:CPU:0',).
+I1108 10:43:41.396656 140292175578880 cross_device_ops.py:563] Reduce to /job:localhost/replica:0/task:0/device:CPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:CPU:0',).
+INFO:tensorflow:Reduce to /job:localhost/replica:0/task:0/device:CPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:CPU:0',).
+I1108 10:43:41.397791 140292175578880 cross_device_ops.py:563] Reduce to /job:localhost/replica:0/task:0/device:CPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:CPU:0',).
+INFO:tensorflow:Reduce to /job:localhost/replica:0/task:0/device:CPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:CPU:0',).
+I1108 10:43:41.400578 140292175578880 cross_device_ops.py:563] Reduce to /job:localhost/replica:0/task:0/device:CPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:CPU:0',).
+INFO:tensorflow:Reduce to /job:localhost/replica:0/task:0/device:CPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:CPU:0',).
+I1108 10:43:41.401620 140292175578880 cross_device_ops.py:563] Reduce to /job:localhost/replica:0/task:0/device:CPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:CPU:0',).
+INFO:tensorflow:Reduce to /job:localhost/replica:0/task:0/device:CPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:CPU:0',).
+I1108 10:43:41.411576 140292175578880 cross_device_ops.py:563] Reduce to /job:localhost/replica:0/task:0/device:CPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:CPU:0',).
+INFO:tensorflow:Reduce to /job:localhost/replica:0/task:0/device:CPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:CPU:0',).
+I1108 10:43:41.412800 140292175578880 cross_device_ops.py:563] Reduce to /job:localhost/replica:0/task:0/device:CPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:CPU:0',).
+I1108 10:43:41.444532 140292175578880 run_single_machine.py:615] Apllying pre-training and Linear evaluation at the same time
+2021-11-08 10:43:41.583514: I tensorflow/compiler/mlir/mlir_graph_optimization_pass.cc:116] None of the MLIR optimization passes are enabled (registered 2)
+2021-11-08 10:43:41.585677: I tensorflow/core/platform/profile_utils/cpu_utils.cc:112] CPU Frequency: 2099905000 Hz
+WARNING:tensorflow:AutoGraph could not transform <function call_for_each_replica at 0x7f980c0caa60> and will run it as-is.
+Please report this to the TensorFlow team. When filing the bug, set the verbosity to 10 (on Linux, `export AUTOGRAPH_VERBOSITY=10`) and attach the full output.
+Cause: module 'gast' has no attribute 'Index'
+To silence this warning, decorate the function with @tf.autograph.experimental.do_not_convert
+W1108 10:43:49.044164 140292175578880 ag_logging.py:146] AutoGraph could not transform <function call_for_each_replica at 0x7f980c0caa60> and will run it as-is.
+Please report this to the TensorFlow team. When filing the bug, set the verbosity to 10 (on Linux, `export AUTOGRAPH_VERBOSITY=10`) and attach the full output.
+Cause: module 'gast' has no attribute 'Index'
+To silence this warning, decorate the function with @tf.autograph.experimental.do_not_convert
+WARNING:tensorflow:AutoGraph could not transform <function main.<locals>.train_step at 0x7f96433c8f70> and will run it as-is.
+Please report this to the TensorFlow team. When filing the bug, set the verbosity to 10 (on Linux, `export AUTOGRAPH_VERBOSITY=10`) and attach the full output.
+Cause: module 'gast' has no attribute 'Index'
+To silence this warning, decorate the function with @tf.autograph.experimental.do_not_convert
+W1108 10:43:49.083539 140257810945792 ag_logging.py:146] AutoGraph could not transform <function main.<locals>.train_step at 0x7f96433c8f70> and will run it as-is.
+Please report this to the TensorFlow team. When filing the bug, set the verbosity to 10 (on Linux, `export AUTOGRAPH_VERBOSITY=10`) and attach the full output.
+Cause: module 'gast' has no attribute 'Index'
+To silence this warning, decorate the function with @tf.autograph.experimental.do_not_convert
+INFO:tensorflow:Reduce to /job:localhost/replica:0/task:0/device:GPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:GPU:0', '/job:localhost/replica:0/task:0/device:GPU:1').
+I1108 10:43:49.495563 140292175578880 cross_device_ops.py:563] Reduce to /job:localhost/replica:0/task:0/device:GPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:GPU:0', '/job:localhost/replica:0/task:0/device:GPU:1').
+INFO:tensorflow:Reduce to /job:localhost/replica:0/task:0/device:GPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:GPU:0', '/job:localhost/replica:0/task:0/device:GPU:1').
+I1108 10:43:49.503739 140292175578880 cross_device_ops.py:563] Reduce to /job:localhost/replica:0/task:0/device:GPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:GPU:0', '/job:localhost/replica:0/task:0/device:GPU:1').
+INFO:tensorflow:Reduce to /job:localhost/replica:0/task:0/device:GPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:GPU:0', '/job:localhost/replica:0/task:0/device:GPU:1').
+I1108 10:43:49.512492 140292175578880 cross_device_ops.py:563] Reduce to /job:localhost/replica:0/task:0/device:GPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:GPU:0', '/job:localhost/replica:0/task:0/device:GPU:1').
+INFO:tensorflow:Reduce to /job:localhost/replica:0/task:0/device:GPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:GPU:0', '/job:localhost/replica:0/task:0/device:GPU:1').
+I1108 10:43:49.841264 140292175578880 cross_device_ops.py:563] Reduce to /job:localhost/replica:0/task:0/device:GPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:GPU:0', '/job:localhost/replica:0/task:0/device:GPU:1').
+INFO:tensorflow:Reduce to /job:localhost/replica:0/task:0/device:GPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:GPU:0', '/job:localhost/replica:0/task:0/device:GPU:1').
+I1108 10:43:49.853212 140292175578880 cross_device_ops.py:563] Reduce to /job:localhost/replica:0/task:0/device:GPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:GPU:0', '/job:localhost/replica:0/task:0/device:GPU:1').
+INFO:tensorflow:Reduce to /job:localhost/replica:0/task:0/device:GPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:GPU:0', '/job:localhost/replica:0/task:0/device:GPU:1').
+I1108 10:43:49.866796 140292175578880 cross_device_ops.py:563] Reduce to /job:localhost/replica:0/task:0/device:GPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:GPU:0', '/job:localhost/replica:0/task:0/device:GPU:1').
+INFO:tensorflow:Reduce to /job:localhost/replica:0/task:0/device:GPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:GPU:0', '/job:localhost/replica:0/task:0/device:GPU:1').
+I1108 10:43:50.476027 140292175578880 cross_device_ops.py:563] Reduce to /job:localhost/replica:0/task:0/device:GPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:GPU:0', '/job:localhost/replica:0/task:0/device:GPU:1').
+INFO:tensorflow:Reduce to /job:localhost/replica:0/task:0/device:GPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:GPU:0', '/job:localhost/replica:0/task:0/device:GPU:1').
+I1108 10:43:50.487107 140292175578880 cross_device_ops.py:563] Reduce to /job:localhost/replica:0/task:0/device:GPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:GPU:0', '/job:localhost/replica:0/task:0/device:GPU:1').
+INFO:tensorflow:Reduce to /job:localhost/replica:0/task:0/device:GPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:GPU:0', '/job:localhost/replica:0/task:0/device:GPU:1').
+I1108 10:43:50.499507 140292175578880 cross_device_ops.py:563] Reduce to /job:localhost/replica:0/task:0/device:GPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:GPU:0', '/job:localhost/replica:0/task:0/device:GPU:1').
+INFO:tensorflow:Reduce to /job:localhost/replica:0/task:0/device:GPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:GPU:0', '/job:localhost/replica:0/task:0/device:GPU:1').
+I1108 10:43:50.677175 140292175578880 cross_device_ops.py:563] Reduce to /job:localhost/replica:0/task:0/device:GPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:GPU:0', '/job:localhost/replica:0/task:0/device:GPU:1').
+WARNING:tensorflow:AutoGraph could not transform <bound method ProjectionHead.call of <model.ProjectionHead object at 0x7f965850f5e0>> and will run it as-is.
+Please report this to the TensorFlow team. When filing the bug, set the verbosity to 10 (on Linux, `export AUTOGRAPH_VERBOSITY=10`) and attach the full output.
+Cause: module 'gast' has no attribute 'Index'
+To silence this warning, decorate the function with @tf.autograph.experimental.do_not_convert
+W1108 10:44:51.090283 140257810945792 ag_logging.py:146] AutoGraph could not transform <bound method ProjectionHead.call of <model.ProjectionHead object at 0x7f965850f5e0>> and will run it as-is.
+Please report this to the TensorFlow team. When filing the bug, set the verbosity to 10 (on Linux, `export AUTOGRAPH_VERBOSITY=10`) and attach the full output.
+Cause: module 'gast' has no attribute 'Index'
+To silence this warning, decorate the function with @tf.autograph.experimental.do_not_convert
+I1108 10:46:02.428601 140257810945792 run_single_machine.py:740] Trainable variables:
+I1108 10:46:02.433102 140257810945792 run_single_machine.py:743] resnet/conv2d_fixed_padding/conv2d/kernel:0
+I1108 10:46:02.433293 140257810945792 run_single_machine.py:743] resnet/batch_norm_relu/sync_batch_normalization/gamma:0
+I1108 10:46:02.433403 140257810945792 run_single_machine.py:743] resnet/batch_norm_relu/sync_batch_normalization/beta:0
+I1108 10:46:02.433470 140257810945792 run_single_machine.py:743] resnet/block_group1/bottleneck_block/conv2d_fixed_padding_1/conv2d_1/kernel:0
+I1108 10:46:02.433617 140257810945792 run_single_machine.py:743] resnet/block_group1/bottleneck_block/batch_norm_relu_1/sync_batch_normalization_1/gamma:0
+I1108 10:46:02.433700 140257810945792 run_single_machine.py:743] resnet/block_group1/bottleneck_block/batch_norm_relu_1/sync_batch_normalization_1/beta:0
+I1108 10:46:02.433801 140257810945792 run_single_machine.py:743] resnet/block_group1/bottleneck_block/conv2d_fixed_padding_2/conv2d_2/kernel:0
+I1108 10:46:02.433863 140257810945792 run_single_machine.py:743] resnet/block_group1/bottleneck_block/batch_norm_relu_2/sync_batch_normalization_2/gamma:0
+I1108 10:46:02.433941 140257810945792 run_single_machine.py:743] resnet/block_group1/bottleneck_block/batch_norm_relu_2/sync_batch_normalization_2/beta:0
+I1108 10:46:02.434046 140257810945792 run_single_machine.py:743] resnet/block_group1/bottleneck_block/conv2d_fixed_padding_3/conv2d_3/kernel:0
+I1108 10:46:02.434123 140257810945792 run_single_machine.py:743] resnet/block_group1/bottleneck_block/batch_norm_relu_3/sync_batch_normalization_3/gamma:0
+I1108 10:46:02.434217 140257810945792 run_single_machine.py:743] resnet/block_group1/bottleneck_block/batch_norm_relu_3/sync_batch_normalization_3/beta:0
+I1108 10:46:02.434287 140257810945792 run_single_machine.py:743] resnet/block_group1/bottleneck_block/conv2d_fixed_padding_4/conv2d_4/kernel:0
+I1108 10:46:02.434344 140257810945792 run_single_machine.py:743] resnet/block_group1/bottleneck_block/batch_norm_relu_4/sync_batch_normalization_4/gamma:0
+I1108 10:46:02.434399 140257810945792 run_single_machine.py:743] resnet/block_group1/bottleneck_block/batch_norm_relu_4/sync_batch_normalization_4/beta:0
+I1108 10:46:02.434451 140257810945792 run_single_machine.py:743] resnet/block_group1/bottleneck_block_1/conv2d_fixed_padding_5/conv2d_5/kernel:0
+I1108 10:46:02.434528 140257810945792 run_single_machine.py:743] resnet/block_group1/bottleneck_block_1/batch_norm_relu_5/sync_batch_normalization_5/gamma:0
+I1108 10:46:02.434596 140257810945792 run_single_machine.py:743] resnet/block_group1/bottleneck_block_1/batch_norm_relu_5/sync_batch_normalization_5/beta:0
+I1108 10:46:02.434652 140257810945792 run_single_machine.py:743] resnet/block_group1/bottleneck_block_1/conv2d_fixed_padding_6/conv2d_6/kernel:0
+I1108 10:46:02.434727 140257810945792 run_single_machine.py:743] resnet/block_group1/bottleneck_block_1/batch_norm_relu_6/sync_batch_normalization_6/gamma:0
+I1108 10:46:02.434791 140257810945792 run_single_machine.py:743] resnet/block_group1/bottleneck_block_1/batch_norm_relu_6/sync_batch_normalization_6/beta:0
+I1108 10:46:02.434882 140257810945792 run_single_machine.py:743] resnet/block_group1/bottleneck_block_1/conv2d_fixed_padding_7/conv2d_7/kernel:0
+I1108 10:46:02.434949 140257810945792 run_single_machine.py:743] resnet/block_group1/bottleneck_block_1/batch_norm_relu_7/sync_batch_normalization_7/gamma:0
+I1108 10:46:02.435025 140257810945792 run_single_machine.py:743] resnet/block_group1/bottleneck_block_1/batch_norm_relu_7/sync_batch_normalization_7/beta:0
+I1108 10:46:02.435105 140257810945792 run_single_machine.py:743] resnet/block_group1/bottleneck_block_2/conv2d_fixed_padding_8/conv2d_8/kernel:0
+I1108 10:46:02.435186 140257810945792 run_single_machine.py:743] resnet/block_group1/bottleneck_block_2/batch_norm_relu_8/sync_batch_normalization_8/gamma:0
+I1108 10:46:02.435253 140257810945792 run_single_machine.py:743] resnet/block_group1/bottleneck_block_2/batch_norm_relu_8/sync_batch_normalization_8/beta:0
+I1108 10:46:02.435330 140257810945792 run_single_machine.py:743] resnet/block_group1/bottleneck_block_2/conv2d_fixed_padding_9/conv2d_9/kernel:0
+I1108 10:46:02.435395 140257810945792 run_single_machine.py:743] resnet/block_group1/bottleneck_block_2/batch_norm_relu_9/sync_batch_normalization_9/gamma:0
+I1108 10:46:02.435474 140257810945792 run_single_machine.py:743] resnet/block_group1/bottleneck_block_2/batch_norm_relu_9/sync_batch_normalization_9/beta:0
+I1108 10:46:02.435537 140257810945792 run_single_machine.py:743] resnet/block_group1/bottleneck_block_2/conv2d_fixed_padding_10/conv2d_10/kernel:0
+I1108 10:46:02.435617 140257810945792 run_single_machine.py:743] resnet/block_group1/bottleneck_block_2/batch_norm_relu_10/sync_batch_normalization_10/gamma:0
+I1108 10:46:02.435694 140257810945792 run_single_machine.py:743] resnet/block_group1/bottleneck_block_2/batch_norm_relu_10/sync_batch_normalization_10/beta:0
+I1108 10:46:02.435774 140257810945792 run_single_machine.py:743] resnet/block_group2/bottleneck_block_3/conv2d_fixed_padding_11/conv2d_11/kernel:0
+I1108 10:46:02.435856 140257810945792 run_single_machine.py:743] resnet/block_group2/bottleneck_block_3/batch_norm_relu_11/sync_batch_normalization_11/gamma:0
+I1108 10:46:02.435925 140257810945792 run_single_machine.py:743] resnet/block_group2/bottleneck_block_3/batch_norm_relu_11/sync_batch_normalization_11/beta:0
+I1108 10:46:02.435989 140257810945792 run_single_machine.py:743] resnet/block_group2/bottleneck_block_3/conv2d_fixed_padding_12/conv2d_12/kernel:0
+I1108 10:46:02.436067 140257810945792 run_single_machine.py:743] resnet/block_group2/bottleneck_block_3/batch_norm_relu_12/sync_batch_normalization_12/gamma:0
+I1108 10:46:02.436133 140257810945792 run_single_machine.py:743] resnet/block_group2/bottleneck_block_3/batch_norm_relu_12/sync_batch_normalization_12/beta:0
+I1108 10:46:02.436205 140257810945792 run_single_machine.py:743] resnet/block_group2/bottleneck_block_3/conv2d_fixed_padding_13/conv2d_13/kernel:0
+I1108 10:46:02.436270 140257810945792 run_single_machine.py:743] resnet/block_group2/bottleneck_block_3/batch_norm_relu_13/sync_batch_normalization_13/gamma:0
+I1108 10:46:02.436342 140257810945792 run_single_machine.py:743] resnet/block_group2/bottleneck_block_3/batch_norm_relu_13/sync_batch_normalization_13/beta:0
+I1108 10:46:02.436405 140257810945792 run_single_machine.py:743] resnet/block_group2/bottleneck_block_3/conv2d_fixed_padding_14/conv2d_14/kernel:0
+I1108 10:46:02.436480 140257810945792 run_single_machine.py:743] resnet/block_group2/bottleneck_block_3/batch_norm_relu_14/sync_batch_normalization_14/gamma:0
+I1108 10:46:02.436561 140257810945792 run_single_machine.py:743] resnet/block_group2/bottleneck_block_3/batch_norm_relu_14/sync_batch_normalization_14/beta:0
+I1108 10:46:02.436638 140257810945792 run_single_machine.py:743] resnet/block_group2/bottleneck_block_4/conv2d_fixed_padding_15/conv2d_15/kernel:0
+I1108 10:46:02.436713 140257810945792 run_single_machine.py:743] resnet/block_group2/bottleneck_block_4/batch_norm_relu_15/sync_batch_normalization_15/gamma:0
+I1108 10:46:02.436787 140257810945792 run_single_machine.py:743] resnet/block_group2/bottleneck_block_4/batch_norm_relu_15/sync_batch_normalization_15/beta:0
+I1108 10:46:02.436861 140257810945792 run_single_machine.py:743] resnet/block_group2/bottleneck_block_4/conv2d_fixed_padding_16/conv2d_16/kernel:0
+I1108 10:46:02.436919 140257810945792 run_single_machine.py:743] resnet/block_group2/bottleneck_block_4/batch_norm_relu_16/sync_batch_normalization_16/gamma:0
+I1108 10:46:02.436973 140257810945792 run_single_machine.py:743] resnet/block_group2/bottleneck_block_4/batch_norm_relu_16/sync_batch_normalization_16/beta:0
+I1108 10:46:02.437026 140257810945792 run_single_machine.py:743] resnet/block_group2/bottleneck_block_4/conv2d_fixed_padding_17/conv2d_17/kernel:0
+I1108 10:46:02.437102 140257810945792 run_single_machine.py:743] resnet/block_group2/bottleneck_block_4/batch_norm_relu_17/sync_batch_normalization_17/gamma:0
+I1108 10:46:02.437168 140257810945792 run_single_machine.py:743] resnet/block_group2/bottleneck_block_4/batch_norm_relu_17/sync_batch_normalization_17/beta:0
+I1108 10:46:02.437240 140257810945792 run_single_machine.py:743] resnet/block_group2/bottleneck_block_5/conv2d_fixed_padding_18/conv2d_18/kernel:0
+I1108 10:46:02.437305 140257810945792 run_single_machine.py:743] resnet/block_group2/bottleneck_block_5/batch_norm_relu_18/sync_batch_normalization_18/gamma:0
+I1108 10:46:02.437384 140257810945792 run_single_machine.py:743] resnet/block_group2/bottleneck_block_5/batch_norm_relu_18/sync_batch_normalization_18/beta:0
+I1108 10:46:02.437473 140257810945792 run_single_machine.py:743] resnet/block_group2/bottleneck_block_5/conv2d_fixed_padding_19/conv2d_19/kernel:0
+I1108 10:46:02.437544 140257810945792 run_single_machine.py:743] resnet/block_group2/bottleneck_block_5/batch_norm_relu_19/sync_batch_normalization_19/gamma:0
+I1108 10:46:02.437614 140257810945792 run_single_machine.py:743] resnet/block_group2/bottleneck_block_5/batch_norm_relu_19/sync_batch_normalization_19/beta:0
+I1108 10:46:02.437690 140257810945792 run_single_machine.py:743] resnet/block_group2/bottleneck_block_5/conv2d_fixed_padding_20/conv2d_20/kernel:0
+I1108 10:46:02.437765 140257810945792 run_single_machine.py:743] resnet/block_group2/bottleneck_block_5/batch_norm_relu_20/sync_batch_normalization_20/gamma:0
+I1108 10:46:02.437840 140257810945792 run_single_machine.py:743] resnet/block_group2/bottleneck_block_5/batch_norm_relu_20/sync_batch_normalization_20/beta:0
+I1108 10:46:02.437915 140257810945792 run_single_machine.py:743] resnet/block_group2/bottleneck_block_6/conv2d_fixed_padding_21/conv2d_21/kernel:0
+I1108 10:46:02.437989 140257810945792 run_single_machine.py:743] resnet/block_group2/bottleneck_block_6/batch_norm_relu_21/sync_batch_normalization_21/gamma:0
+I1108 10:46:02.438064 140257810945792 run_single_machine.py:743] resnet/block_group2/bottleneck_block_6/batch_norm_relu_21/sync_batch_normalization_21/beta:0
+I1108 10:46:02.438139 140257810945792 run_single_machine.py:743] resnet/block_group2/bottleneck_block_6/conv2d_fixed_padding_22/conv2d_22/kernel:0
+I1108 10:46:02.438214 140257810945792 run_single_machine.py:743] resnet/block_group2/bottleneck_block_6/batch_norm_relu_22/sync_batch_normalization_22/gamma:0
+I1108 10:46:02.438288 140257810945792 run_single_machine.py:743] resnet/block_group2/bottleneck_block_6/batch_norm_relu_22/sync_batch_normalization_22/beta:0
+I1108 10:46:02.438363 140257810945792 run_single_machine.py:743] resnet/block_group2/bottleneck_block_6/conv2d_fixed_padding_23/conv2d_23/kernel:0
+I1108 10:46:02.438437 140257810945792 run_single_machine.py:743] resnet/block_group2/bottleneck_block_6/batch_norm_relu_23/sync_batch_normalization_23/gamma:0
+I1108 10:46:02.438512 140257810945792 run_single_machine.py:743] resnet/block_group2/bottleneck_block_6/batch_norm_relu_23/sync_batch_normalization_23/beta:0
+I1108 10:46:02.438587 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_7/conv2d_fixed_padding_24/conv2d_24/kernel:0
+I1108 10:46:02.438662 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_7/batch_norm_relu_24/sync_batch_normalization_24/gamma:0
+I1108 10:46:02.438736 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_7/batch_norm_relu_24/sync_batch_normalization_24/beta:0
+I1108 10:46:02.438810 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_7/conv2d_fixed_padding_25/conv2d_25/kernel:0
+I1108 10:46:02.438885 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_7/batch_norm_relu_25/sync_batch_normalization_25/gamma:0
+I1108 10:46:02.438954 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_7/batch_norm_relu_25/sync_batch_normalization_25/beta:0
+I1108 10:46:02.439047 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_7/conv2d_fixed_padding_26/conv2d_26/kernel:0
+I1108 10:46:02.439129 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_7/batch_norm_relu_26/sync_batch_normalization_26/gamma:0
+I1108 10:46:02.439199 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_7/batch_norm_relu_26/sync_batch_normalization_26/beta:0
+I1108 10:46:02.439277 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_7/conv2d_fixed_padding_27/conv2d_27/kernel:0
+I1108 10:46:02.439348 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_7/batch_norm_relu_27/sync_batch_normalization_27/gamma:0
+I1108 10:46:02.439438 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_7/batch_norm_relu_27/sync_batch_normalization_27/beta:0
+I1108 10:46:02.439513 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_8/conv2d_fixed_padding_28/conv2d_28/kernel:0
+I1108 10:46:02.439591 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_8/batch_norm_relu_28/sync_batch_normalization_28/gamma:0
+I1108 10:46:02.439671 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_8/batch_norm_relu_28/sync_batch_normalization_28/beta:0
+I1108 10:46:02.439749 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_8/conv2d_fixed_padding_29/conv2d_29/kernel:0
+I1108 10:46:02.439824 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_8/batch_norm_relu_29/sync_batch_normalization_29/gamma:0
+I1108 10:46:02.439899 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_8/batch_norm_relu_29/sync_batch_normalization_29/beta:0
+I1108 10:46:02.439974 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_8/conv2d_fixed_padding_30/conv2d_30/kernel:0
+I1108 10:46:02.440049 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_8/batch_norm_relu_30/sync_batch_normalization_30/gamma:0
+I1108 10:46:02.440142 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_8/batch_norm_relu_30/sync_batch_normalization_30/beta:0
+I1108 10:46:02.440222 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_9/conv2d_fixed_padding_31/conv2d_31/kernel:0
+I1108 10:46:02.440281 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_9/batch_norm_relu_31/sync_batch_normalization_31/gamma:0
+I1108 10:46:02.440357 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_9/batch_norm_relu_31/sync_batch_normalization_31/beta:0
+I1108 10:46:02.440434 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_9/conv2d_fixed_padding_32/conv2d_32/kernel:0
+I1108 10:46:02.440510 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_9/batch_norm_relu_32/sync_batch_normalization_32/gamma:0
+I1108 10:46:02.440582 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_9/batch_norm_relu_32/sync_batch_normalization_32/beta:0
+I1108 10:46:02.440652 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_9/conv2d_fixed_padding_33/conv2d_33/kernel:0
+I1108 10:46:02.440725 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_9/batch_norm_relu_33/sync_batch_normalization_33/gamma:0
+I1108 10:46:02.440802 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_9/batch_norm_relu_33/sync_batch_normalization_33/beta:0
+I1108 10:46:02.440873 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_10/conv2d_fixed_padding_34/conv2d_34/kernel:0
+I1108 10:46:02.440944 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_10/batch_norm_relu_34/sync_batch_normalization_34/gamma:0
+I1108 10:46:02.441024 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_10/batch_norm_relu_34/sync_batch_normalization_34/beta:0
+I1108 10:46:02.441097 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_10/conv2d_fixed_padding_35/conv2d_35/kernel:0
+I1108 10:46:02.441163 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_10/batch_norm_relu_35/sync_batch_normalization_35/gamma:0
+I1108 10:46:02.441247 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_10/batch_norm_relu_35/sync_batch_normalization_35/beta:0
+I1108 10:46:02.441339 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_10/conv2d_fixed_padding_36/conv2d_36/kernel:0
+I1108 10:46:02.441420 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_10/batch_norm_relu_36/sync_batch_normalization_36/gamma:0
+I1108 10:46:02.441500 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_10/batch_norm_relu_36/sync_batch_normalization_36/beta:0
+I1108 10:46:02.441581 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_11/conv2d_fixed_padding_37/conv2d_37/kernel:0
+I1108 10:46:02.441637 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_11/batch_norm_relu_37/sync_batch_normalization_37/gamma:0
+I1108 10:46:02.441692 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_11/batch_norm_relu_37/sync_batch_normalization_37/beta:0
+I1108 10:46:02.441746 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_11/conv2d_fixed_padding_38/conv2d_38/kernel:0
+I1108 10:46:02.441820 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_11/batch_norm_relu_38/sync_batch_normalization_38/gamma:0
+I1108 10:46:02.441917 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_11/batch_norm_relu_38/sync_batch_normalization_38/beta:0
+I1108 10:46:02.441991 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_11/conv2d_fixed_padding_39/conv2d_39/kernel:0
+I1108 10:46:02.442056 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_11/batch_norm_relu_39/sync_batch_normalization_39/gamma:0
+I1108 10:46:02.442136 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_11/batch_norm_relu_39/sync_batch_normalization_39/beta:0
+I1108 10:46:02.442214 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_12/conv2d_fixed_padding_40/conv2d_40/kernel:0
+I1108 10:46:02.442279 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_12/batch_norm_relu_40/sync_batch_normalization_40/gamma:0
+I1108 10:46:02.442358 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_12/batch_norm_relu_40/sync_batch_normalization_40/beta:0
+I1108 10:46:02.442452 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_12/conv2d_fixed_padding_41/conv2d_41/kernel:0
+I1108 10:46:02.442527 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_12/batch_norm_relu_41/sync_batch_normalization_41/gamma:0
+I1108 10:46:02.442596 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_12/batch_norm_relu_41/sync_batch_normalization_41/beta:0
+I1108 10:46:02.442660 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_12/conv2d_fixed_padding_42/conv2d_42/kernel:0
+I1108 10:46:02.442737 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_12/batch_norm_relu_42/sync_batch_normalization_42/gamma:0
+I1108 10:46:02.442811 140257810945792 run_single_machine.py:743] resnet/block_group3/bottleneck_block_12/batch_norm_relu_42/sync_batch_normalization_42/beta:0
+I1108 10:46:02.442876 140257810945792 run_single_machine.py:743] resnet/block_group4/bottleneck_block_13/conv2d_fixed_padding_43/conv2d_43/kernel:0
+I1108 10:46:02.442954 140257810945792 run_single_machine.py:743] resnet/block_group4/bottleneck_block_13/batch_norm_relu_43/sync_batch_normalization_43/gamma:0
+I1108 10:46:02.443027 140257810945792 run_single_machine.py:743] resnet/block_group4/bottleneck_block_13/batch_norm_relu_43/sync_batch_normalization_43/beta:0
+I1108 10:46:02.443105 140257810945792 run_single_machine.py:743] resnet/block_group4/bottleneck_block_13/conv2d_fixed_padding_44/conv2d_44/kernel:0
+I1108 10:46:02.443182 140257810945792 run_single_machine.py:743] resnet/block_group4/bottleneck_block_13/batch_norm_relu_44/sync_batch_normalization_44/gamma:0
+I1108 10:46:02.443260 140257810945792 run_single_machine.py:743] resnet/block_group4/bottleneck_block_13/batch_norm_relu_44/sync_batch_normalization_44/beta:0
+I1108 10:46:02.443331 140257810945792 run_single_machine.py:743] resnet/block_group4/bottleneck_block_13/conv2d_fixed_padding_45/conv2d_45/kernel:0
+I1108 10:46:02.443385 140257810945792 run_single_machine.py:743] resnet/block_group4/bottleneck_block_13/batch_norm_relu_45/sync_batch_normalization_45/gamma:0
+I1108 10:46:02.443450 140257810945792 run_single_machine.py:743] resnet/block_group4/bottleneck_block_13/batch_norm_relu_45/sync_batch_normalization_45/beta:0
+I1108 10:46:02.443523 140257810945792 run_single_machine.py:743] resnet/block_group4/bottleneck_block_13/conv2d_fixed_padding_46/conv2d_46/kernel:0
+I1108 10:46:02.443587 140257810945792 run_single_machine.py:743] resnet/block_group4/bottleneck_block_13/batch_norm_relu_46/sync_batch_normalization_46/gamma:0
+I1108 10:46:02.443658 140257810945792 run_single_machine.py:743] resnet/block_group4/bottleneck_block_13/batch_norm_relu_46/sync_batch_normalization_46/beta:0
+I1108 10:46:02.443729 140257810945792 run_single_machine.py:743] resnet/block_group4/bottleneck_block_14/conv2d_fixed_padding_47/conv2d_47/kernel:0
+I1108 10:46:02.443802 140257810945792 run_single_machine.py:743] resnet/block_group4/bottleneck_block_14/batch_norm_relu_47/sync_batch_normalization_47/gamma:0
+I1108 10:46:02.443865 140257810945792 run_single_machine.py:743] resnet/block_group4/bottleneck_block_14/batch_norm_relu_47/sync_batch_normalization_47/beta:0
+I1108 10:46:02.443950 140257810945792 run_single_machine.py:743] resnet/block_group4/bottleneck_block_14/conv2d_fixed_padding_48/conv2d_48/kernel:0
+I1108 10:46:02.444026 140257810945792 run_single_machine.py:743] resnet/block_group4/bottleneck_block_14/batch_norm_relu_48/sync_batch_normalization_48/gamma:0
+I1108 10:46:02.444098 140257810945792 run_single_machine.py:743] resnet/block_group4/bottleneck_block_14/batch_norm_relu_48/sync_batch_normalization_48/beta:0
+I1108 10:46:02.444164 140257810945792 run_single_machine.py:743] resnet/block_group4/bottleneck_block_14/conv2d_fixed_padding_49/conv2d_49/kernel:0
+I1108 10:46:02.444220 140257810945792 run_single_machine.py:743] resnet/block_group4/bottleneck_block_14/batch_norm_relu_49/sync_batch_normalization_49/gamma:0
+I1108 10:46:02.444297 140257810945792 run_single_machine.py:743] resnet/block_group4/bottleneck_block_14/batch_norm_relu_49/sync_batch_normalization_49/beta:0
+I1108 10:46:02.444365 140257810945792 run_single_machine.py:743] resnet/block_group4/bottleneck_block_15/conv2d_fixed_padding_50/conv2d_50/kernel:0
+I1108 10:46:02.444458 140257810945792 run_single_machine.py:743] resnet/block_group4/bottleneck_block_15/batch_norm_relu_50/sync_batch_normalization_50/gamma:0
+I1108 10:46:02.444523 140257810945792 run_single_machine.py:743] resnet/block_group4/bottleneck_block_15/batch_norm_relu_50/sync_batch_normalization_50/beta:0
+I1108 10:46:02.444594 140257810945792 run_single_machine.py:743] resnet/block_group4/bottleneck_block_15/conv2d_fixed_padding_51/conv2d_51/kernel:0
+I1108 10:46:02.444658 140257810945792 run_single_machine.py:743] resnet/block_group4/bottleneck_block_15/batch_norm_relu_51/sync_batch_normalization_51/gamma:0
+I1108 10:46:02.444736 140257810945792 run_single_machine.py:743] resnet/block_group4/bottleneck_block_15/batch_norm_relu_51/sync_batch_normalization_51/beta:0
+I1108 10:46:02.444809 140257810945792 run_single_machine.py:743] resnet/block_group4/bottleneck_block_15/conv2d_fixed_padding_52/conv2d_52/kernel:0
+I1108 10:46:02.444874 140257810945792 run_single_machine.py:743] resnet/block_group4/bottleneck_block_15/batch_norm_relu_52/sync_batch_normalization_52/gamma:0
+I1108 10:46:02.444947 140257810945792 run_single_machine.py:743] resnet/block_group4/bottleneck_block_15/batch_norm_relu_52/sync_batch_normalization_52/beta:0
+I1108 10:46:02.445011 140257810945792 run_single_machine.py:743] projection_head/nl_0/batch_norm_relu_53/sync_batch_normalization_53/gamma:0
+I1108 10:46:02.445089 140257810945792 run_single_machine.py:743] projection_head/nl_0/batch_norm_relu_53/sync_batch_normalization_53/beta:0
+I1108 10:46:02.445162 140257810945792 run_single_machine.py:743] projection_head/nl_0/dense/kernel:0
+I1108 10:46:02.445226 140257810945792 run_single_machine.py:743] projection_head/nl_1/batch_norm_relu_54/sync_batch_normalization_54/gamma:0
+I1108 10:46:02.445304 140257810945792 run_single_machine.py:743] projection_head/nl_1/batch_norm_relu_54/sync_batch_normalization_54/beta:0
+I1108 10:46:02.445382 140257810945792 run_single_machine.py:743] projection_head/nl_1/dense_1/kernel:0
+I1108 10:46:02.445460 140257810945792 run_single_machine.py:743] projection_head/nl_2/batch_norm_relu_55/sync_batch_normalization_55/gamma:0
+I1108 10:46:02.445538 140257810945792 run_single_machine.py:743] projection_head/nl_2/dense_2/kernel:0
+I1108 10:46:02.445615 140257810945792 run_single_machine.py:743] head_supervised/linear_layer/dense_3/kernel:0
+I1108 10:46:02.445688 140257810945792 run_single_machine.py:743] head_supervised/linear_layer/dense_3/bias:0
+I1108 10:46:03.353702 140256787560192 run_single_machine.py:740] Trainable variables:
+I1108 10:46:03.359238 140256787560192 run_single_machine.py:743] resnet/conv2d_fixed_padding/conv2d/kernel:0
+I1108 10:46:03.359451 140256787560192 run_single_machine.py:743] resnet/batch_norm_relu/sync_batch_normalization/gamma:0
+I1108 10:46:03.359591 140256787560192 run_single_machine.py:743] resnet/batch_norm_relu/sync_batch_normalization/beta:0
+I1108 10:46:03.359689 140256787560192 run_single_machine.py:743] resnet/block_group1/bottleneck_block/conv2d_fixed_padding_1/conv2d_1/kernel:0
+I1108 10:46:03.359768 140256787560192 run_single_machine.py:743] resnet/block_group1/bottleneck_block/batch_norm_relu_1/sync_batch_normalization_1/gamma:0
+I1108 10:46:03.359842 140256787560192 run_single_machine.py:743] resnet/block_group1/bottleneck_block/batch_norm_relu_1/sync_batch_normalization_1/beta:0
+I1108 10:46:03.359913 140256787560192 run_single_machine.py:743] resnet/block_group1/bottleneck_block/conv2d_fixed_padding_2/conv2d_2/kernel:0
+I1108 10:46:03.359994 140256787560192 run_single_machine.py:743] resnet/block_group1/bottleneck_block/batch_norm_relu_2/sync_batch_normalization_2/gamma:0
+I1108 10:46:03.360118 140256787560192 run_single_machine.py:743] resnet/block_group1/bottleneck_block/batch_norm_relu_2/sync_batch_normalization_2/beta:0
+I1108 10:46:03.360230 140256787560192 run_single_machine.py:743] resnet/block_group1/bottleneck_block/conv2d_fixed_padding_3/conv2d_3/kernel:0
+I1108 10:46:03.360363 140256787560192 run_single_machine.py:743] resnet/block_group1/bottleneck_block/batch_norm_relu_3/sync_batch_normalization_3/gamma:0
+I1108 10:46:03.360456 140256787560192 run_single_machine.py:743] resnet/block_group1/bottleneck_block/batch_norm_relu_3/sync_batch_normalization_3/beta:0
+I1108 10:46:03.360558 140256787560192 run_single_machine.py:743] resnet/block_group1/bottleneck_block/conv2d_fixed_padding_4/conv2d_4/kernel:0
+I1108 10:46:03.360631 140256787560192 run_single_machine.py:743] resnet/block_group1/bottleneck_block/batch_norm_relu_4/sync_batch_normalization_4/gamma:0
+I1108 10:46:03.360703 140256787560192 run_single_machine.py:743] resnet/block_group1/bottleneck_block/batch_norm_relu_4/sync_batch_normalization_4/beta:0
+I1108 10:46:03.360784 140256787560192 run_single_machine.py:743] resnet/block_group1/bottleneck_block_1/conv2d_fixed_padding_5/conv2d_5/kernel:0
+I1108 10:46:03.360853 140256787560192 run_single_machine.py:743] resnet/block_group1/bottleneck_block_1/batch_norm_relu_5/sync_batch_normalization_5/gamma:0
+I1108 10:46:03.360950 140256787560192 run_single_machine.py:743] resnet/block_group1/bottleneck_block_1/batch_norm_relu_5/sync_batch_normalization_5/beta:0
+I1108 10:46:03.361022 140256787560192 run_single_machine.py:743] resnet/block_group1/bottleneck_block_1/conv2d_fixed_padding_6/conv2d_6/kernel:0
+I1108 10:46:03.361093 140256787560192 run_single_machine.py:743] resnet/block_group1/bottleneck_block_1/batch_norm_relu_6/sync_batch_normalization_6/gamma:0
+I1108 10:46:03.361191 140256787560192 run_single_machine.py:743] resnet/block_group1/bottleneck_block_1/batch_norm_relu_6/sync_batch_normalization_6/beta:0
+I1108 10:46:03.361264 140256787560192 run_single_machine.py:743] resnet/block_group1/bottleneck_block_1/conv2d_fixed_padding_7/conv2d_7/kernel:0
+I1108 10:46:03.361346 140256787560192 run_single_machine.py:743] resnet/block_group1/bottleneck_block_1/batch_norm_relu_7/sync_batch_normalization_7/gamma:0
+I1108 10:46:03.361440 140256787560192 run_single_machine.py:743] resnet/block_group1/bottleneck_block_1/batch_norm_relu_7/sync_batch_normalization_7/beta:0
+I1108 10:46:03.361542 140256787560192 run_single_machine.py:743] resnet/block_group1/bottleneck_block_2/conv2d_fixed_padding_8/conv2d_8/kernel:0
+I1108 10:46:03.361632 140256787560192 run_single_machine.py:743] resnet/block_group1/bottleneck_block_2/batch_norm_relu_8/sync_batch_normalization_8/gamma:0
+I1108 10:46:03.361714 140256787560192 run_single_machine.py:743] resnet/block_group1/bottleneck_block_2/batch_norm_relu_8/sync_batch_normalization_8/beta:0
+I1108 10:46:03.361823 140256787560192 run_single_machine.py:743] resnet/block_group1/bottleneck_block_2/conv2d_fixed_padding_9/conv2d_9/kernel:0
+I1108 10:46:03.361912 140256787560192 run_single_machine.py:743] resnet/block_group1/bottleneck_block_2/batch_norm_relu_9/sync_batch_normalization_9/gamma:0
+I1108 10:46:03.361994 140256787560192 run_single_machine.py:743] resnet/block_group1/bottleneck_block_2/batch_norm_relu_9/sync_batch_normalization_9/beta:0
+I1108 10:46:03.362083 140256787560192 run_single_machine.py:743] resnet/block_group1/bottleneck_block_2/conv2d_fixed_padding_10/conv2d_10/kernel:0
+I1108 10:46:03.362165 140256787560192 run_single_machine.py:743] resnet/block_group1/bottleneck_block_2/batch_norm_relu_10/sync_batch_normalization_10/gamma:0
+I1108 10:46:03.362263 140256787560192 run_single_machine.py:743] resnet/block_group1/bottleneck_block_2/batch_norm_relu_10/sync_batch_normalization_10/beta:0
+I1108 10:46:03.362364 140256787560192 run_single_machine.py:743] resnet/block_group2/bottleneck_block_3/conv2d_fixed_padding_11/conv2d_11/kernel:0
+I1108 10:46:03.362463 140256787560192 run_single_machine.py:743] resnet/block_group2/bottleneck_block_3/batch_norm_relu_11/sync_batch_normalization_11/gamma:0
+I1108 10:46:03.362563 140256787560192 run_single_machine.py:743] resnet/block_group2/bottleneck_block_3/batch_norm_relu_11/sync_batch_normalization_11/beta:0
+I1108 10:46:03.362663 140256787560192 run_single_machine.py:743] resnet/block_group2/bottleneck_block_3/conv2d_fixed_padding_12/conv2d_12/kernel:0
+I1108 10:46:03.362762 140256787560192 run_single_machine.py:743] resnet/block_group2/bottleneck_block_3/batch_norm_relu_12/sync_batch_normalization_12/gamma:0
+I1108 10:46:03.362860 140256787560192 run_single_machine.py:743] resnet/block_group2/bottleneck_block_3/batch_norm_relu_12/sync_batch_normalization_12/beta:0
+I1108 10:46:03.362958 140256787560192 run_single_machine.py:743] resnet/block_group2/bottleneck_block_3/conv2d_fixed_padding_13/conv2d_13/kernel:0
+I1108 10:46:03.363057 140256787560192 run_single_machine.py:743] resnet/block_group2/bottleneck_block_3/batch_norm_relu_13/sync_batch_normalization_13/gamma:0
+I1108 10:46:03.363154 140256787560192 run_single_machine.py:743] resnet/block_group2/bottleneck_block_3/batch_norm_relu_13/sync_batch_normalization_13/beta:0
+I1108 10:46:03.363252 140256787560192 run_single_machine.py:743] resnet/block_group2/bottleneck_block_3/conv2d_fixed_padding_14/conv2d_14/kernel:0
+I1108 10:46:03.363351 140256787560192 run_single_machine.py:743] resnet/block_group2/bottleneck_block_3/batch_norm_relu_14/sync_batch_normalization_14/gamma:0
+I1108 10:46:03.363449 140256787560192 run_single_machine.py:743] resnet/block_group2/bottleneck_block_3/batch_norm_relu_14/sync_batch_normalization_14/beta:0
+I1108 10:46:03.363547 140256787560192 run_single_machine.py:743] resnet/block_group2/bottleneck_block_4/conv2d_fixed_padding_15/conv2d_15/kernel:0
+I1108 10:46:03.363646 140256787560192 run_single_machine.py:743] resnet/block_group2/bottleneck_block_4/batch_norm_relu_15/sync_batch_normalization_15/gamma:0
+I1108 10:46:03.363759 140256787560192 run_single_machine.py:743] resnet/block_group2/bottleneck_block_4/batch_norm_relu_15/sync_batch_normalization_15/beta:0
+I1108 10:46:03.363865 140256787560192 run_single_machine.py:743] resnet/block_group2/bottleneck_block_4/conv2d_fixed_padding_16/conv2d_16/kernel:0
+I1108 10:46:03.363960 140256787560192 run_single_machine.py:743] resnet/block_group2/bottleneck_block_4/batch_norm_relu_16/sync_batch_normalization_16/gamma:0
+I1108 10:46:03.364055 140256787560192 run_single_machine.py:743] resnet/block_group2/bottleneck_block_4/batch_norm_relu_16/sync_batch_normalization_16/beta:0
+I1108 10:46:03.364156 140256787560192 run_single_machine.py:743] resnet/block_group2/bottleneck_block_4/conv2d_fixed_padding_17/conv2d_17/kernel:0
+I1108 10:46:03.364251 140256787560192 run_single_machine.py:743] resnet/block_group2/bottleneck_block_4/batch_norm_relu_17/sync_batch_normalization_17/gamma:0
+I1108 10:46:03.364342 140256787560192 run_single_machine.py:743] resnet/block_group2/bottleneck_block_4/batch_norm_relu_17/sync_batch_normalization_17/beta:0
+I1108 10:46:03.364433 140256787560192 run_single_machine.py:743] resnet/block_group2/bottleneck_block_5/conv2d_fixed_padding_18/conv2d_18/kernel:0
+I1108 10:46:03.364520 140256787560192 run_single_machine.py:743] resnet/block_group2/bottleneck_block_5/batch_norm_relu_18/sync_batch_normalization_18/gamma:0
+I1108 10:46:03.364600 140256787560192 run_single_machine.py:743] resnet/block_group2/bottleneck_block_5/batch_norm_relu_18/sync_batch_normalization_18/beta:0
+I1108 10:46:03.364695 140256787560192 run_single_machine.py:743] resnet/block_group2/bottleneck_block_5/conv2d_fixed_padding_19/conv2d_19/kernel:0
+I1108 10:46:03.364791 140256787560192 run_single_machine.py:743] resnet/block_group2/bottleneck_block_5/batch_norm_relu_19/sync_batch_normalization_19/gamma:0
+I1108 10:46:03.364886 140256787560192 run_single_machine.py:743] resnet/block_group2/bottleneck_block_5/batch_norm_relu_19/sync_batch_normalization_19/beta:0
+I1108 10:46:03.364982 140256787560192 run_single_machine.py:743] resnet/block_group2/bottleneck_block_5/conv2d_fixed_padding_20/conv2d_20/kernel:0
+I1108 10:46:03.365078 140256787560192 run_single_machine.py:743] resnet/block_group2/bottleneck_block_5/batch_norm_relu_20/sync_batch_normalization_20/gamma:0
+I1108 10:46:03.365174 140256787560192 run_single_machine.py:743] resnet/block_group2/bottleneck_block_5/batch_norm_relu_20/sync_batch_normalization_20/beta:0
+I1108 10:46:03.365270 140256787560192 run_single_machine.py:743] resnet/block_group2/bottleneck_block_6/conv2d_fixed_padding_21/conv2d_21/kernel:0
+I1108 10:46:03.365365 140256787560192 run_single_machine.py:743] resnet/block_group2/bottleneck_block_6/batch_norm_relu_21/sync_batch_normalization_21/gamma:0
+I1108 10:46:03.365459 140256787560192 run_single_machine.py:743] resnet/block_group2/bottleneck_block_6/batch_norm_relu_21/sync_batch_normalization_21/beta:0
+I1108 10:46:03.365555 140256787560192 run_single_machine.py:743] resnet/block_group2/bottleneck_block_6/conv2d_fixed_padding_22/conv2d_22/kernel:0
+I1108 10:46:03.365650 140256787560192 run_single_machine.py:743] resnet/block_group2/bottleneck_block_6/batch_norm_relu_22/sync_batch_normalization_22/gamma:0
+I1108 10:46:03.365736 140256787560192 run_single_machine.py:743] resnet/block_group2/bottleneck_block_6/batch_norm_relu_22/sync_batch_normalization_22/beta:0
+I1108 10:46:03.365827 140256787560192 run_single_machine.py:743] resnet/block_group2/bottleneck_block_6/conv2d_fixed_padding_23/conv2d_23/kernel:0
+I1108 10:46:03.365922 140256787560192 run_single_machine.py:743] resnet/block_group2/bottleneck_block_6/batch_norm_relu_23/sync_batch_normalization_23/gamma:0
+I1108 10:46:03.366013 140256787560192 run_single_machine.py:743] resnet/block_group2/bottleneck_block_6/batch_norm_relu_23/sync_batch_normalization_23/beta:0
+I1108 10:46:03.366093 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_7/conv2d_fixed_padding_24/conv2d_24/kernel:0
+I1108 10:46:03.366181 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_7/batch_norm_relu_24/sync_batch_normalization_24/gamma:0
+I1108 10:46:03.366250 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_7/batch_norm_relu_24/sync_batch_normalization_24/beta:0
+I1108 10:46:03.366328 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_7/conv2d_fixed_padding_25/conv2d_25/kernel:0
+I1108 10:46:03.366417 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_7/batch_norm_relu_25/sync_batch_normalization_25/gamma:0
+I1108 10:46:03.366497 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_7/batch_norm_relu_25/sync_batch_normalization_25/beta:0
+I1108 10:46:03.366593 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_7/conv2d_fixed_padding_26/conv2d_26/kernel:0
+I1108 10:46:03.366689 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_7/batch_norm_relu_26/sync_batch_normalization_26/gamma:0
+I1108 10:46:03.366795 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_7/batch_norm_relu_26/sync_batch_normalization_26/beta:0
+I1108 10:46:03.366890 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_7/conv2d_fixed_padding_27/conv2d_27/kernel:0
+I1108 10:46:03.366976 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_7/batch_norm_relu_27/sync_batch_normalization_27/gamma:0
+I1108 10:46:03.367055 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_7/batch_norm_relu_27/sync_batch_normalization_27/beta:0
+I1108 10:46:03.367151 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_8/conv2d_fixed_padding_28/conv2d_28/kernel:0
+I1108 10:46:03.367245 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_8/batch_norm_relu_28/sync_batch_normalization_28/gamma:0
+I1108 10:46:03.367341 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_8/batch_norm_relu_28/sync_batch_normalization_28/beta:0
+I1108 10:46:03.367436 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_8/conv2d_fixed_padding_29/conv2d_29/kernel:0
+I1108 10:46:03.367532 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_8/batch_norm_relu_29/sync_batch_normalization_29/gamma:0
+I1108 10:46:03.367627 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_8/batch_norm_relu_29/sync_batch_normalization_29/beta:0
+I1108 10:46:03.367729 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_8/conv2d_fixed_padding_30/conv2d_30/kernel:0
+I1108 10:46:03.367825 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_8/batch_norm_relu_30/sync_batch_normalization_30/gamma:0
+I1108 10:46:03.367920 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_8/batch_norm_relu_30/sync_batch_normalization_30/beta:0
+I1108 10:46:03.368020 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_9/conv2d_fixed_padding_31/conv2d_31/kernel:0
+I1108 10:46:03.368116 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_9/batch_norm_relu_31/sync_batch_normalization_31/gamma:0
+I1108 10:46:03.368211 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_9/batch_norm_relu_31/sync_batch_normalization_31/beta:0
+I1108 10:46:03.368307 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_9/conv2d_fixed_padding_32/conv2d_32/kernel:0
+I1108 10:46:03.368401 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_9/batch_norm_relu_32/sync_batch_normalization_32/gamma:0
+I1108 10:46:03.368496 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_9/batch_norm_relu_32/sync_batch_normalization_32/beta:0
+I1108 10:46:03.368591 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_9/conv2d_fixed_padding_33/conv2d_33/kernel:0
+I1108 10:46:03.368687 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_9/batch_norm_relu_33/sync_batch_normalization_33/gamma:0
+I1108 10:46:03.368784 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_9/batch_norm_relu_33/sync_batch_normalization_33/beta:0
+I1108 10:46:03.368879 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_10/conv2d_fixed_padding_34/conv2d_34/kernel:0
+I1108 10:46:03.368974 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_10/batch_norm_relu_34/sync_batch_normalization_34/gamma:0
+I1108 10:46:03.369070 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_10/batch_norm_relu_34/sync_batch_normalization_34/beta:0
+I1108 10:46:03.369165 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_10/conv2d_fixed_padding_35/conv2d_35/kernel:0
+I1108 10:46:03.369260 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_10/batch_norm_relu_35/sync_batch_normalization_35/gamma:0
+I1108 10:46:03.369355 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_10/batch_norm_relu_35/sync_batch_normalization_35/beta:0
+I1108 10:46:03.369451 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_10/conv2d_fixed_padding_36/conv2d_36/kernel:0
+I1108 10:46:03.369530 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_10/batch_norm_relu_36/sync_batch_normalization_36/gamma:0
+I1108 10:46:03.369625 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_10/batch_norm_relu_36/sync_batch_normalization_36/beta:0
+I1108 10:46:03.369719 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_11/conv2d_fixed_padding_37/conv2d_37/kernel:0
+I1108 10:46:03.369822 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_11/batch_norm_relu_37/sync_batch_normalization_37/gamma:0
+I1108 10:46:03.369921 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_11/batch_norm_relu_37/sync_batch_normalization_37/beta:0
+I1108 10:46:03.370021 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_11/conv2d_fixed_padding_38/conv2d_38/kernel:0
+I1108 10:46:03.370115 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_11/batch_norm_relu_38/sync_batch_normalization_38/gamma:0
+I1108 10:46:03.370210 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_11/batch_norm_relu_38/sync_batch_normalization_38/beta:0
+I1108 10:46:03.370301 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_11/conv2d_fixed_padding_39/conv2d_39/kernel:0
+I1108 10:46:03.370396 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_11/batch_norm_relu_39/sync_batch_normalization_39/gamma:0
+I1108 10:46:03.370492 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_11/batch_norm_relu_39/sync_batch_normalization_39/beta:0
+I1108 10:46:03.370587 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_12/conv2d_fixed_padding_40/conv2d_40/kernel:0
+I1108 10:46:03.370682 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_12/batch_norm_relu_40/sync_batch_normalization_40/gamma:0
+I1108 10:46:03.370791 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_12/batch_norm_relu_40/sync_batch_normalization_40/beta:0
+I1108 10:46:03.370886 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_12/conv2d_fixed_padding_41/conv2d_41/kernel:0
+I1108 10:46:03.370981 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_12/batch_norm_relu_41/sync_batch_normalization_41/gamma:0
+I1108 10:46:03.371076 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_12/batch_norm_relu_41/sync_batch_normalization_41/beta:0
+I1108 10:46:03.371172 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_12/conv2d_fixed_padding_42/conv2d_42/kernel:0
+I1108 10:46:03.371266 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_12/batch_norm_relu_42/sync_batch_normalization_42/gamma:0
+I1108 10:46:03.371361 140256787560192 run_single_machine.py:743] resnet/block_group3/bottleneck_block_12/batch_norm_relu_42/sync_batch_normalization_42/beta:0
+I1108 10:46:03.371454 140256787560192 run_single_machine.py:743] resnet/block_group4/bottleneck_block_13/conv2d_fixed_padding_43/conv2d_43/kernel:0
+I1108 10:46:03.371549 140256787560192 run_single_machine.py:743] resnet/block_group4/bottleneck_block_13/batch_norm_relu_43/sync_batch_normalization_43/gamma:0
+I1108 10:46:03.371644 140256787560192 run_single_machine.py:743] resnet/block_group4/bottleneck_block_13/batch_norm_relu_43/sync_batch_normalization_43/beta:0
+I1108 10:46:03.371746 140256787560192 run_single_machine.py:743] resnet/block_group4/bottleneck_block_13/conv2d_fixed_padding_44/conv2d_44/kernel:0
+I1108 10:46:03.371846 140256787560192 run_single_machine.py:743] resnet/block_group4/bottleneck_block_13/batch_norm_relu_44/sync_batch_normalization_44/gamma:0
+I1108 10:46:03.371932 140256787560192 run_single_machine.py:743] resnet/block_group4/bottleneck_block_13/batch_norm_relu_44/sync_batch_normalization_44/beta:0
+I1108 10:46:03.372019 140256787560192 run_single_machine.py:743] resnet/block_group4/bottleneck_block_13/conv2d_fixed_padding_45/conv2d_45/kernel:0
+I1108 10:46:03.372114 140256787560192 run_single_machine.py:743] resnet/block_group4/bottleneck_block_13/batch_norm_relu_45/sync_batch_normalization_45/gamma:0
+I1108 10:46:03.372208 140256787560192 run_single_machine.py:743] resnet/block_group4/bottleneck_block_13/batch_norm_relu_45/sync_batch_normalization_45/beta:0
+I1108 10:46:03.372305 140256787560192 run_single_machine.py:743] resnet/block_group4/bottleneck_block_13/conv2d_fixed_padding_46/conv2d_46/kernel:0
+I1108 10:46:03.372400 140256787560192 run_single_machine.py:743] resnet/block_group4/bottleneck_block_13/batch_norm_relu_46/sync_batch_normalization_46/gamma:0
+I1108 10:46:03.372493 140256787560192 run_single_machine.py:743] resnet/block_group4/bottleneck_block_13/batch_norm_relu_46/sync_batch_normalization_46/beta:0
+I1108 10:46:03.372588 140256787560192 run_single_machine.py:743] resnet/block_group4/bottleneck_block_14/conv2d_fixed_padding_47/conv2d_47/kernel:0
+I1108 10:46:03.372684 140256787560192 run_single_machine.py:743] resnet/block_group4/bottleneck_block_14/batch_norm_relu_47/sync_batch_normalization_47/gamma:0
+I1108 10:46:03.372778 140256787560192 run_single_machine.py:743] resnet/block_group4/bottleneck_block_14/batch_norm_relu_47/sync_batch_normalization_47/beta:0
+I1108 10:46:03.372872 140256787560192 run_single_machine.py:743] resnet/block_group4/bottleneck_block_14/conv2d_fixed_padding_48/conv2d_48/kernel:0
+I1108 10:46:03.372966 140256787560192 run_single_machine.py:743] resnet/block_group4/bottleneck_block_14/batch_norm_relu_48/sync_batch_normalization_48/gamma:0
+I1108 10:46:03.373070 140256787560192 run_single_machine.py:743] resnet/block_group4/bottleneck_block_14/batch_norm_relu_48/sync_batch_normalization_48/beta:0
+I1108 10:46:03.373176 140256787560192 run_single_machine.py:743] resnet/block_group4/bottleneck_block_14/conv2d_fixed_padding_49/conv2d_49/kernel:0
+I1108 10:46:03.373271 140256787560192 run_single_machine.py:743] resnet/block_group4/bottleneck_block_14/batch_norm_relu_49/sync_batch_normalization_49/gamma:0
+I1108 10:46:03.373361 140256787560192 run_single_machine.py:743] resnet/block_group4/bottleneck_block_14/batch_norm_relu_49/sync_batch_normalization_49/beta:0
+I1108 10:46:03.373465 140256787560192 run_single_machine.py:743] resnet/block_group4/bottleneck_block_15/conv2d_fixed_padding_50/conv2d_50/kernel:0
+I1108 10:46:03.373560 140256787560192 run_single_machine.py:743] resnet/block_group4/bottleneck_block_15/batch_norm_relu_50/sync_batch_normalization_50/gamma:0
+I1108 10:46:03.373670 140256787560192 run_single_machine.py:743] resnet/block_group4/bottleneck_block_15/batch_norm_relu_50/sync_batch_normalization_50/beta:0
+I1108 10:46:03.373764 140256787560192 run_single_machine.py:743] resnet/block_group4/bottleneck_block_15/conv2d_fixed_padding_51/conv2d_51/kernel:0
+I1108 10:46:03.373863 140256787560192 run_single_machine.py:743] resnet/block_group4/bottleneck_block_15/batch_norm_relu_51/sync_batch_normalization_51/gamma:0
+I1108 10:46:03.373959 140256787560192 run_single_machine.py:743] resnet/block_group4/bottleneck_block_15/batch_norm_relu_51/sync_batch_normalization_51/beta:0
+I1108 10:46:03.374053 140256787560192 run_single_machine.py:743] resnet/block_group4/bottleneck_block_15/conv2d_fixed_padding_52/conv2d_52/kernel:0
+I1108 10:46:03.374149 140256787560192 run_single_machine.py:743] resnet/block_group4/bottleneck_block_15/batch_norm_relu_52/sync_batch_normalization_52/gamma:0
+I1108 10:46:03.374242 140256787560192 run_single_machine.py:743] resnet/block_group4/bottleneck_block_15/batch_norm_relu_52/sync_batch_normalization_52/beta:0
+I1108 10:46:03.374337 140256787560192 run_single_machine.py:743] projection_head/nl_0/batch_norm_relu_53/sync_batch_normalization_53/gamma:0
+I1108 10:46:03.374424 140256787560192 run_single_machine.py:743] projection_head/nl_0/batch_norm_relu_53/sync_batch_normalization_53/beta:0
+I1108 10:46:03.374504 140256787560192 run_single_machine.py:743] projection_head/nl_0/dense/kernel:0
+I1108 10:46:03.374628 140256787560192 run_single_machine.py:743] projection_head/nl_1/batch_norm_relu_54/sync_batch_normalization_54/gamma:0
+I1108 10:46:03.374734 140256787560192 run_single_machine.py:743] projection_head/nl_1/batch_norm_relu_54/sync_batch_normalization_54/beta:0
+I1108 10:46:03.374829 140256787560192 run_single_machine.py:743] projection_head/nl_1/dense_1/kernel:0
+I1108 10:46:03.374920 140256787560192 run_single_machine.py:743] projection_head/nl_2/batch_norm_relu_55/sync_batch_normalization_55/gamma:0
+I1108 10:46:03.375018 140256787560192 run_single_machine.py:743] projection_head/nl_2/dense_2/kernel:0
+I1108 10:46:03.375123 140256787560192 run_single_machine.py:743] head_supervised/linear_layer/dense_3/kernel:0
+I1108 10:46:03.375218 140256787560192 run_single_machine.py:743] head_supervised/linear_layer/dense_3/bias:0
+You Implement the args training steps
+You Implement the args training steps
+You Implement the args training steps
+You Implement the args training steps
+INFO:tensorflow:Error reported to Coordinator: Value passed to parameter 'input' has DataType string not in list of allowed values: float32, float64, int32, uint8, int16, int8, complex64, int64, qint8, quint8, qint32, bfloat16, uint16, complex128, float16, uint32, uint64, bool
+Traceback (most recent call last):
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/impl/api.py", line 447, in converted_call
+    converted_f = _convert_actual(target_entity, program_ctx)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/impl/api.py", line 284, in _convert_actual
+    transformed, module, source_map = _TRANSPILER.transform(entity, program_ctx)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/pyct/transpiler.py", line 286, in transform
+    return self.transform_function(obj, user_context)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/pyct/transpiler.py", line 470, in transform_function
+    nodes, ctx = super(PyToPy, self).transform_function(fn, user_context)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/pyct/transpiler.py", line 363, in transform_function
+    result = self.transform_ast(node, context)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/impl/api.py", line 252, in transform_ast
+    node = self.initial_analysis(node, ctx)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/impl/api.py", line 239, in initial_analysis
+    node = qual_names.resolve(node)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/pyct/qual_names.py", line 252, in resolve
+    return QnResolver().visit(node)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/ast.py", line 407, in visit
+    return visitor(node)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/ast.py", line 483, in generic_visit
+    value = self.visit(value)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/ast.py", line 407, in visit
+    return visitor(node)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/ast.py", line 483, in generic_visit
+    value = self.visit(value)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/ast.py", line 407, in visit
+    return visitor(node)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/ast.py", line 483, in generic_visit
+    value = self.visit(value)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/ast.py", line 407, in visit
+    return visitor(node)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/ast.py", line 492, in generic_visit
+    new_node = self.visit(old_value)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/ast.py", line 407, in visit
+    return visitor(node)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/pyct/qual_names.py", line 232, in visit_Subscript
+    if not isinstance(s, gast.Index):
+AttributeError: module 'gast' has no attribute 'Index'
+During handling of the above exception, another exception occurred:
+Traceback (most recent call last):
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/training/coordinator.py", line 297, in stop_on_exception
+    yield
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/distribute/mirrored_run.py", line 323, in run
+    self.main_result = self.main_fn(*self.main_args, **self.main_kwargs)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/impl/api.py", line 667, in wrapper
+    return converted_call(f, args, kwargs, options=options)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/impl/api.py", line 454, in converted_call
+    return _fall_back_unconverted(f, args, kwargs, options, e)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/impl/api.py", line 501, in _fall_back_unconverted
+    return _call_unconverted(f, args, kwargs, options)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/impl/api.py", line 478, in _call_unconverted
+    return f(*args, **kwargs)
+  File "/data/rick109582607/Desktop/TinyML/self_supervised/Heuristic_attention_simclr_tensorflow_modify/run_single_machine.py", line 759, in train_step
+    scale_loss, model.trainable_variables)
+  File "/data/rick109582607/Desktop/TinyML/self_supervised/Heuristic_attention_simclr_tensorflow_modify/metrics.py", line 53, in update_finetune_metrics_train
+    label_acc = tf.equal(tf.argmax(labels, 1), tf.argmax(logits, axis=1))
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/util/dispatch.py", line 201, in wrapper
+    return target(*args, **kwargs)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/ops/math_ops.py", line 295, in argmax_v2
+    return gen_math_ops.arg_max(input, axis, name=name, output_type=output_type)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/ops/gen_math_ops.py", line 846, in arg_max
+    _, _, _op, _outputs = _op_def_library._apply_op_helper(
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/framework/op_def_library.py", line 628, in _apply_op_helper
+    _SatisfiesTypeConstraint(base_type,
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/framework/op_def_library.py", line 59, in _SatisfiesTypeConstraint
+    raise TypeError(
+TypeError: Value passed to parameter 'input' has DataType string not in list of allowed values: float32, float64, int32, uint8, int16, int8, complex64, int64, qint8, quint8, qint32, bfloat16, uint16, complex128, float16, uint32, uint64, bool
+I1108 11:17:26.948420 140257810945792 coordinator.py:217] Error reported to Coordinator: Value passed to parameter 'input' has DataType string not in list of allowed values: float32, float64, int32, uint8, int16, int8, complex64, int64, qint8, quint8, qint32, bfloat16, uint16, complex128, float16, uint32, uint64, bool
+Traceback (most recent call last):
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/impl/api.py", line 447, in converted_call
+    converted_f = _convert_actual(target_entity, program_ctx)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/impl/api.py", line 284, in _convert_actual
+    transformed, module, source_map = _TRANSPILER.transform(entity, program_ctx)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/pyct/transpiler.py", line 286, in transform
+    return self.transform_function(obj, user_context)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/pyct/transpiler.py", line 470, in transform_function
+    nodes, ctx = super(PyToPy, self).transform_function(fn, user_context)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/pyct/transpiler.py", line 363, in transform_function
+    result = self.transform_ast(node, context)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/impl/api.py", line 252, in transform_ast
+    node = self.initial_analysis(node, ctx)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/impl/api.py", line 239, in initial_analysis
+    node = qual_names.resolve(node)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/pyct/qual_names.py", line 252, in resolve
+    return QnResolver().visit(node)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/ast.py", line 407, in visit
+    return visitor(node)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/ast.py", line 483, in generic_visit
+    value = self.visit(value)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/ast.py", line 407, in visit
+    return visitor(node)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/ast.py", line 483, in generic_visit
+    value = self.visit(value)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/ast.py", line 407, in visit
+    return visitor(node)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/ast.py", line 483, in generic_visit
+    value = self.visit(value)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/ast.py", line 407, in visit
+    return visitor(node)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/ast.py", line 492, in generic_visit
+    new_node = self.visit(old_value)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/ast.py", line 407, in visit
+    return visitor(node)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/pyct/qual_names.py", line 232, in visit_Subscript
+    if not isinstance(s, gast.Index):
+AttributeError: module 'gast' has no attribute 'Index'
+During handling of the above exception, another exception occurred:
+Traceback (most recent call last):
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/training/coordinator.py", line 297, in stop_on_exception
+    yield
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/distribute/mirrored_run.py", line 323, in run
+    self.main_result = self.main_fn(*self.main_args, **self.main_kwargs)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/impl/api.py", line 667, in wrapper
+    return converted_call(f, args, kwargs, options=options)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/impl/api.py", line 454, in converted_call
+    return _fall_back_unconverted(f, args, kwargs, options, e)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/impl/api.py", line 501, in _fall_back_unconverted
+    return _call_unconverted(f, args, kwargs, options)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/impl/api.py", line 478, in _call_unconverted
+    return f(*args, **kwargs)
+  File "/data/rick109582607/Desktop/TinyML/self_supervised/Heuristic_attention_simclr_tensorflow_modify/run_single_machine.py", line 759, in train_step
+    scale_loss, model.trainable_variables)
+  File "/data/rick109582607/Desktop/TinyML/self_supervised/Heuristic_attention_simclr_tensorflow_modify/metrics.py", line 53, in update_finetune_metrics_train
+    label_acc = tf.equal(tf.argmax(labels, 1), tf.argmax(logits, axis=1))
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/util/dispatch.py", line 201, in wrapper
+    return target(*args, **kwargs)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/ops/math_ops.py", line 295, in argmax_v2
+    return gen_math_ops.arg_max(input, axis, name=name, output_type=output_type)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/ops/gen_math_ops.py", line 846, in arg_max
+    _, _, _op, _outputs = _op_def_library._apply_op_helper(
+    _SatisfiesTypeConstraint(base_type,
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/framework/op_def_library.py", line 59, in _SatisfiesTypeConstraint
+    raise TypeError(
+TypeError: Value passed to parameter 'input' has DataType string not in list of allowed values: float32, float64, int32, uint8, int16, int8, complex64, int64, qint8, quint8, qint32, bfloat16, uint16, complex128, float16, uint32, uint64, bool
+Traceback (most recent call last):
+  File "/data/rick109582607/Desktop/TinyML/self_supervised/Heuristic_attention_simclr_tensorflow_modify/run_single_machine.py", line 817, in <module>
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/absl/app.py", line 312, in run
+    _run_main(main, args)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/absl/app.py", line 258, in _run_main
+    sys.exit(main(argv))
+  File "/data/rick109582607/Desktop/TinyML/self_supervised/Heuristic_attention_simclr_tensorflow_modify/run_single_machine.py", line 780, in main
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/eager/def_function.py", line 828, in __call__
+    result = self._call(*args, **kwds)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/eager/def_function.py", line 871, in _call
+    self._initialize(args, kwds, add_initializers_to=initializers)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/eager/def_function.py", line 725, in _initialize
+    self._stateful_fn._get_concrete_function_internal_garbage_collected(  # pylint: disable=protected-access
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/eager/function.py", line 2969, in _get_concrete_function_internal_garbage_collected
+    graph_function, _ = self._maybe_define_function(args, kwargs)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/eager/function.py", line 3361, in _maybe_define_function
+    graph_function = self._create_graph_function(args, kwargs)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/eager/function.py", line 3196, in _create_graph_function
+    func_graph_module.func_graph_from_py_func(
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/framework/func_graph.py", line 990, in func_graph_from_py_func
+    func_outputs = python_func(*func_args, **func_kwargs)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/eager/def_function.py", line 634, in wrapped_fn
+    out = weak_wrapped_fn().__wrapped__(*args, **kwds)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/framework/func_graph.py", line 977, in wrapper
+    raise e.ag_error_metadata.to_exception(e)
+TypeError: in user code:
+    /data/rick109582607/Desktop/TinyML/self_supervised/Heuristic_attention_simclr_tensorflow_modify/run_single_machine.py:767 distributed_train_step  *
+        per_replica_losses = strategy.run(
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/distribute/distribute_lib.py:1259 run  **
+        return self._extended.call_for_each_replica(fn, args=args, kwargs=kwargs)
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/distribute/distribute_lib.py:2730 call_for_each_replica
+        return self._call_for_each_replica(fn, args, kwargs)
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/distribute/mirrored_strategy.py:628 _call_for_each_replica
+        return mirrored_run.call_for_each_replica(
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/distribute/mirrored_run.py:75 call_for_each_replica
+        return wrapped(args, kwargs)
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/eager/def_function.py:828 __call__
+        result = self._call(*args, **kwds)
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/eager/def_function.py:871 _call
+        self._initialize(args, kwds, add_initializers_to=initializers)
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/eager/def_function.py:725 _initialize
+        self._stateful_fn._get_concrete_function_internal_garbage_collected(  # pylint: disable=protected-access
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/eager/function.py:2969 _get_concrete_function_internal_garbage_collected
+        graph_function, _ = self._maybe_define_function(args, kwargs)
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/eager/function.py:3361 _maybe_define_function
+        graph_function = self._create_graph_function(args, kwargs)
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/eager/function.py:3196 _create_graph_function
+        func_graph_module.func_graph_from_py_func(
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/framework/func_graph.py:990 func_graph_from_py_func
+        func_outputs = python_func(*func_args, **func_kwargs)
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/eager/def_function.py:634 wrapped_fn
+        out = weak_wrapped_fn().__wrapped__(*args, **kwds)
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/framework/func_graph.py:966 wrapper
+        return autograph.converted_call(
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/distribute/mirrored_run.py:93 call_for_each_replica  **
+        return _call_for_each_replica(strategy, fn, args, kwargs)
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/distribute/mirrored_run.py:234 _call_for_each_replica
+        coord.join(threads)
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/training/coordinator.py:389 join
+        six.reraise(*self._exc_info_to_raise)
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/six.py:719 reraise
+        raise value
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/training/coordinator.py:297 stop_on_exception
+        yield
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/distribute/mirrored_run.py:323 run
+        self.main_result = self.main_fn(*self.main_args, **self.main_kwargs)
+    /data/rick109582607/Desktop/TinyML/self_supervised/Heuristic_attention_simclr_tensorflow_modify/run_single_machine.py:759 train_step  **
+        scale_loss, model.trainable_variables)
+    /data/rick109582607/Desktop/TinyML/self_supervised/Heuristic_attention_simclr_tensorflow_modify/metrics.py:53 update_finetune_metrics_train
+        label_acc = tf.equal(tf.argmax(labels, 1), tf.argmax(logits, axis=1))
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/util/dispatch.py:201 wrapper
+        return target(*args, **kwargs)
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/ops/math_ops.py:295 argmax_v2
+        return gen_math_ops.arg_max(input, axis, name=name, output_type=output_type)
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/ops/gen_math_ops.py:846 arg_max
+        _, _, _op, _outputs = _op_def_library._apply_op_helper(
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/framework/op_def_library.py:628 _apply_op_helper
+        _SatisfiesTypeConstraint(base_type,
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/framework/op_def_library.py:59 _SatisfiesTypeConstraint
+        raise TypeError(
+    TypeError: Value passed to parameter 'input' has DataType string not in list of allowed values: float32, float64, int32, uint8, int16, int8, complex64, int64, qint8, quint8, qint32, bfloat16, uint16, complex128, float16, uint32, uint64, bool

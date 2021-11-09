@@ -1,0 +1,59 @@
+wandb_version: 1
+
+Batch_size:
+  desc: null
+  value: 32
+DataAugmentation_types:
+  desc: null
+  value: SimCLR_Inception_style_Croping
+Dataset:
+  desc: null
+  value: ImageNet1k
+Epochs:
+  desc: null
+  value: 100
+IMG_SIZE:
+  desc: null
+  value: 224
+Learning_rate:
+  desc: null
+  value: 0.3
+Loss type:
+  desc: null
+  value: NCE_Loss Temperature
+Model_Arch:
+  desc: null
+  value: ResNet50
+Optimizer:
+  desc: null
+  value: LARS
+SEED:
+  desc: null
+  value: 26
+Temperature:
+  desc: null
+  value: 0.1
+Training mode:
+  desc: null
+  value: SSL
+_wandb:
+  desc: null
+  value:
+    cli_version: 0.12.2
+    code_path: code/run_single_machine.py
+    framework: tensorflow
+    is_jupyter_run: false
+    is_kaggle_kernel: false
+    python_version: 3.9.7
+    start_time: 1636336894
+    t:
+      1:
+      - 3
+      2:
+      - 3
+      3:
+      - 16
+      4: 3.9.7
+      5: 0.12.2
+      8:
+      - 5

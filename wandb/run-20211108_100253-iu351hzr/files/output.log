@@ -1,0 +1,255 @@
+
+You are implement LARS optimizer
+INFO:tensorflow:Reduce to /job:localhost/replica:0/task:0/device:CPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:CPU:0',).
+I1108 10:03:00.471923 139771751532288 cross_device_ops.py:563] Reduce to /job:localhost/replica:0/task:0/device:CPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:CPU:0',).
+INFO:tensorflow:Reduce to /job:localhost/replica:0/task:0/device:CPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:CPU:0',).
+I1108 10:03:00.473604 139771751532288 cross_device_ops.py:563] Reduce to /job:localhost/replica:0/task:0/device:CPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:CPU:0',).
+INFO:tensorflow:Reduce to /job:localhost/replica:0/task:0/device:CPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:CPU:0',).
+I1108 10:03:00.476274 139771751532288 cross_device_ops.py:563] Reduce to /job:localhost/replica:0/task:0/device:CPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:CPU:0',).
+INFO:tensorflow:Reduce to /job:localhost/replica:0/task:0/device:CPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:CPU:0',).
+I1108 10:03:00.477209 139771751532288 cross_device_ops.py:563] Reduce to /job:localhost/replica:0/task:0/device:CPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:CPU:0',).
+INFO:tensorflow:Reduce to /job:localhost/replica:0/task:0/device:CPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:CPU:0',).
+I1108 10:03:00.486146 139771751532288 cross_device_ops.py:563] Reduce to /job:localhost/replica:0/task:0/device:CPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:CPU:0',).
+INFO:tensorflow:Reduce to /job:localhost/replica:0/task:0/device:CPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:CPU:0',).
+I1108 10:03:00.487197 139771751532288 cross_device_ops.py:563] Reduce to /job:localhost/replica:0/task:0/device:CPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:CPU:0',).
+INFO:tensorflow:Reduce to /job:localhost/replica:0/task:0/device:CPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:CPU:0',).
+I1108 10:03:00.489109 139771751532288 cross_device_ops.py:563] Reduce to /job:localhost/replica:0/task:0/device:CPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:CPU:0',).
+INFO:tensorflow:Reduce to /job:localhost/replica:0/task:0/device:CPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:CPU:0',).
+I1108 10:03:00.490075 139771751532288 cross_device_ops.py:563] Reduce to /job:localhost/replica:0/task:0/device:CPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:CPU:0',).
+INFO:tensorflow:Reduce to /job:localhost/replica:0/task:0/device:CPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:CPU:0',).
+I1108 10:03:00.498464 139771751532288 cross_device_ops.py:563] Reduce to /job:localhost/replica:0/task:0/device:CPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:CPU:0',).
+INFO:tensorflow:Reduce to /job:localhost/replica:0/task:0/device:CPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:CPU:0',).
+I1108 10:03:00.501615 139771751532288 cross_device_ops.py:563] Reduce to /job:localhost/replica:0/task:0/device:CPU:0 then broadcast to ('/job:localhost/replica:0/task:0/device:CPU:0',).
+2021-11-08 10:03:00.693220: I tensorflow/compiler/mlir/mlir_graph_optimization_pass.cc:116] None of the MLIR optimization passes are enabled (registered 2)
+2021-11-08 10:03:00.696050: I tensorflow/core/platform/profile_utils/cpu_utils.cc:112] CPU Frequency: 2099905000 Hz
+WARNING:tensorflow:AutoGraph could not transform <function call_for_each_replica at 0x7f1ee05bea60> and will run it as-is.
+Please report this to the TensorFlow team. When filing the bug, set the verbosity to 10 (on Linux, `export AUTOGRAPH_VERBOSITY=10`) and attach the full output.
+Cause: module 'gast' has no attribute 'Index'
+To silence this warning, decorate the function with @tf.autograph.experimental.do_not_convert
+W1108 10:03:03.954859 139771751532288 ag_logging.py:146] AutoGraph could not transform <function call_for_each_replica at 0x7f1ee05bea60> and will run it as-is.
+Please report this to the TensorFlow team. When filing the bug, set the verbosity to 10 (on Linux, `export AUTOGRAPH_VERBOSITY=10`) and attach the full output.
+Cause: module 'gast' has no attribute 'Index'
+To silence this warning, decorate the function with @tf.autograph.experimental.do_not_convert
+WARNING:tensorflow:AutoGraph could not transform <function main.<locals>.train_step at 0x7f1d2c096040> and will run it as-is.
+Please report this to the TensorFlow team. When filing the bug, set the verbosity to 10 (on Linux, `export AUTOGRAPH_VERBOSITY=10`) and attach the full output.
+Cause: module 'gast' has no attribute 'Index'
+To silence this warning, decorate the function with @tf.autograph.experimental.do_not_convert
+W1108 10:03:04.006995 139749310330624 ag_logging.py:146] AutoGraph could not transform <function main.<locals>.train_step at 0x7f1d2c096040> and will run it as-is.
+Please report this to the TensorFlow team. When filing the bug, set the verbosity to 10 (on Linux, `export AUTOGRAPH_VERBOSITY=10`) and attach the full output.
+Cause: module 'gast' has no attribute 'Index'
+To silence this warning, decorate the function with @tf.autograph.experimental.do_not_convert
+WARNING:tensorflow:AutoGraph could not transform <bound method ProjectionHead.call of <model.ProjectionHead object at 0x7f1d2d412220>> and will run it as-is.
+Please report this to the TensorFlow team. When filing the bug, set the verbosity to 10 (on Linux, `export AUTOGRAPH_VERBOSITY=10`) and attach the full output.
+Cause: module 'gast' has no attribute 'Index'
+To silence this warning, decorate the function with @tf.autograph.experimental.do_not_convert
+W1108 10:03:08.417937 139749310330624 ag_logging.py:146] AutoGraph could not transform <bound method ProjectionHead.call of <model.ProjectionHead object at 0x7f1d2d412220>> and will run it as-is.
+Please report this to the TensorFlow team. When filing the bug, set the verbosity to 10 (on Linux, `export AUTOGRAPH_VERBOSITY=10`) and attach the full output.
+Cause: module 'gast' has no attribute 'Index'
+To silence this warning, decorate the function with @tf.autograph.experimental.do_not_convert
+INFO:tensorflow:Error reported to Coordinator: Invalid value passed for `per_example_loss`. Expected a tensor with at least rank 1, received: Tensor("add_3:0", shape=(), dtype=float32, device=/job:localhost/replica:0/task:0/device:GPU:0)
+Traceback (most recent call last):
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/impl/api.py", line 447, in converted_call
+    converted_f = _convert_actual(target_entity, program_ctx)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/impl/api.py", line 284, in _convert_actual
+    transformed, module, source_map = _TRANSPILER.transform(entity, program_ctx)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/pyct/transpiler.py", line 286, in transform
+    return self.transform_function(obj, user_context)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/pyct/transpiler.py", line 470, in transform_function
+    nodes, ctx = super(PyToPy, self).transform_function(fn, user_context)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/pyct/transpiler.py", line 363, in transform_function
+    result = self.transform_ast(node, context)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/impl/api.py", line 252, in transform_ast
+    node = self.initial_analysis(node, ctx)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/impl/api.py", line 239, in initial_analysis
+    node = qual_names.resolve(node)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/pyct/qual_names.py", line 252, in resolve
+    return QnResolver().visit(node)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/ast.py", line 407, in visit
+    return visitor(node)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/ast.py", line 483, in generic_visit
+    value = self.visit(value)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/ast.py", line 407, in visit
+    return visitor(node)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/ast.py", line 483, in generic_visit
+    value = self.visit(value)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/ast.py", line 407, in visit
+    return visitor(node)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/ast.py", line 483, in generic_visit
+    value = self.visit(value)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/ast.py", line 407, in visit
+    return visitor(node)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/ast.py", line 492, in generic_visit
+    new_node = self.visit(old_value)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/ast.py", line 407, in visit
+    return visitor(node)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/pyct/qual_names.py", line 232, in visit_Subscript
+    if not isinstance(s, gast.Index):
+AttributeError: module 'gast' has no attribute 'Index'
+During handling of the above exception, another exception occurred:
+Traceback (most recent call last):
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/training/coordinator.py", line 297, in stop_on_exception
+    yield
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/distribute/mirrored_run.py", line 323, in run
+    self.main_result = self.main_fn(*self.main_args, **self.main_kwargs)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/impl/api.py", line 667, in wrapper
+    return converted_call(f, args, kwargs, options=options)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/impl/api.py", line 454, in converted_call
+    return _fall_back_unconverted(f, args, kwargs, options, e)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/impl/api.py", line 501, in _fall_back_unconverted
+    return _call_unconverted(f, args, kwargs, options)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/impl/api.py", line 478, in _call_unconverted
+    return f(*args, **kwargs)
+  File "/data/rick109582607/Desktop/TinyML/self_supervised/Heuristic_attention_simclr_tensorflow_modify/run_single_machine.py", line 704, in train_step
+    scale_loss = tf.nn.compute_average_loss(
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/util/dispatch.py", line 201, in wrapper
+    return target(*args, **kwargs)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/ops/nn_impl.py", line 428, in compute_average_loss
+    with losses_util.check_per_example_loss_rank(per_example_loss):
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/contextlib.py", line 119, in __enter__
+    return next(self.gen)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/ops/losses/util.py", line 161, in check_per_example_loss_rank
+    raise ValueError(
+ValueError: Invalid value passed for `per_example_loss`. Expected a tensor with at least rank 1, received: Tensor("add_3:0", shape=(), dtype=float32, device=/job:localhost/replica:0/task:0/device:GPU:0)
+I1108 10:03:12.518607 139749310330624 coordinator.py:217] Error reported to Coordinator: Invalid value passed for `per_example_loss`. Expected a tensor with at least rank 1, received: Tensor("add_3:0", shape=(), dtype=float32, device=/job:localhost/replica:0/task:0/device:GPU:0)
+Traceback (most recent call last):
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/impl/api.py", line 447, in converted_call
+    converted_f = _convert_actual(target_entity, program_ctx)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/impl/api.py", line 284, in _convert_actual
+    transformed, module, source_map = _TRANSPILER.transform(entity, program_ctx)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/pyct/transpiler.py", line 286, in transform
+    return self.transform_function(obj, user_context)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/pyct/transpiler.py", line 470, in transform_function
+    nodes, ctx = super(PyToPy, self).transform_function(fn, user_context)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/pyct/transpiler.py", line 363, in transform_function
+    result = self.transform_ast(node, context)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/impl/api.py", line 252, in transform_ast
+    node = self.initial_analysis(node, ctx)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/impl/api.py", line 239, in initial_analysis
+    node = qual_names.resolve(node)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/pyct/qual_names.py", line 252, in resolve
+    return QnResolver().visit(node)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/ast.py", line 407, in visit
+    return visitor(node)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/ast.py", line 483, in generic_visit
+    value = self.visit(value)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/ast.py", line 407, in visit
+    return visitor(node)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/ast.py", line 483, in generic_visit
+    value = self.visit(value)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/ast.py", line 407, in visit
+    return visitor(node)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/ast.py", line 483, in generic_visit
+    value = self.visit(value)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/ast.py", line 407, in visit
+    return visitor(node)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/ast.py", line 492, in generic_visit
+    new_node = self.visit(old_value)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/ast.py", line 407, in visit
+    return visitor(node)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/pyct/qual_names.py", line 232, in visit_Subscript
+    if not isinstance(s, gast.Index):
+AttributeError: module 'gast' has no attribute 'Index'
+During handling of the above exception, another exception occurred:
+Traceback (most recent call last):
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/training/coordinator.py", line 297, in stop_on_exception
+    yield
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/distribute/mirrored_run.py", line 323, in run
+    self.main_result = self.main_fn(*self.main_args, **self.main_kwargs)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/impl/api.py", line 667, in wrapper
+    return converted_call(f, args, kwargs, options=options)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/impl/api.py", line 454, in converted_call
+    return _fall_back_unconverted(f, args, kwargs, options, e)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/impl/api.py", line 501, in _fall_back_unconverted
+    return _call_unconverted(f, args, kwargs, options)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/autograph/impl/api.py", line 478, in _call_unconverted
+    return f(*args, **kwargs)
+  File "/data/rick109582607/Desktop/TinyML/self_supervised/Heuristic_attention_simclr_tensorflow_modify/run_single_machine.py", line 704, in train_step
+    scale_loss = tf.nn.compute_average_loss(
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/util/dispatch.py", line 201, in wrapper
+    return target(*args, **kwargs)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/ops/nn_impl.py", line 428, in compute_average_loss
+    with losses_util.check_per_example_loss_rank(per_example_loss):
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/contextlib.py", line 119, in __enter__
+    return next(self.gen)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/ops/losses/util.py", line 161, in check_per_example_loss_rank
+    raise ValueError(
+ValueError: Invalid value passed for `per_example_loss`. Expected a tensor with at least rank 1, received: Tensor("add_3:0", shape=(), dtype=float32, device=/job:localhost/replica:0/task:0/device:GPU:0)
+Traceback (most recent call last):
+  File "/data/rick109582607/Desktop/TinyML/self_supervised/Heuristic_attention_simclr_tensorflow_modify/run_single_machine.py", line 800, in <module>
+    app.run(main)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/absl/app.py", line 312, in run
+    _run_main(main, args)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/absl/app.py", line 258, in _run_main
+    sys.exit(main(argv))
+  File "/data/rick109582607/Desktop/TinyML/self_supervised/Heuristic_attention_simclr_tensorflow_modify/run_single_machine.py", line 763, in main
+    total_loss += distributed_train_step(ds_one, ds_two)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/eager/def_function.py", line 828, in __call__
+    result = self._call(*args, **kwds)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/eager/def_function.py", line 871, in _call
+    self._initialize(args, kwds, add_initializers_to=initializers)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/eager/def_function.py", line 725, in _initialize
+    self._stateful_fn._get_concrete_function_internal_garbage_collected(  # pylint: disable=protected-access
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/eager/function.py", line 2969, in _get_concrete_function_internal_garbage_collected
+    graph_function, _ = self._maybe_define_function(args, kwargs)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/eager/function.py", line 3361, in _maybe_define_function
+    graph_function = self._create_graph_function(args, kwargs)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/eager/function.py", line 3196, in _create_graph_function
+    func_graph_module.func_graph_from_py_func(
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/framework/func_graph.py", line 990, in func_graph_from_py_func
+    func_outputs = python_func(*func_args, **func_kwargs)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/eager/def_function.py", line 634, in wrapped_fn
+    out = weak_wrapped_fn().__wrapped__(*args, **kwds)
+  File "/data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/framework/func_graph.py", line 977, in wrapper
+    raise e.ag_error_metadata.to_exception(e)
+ValueError: in user code:
+    /data/rick109582607/Desktop/TinyML/self_supervised/Heuristic_attention_simclr_tensorflow_modify/run_single_machine.py:750 distributed_train_step  *
+        per_replica_losses = strategy.run(
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/distribute/distribute_lib.py:1259 run  **
+        return self._extended.call_for_each_replica(fn, args=args, kwargs=kwargs)
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/distribute/distribute_lib.py:2730 call_for_each_replica
+        return self._call_for_each_replica(fn, args, kwargs)
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/distribute/mirrored_strategy.py:628 _call_for_each_replica
+        return mirrored_run.call_for_each_replica(
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/distribute/mirrored_run.py:75 call_for_each_replica
+        return wrapped(args, kwargs)
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/eager/def_function.py:828 __call__
+        result = self._call(*args, **kwds)
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/eager/def_function.py:871 _call
+        self._initialize(args, kwds, add_initializers_to=initializers)
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/eager/def_function.py:725 _initialize
+        self._stateful_fn._get_concrete_function_internal_garbage_collected(  # pylint: disable=protected-access
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/eager/function.py:2969 _get_concrete_function_internal_garbage_collected
+        graph_function, _ = self._maybe_define_function(args, kwargs)
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/eager/function.py:3361 _maybe_define_function
+        graph_function = self._create_graph_function(args, kwargs)
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/eager/function.py:3196 _create_graph_function
+        func_graph_module.func_graph_from_py_func(
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/framework/func_graph.py:990 func_graph_from_py_func
+        func_outputs = python_func(*func_args, **func_kwargs)
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/eager/def_function.py:634 wrapped_fn
+        out = weak_wrapped_fn().__wrapped__(*args, **kwds)
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/framework/func_graph.py:966 wrapper
+        return autograph.converted_call(
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/distribute/mirrored_run.py:93 call_for_each_replica  **
+        return _call_for_each_replica(strategy, fn, args, kwargs)
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/distribute/mirrored_run.py:234 _call_for_each_replica
+        coord.join(threads)
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/training/coordinator.py:389 join
+        six.reraise(*self._exc_info_to_raise)
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/six.py:719 reraise
+        raise value
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/training/coordinator.py:297 stop_on_exception
+        yield
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/distribute/mirrored_run.py:323 run
+        self.main_result = self.main_fn(*self.main_args, **self.main_kwargs)
+    /data/rick109582607/Desktop/TinyML/self_supervised/Heuristic_attention_simclr_tensorflow_modify/run_single_machine.py:704 train_step  **
+        scale_loss = tf.nn.compute_average_loss(
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/util/dispatch.py:201 wrapper
+        return target(*args, **kwargs)
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/ops/nn_impl.py:428 compute_average_loss
+        with losses_util.check_per_example_loss_rank(per_example_loss):
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/contextlib.py:119 __enter__
+        return next(self.gen)
+    /data/rick109582607/anaconda3/envs/TinyMLV1/lib/python3.9/site-packages/tensorflow/python/ops/losses/util.py:161 check_per_example_loss_rank
+        raise ValueError(
+    ValueError: Invalid value passed for `per_example_loss`. Expected a tensor with at least rank 1, received: Tensor("add_3:0", shape=(), dtype=float32, device=/job:localhost/replica:0/task:0/device:GPU:0)
