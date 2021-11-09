@@ -39,7 +39,7 @@ class imagenet_dataset_single_machine():
             label = tf.strings.split(image_path, os.path.sep)[5]
             all_train_class.append(label.numpy())
         number_class = set(all_train_class)
-        all_cls = np.array(number_class)
+        all_cls =list(number_class)
         
         class_dic = dict()
         for i in range(999):
