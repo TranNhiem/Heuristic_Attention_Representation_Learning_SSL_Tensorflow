@@ -2,7 +2,7 @@ import os
 from absl import flags
 import tensorflow as tf
 from imutils import paths
-from byol_simclr_multi_croping_augmentation import simclr_augment_randcrop_global_views, simclr_augment_inception_style, supervised_augment_eval
+from byol_simclr_multi_croping_augmentation import simclr_augment_randcrop_global_views, simclr_augment_inception_style, supervised_augment_eval, simclr_augment_randcrop_global_view_image_mask, simclr_augment_inception_style_image_mask
 from absl import logging
 import numpy as np
 import random
@@ -13,7 +13,7 @@ FLAGS = flags.FLAGS
 
 class imagenet_dataset_single_machine():
 
-    def __init__(self, img_size, train_batch, val_batch, strategy, img_path=None, x_val=None, x_train=None,):
+    def __init__(self, img_size, train_batch, val_batch, strategy, img_path=None, x_val=None, x_train=None,bi_mask=True):
         '''
         args: 
         IMG_SIZE: Image training size 
@@ -28,11 +28,16 @@ class imagenet_dataset_single_machine():
         self.val_batch = val_batch
         self.strategy= strategy
 
-        self.seed = FLAGS.SEED
+        self.seed = 26 #FLAGS.SEED
         self.x_train = x_train
         self.x_val = x_val
-       
 
+        if bi_mask:
+            self.bi_mask=[]
+            for p in self.x_train:
+                self.bi_mask.append(p.replace("1K/", "binary_image_by_USS/").replace("JPEG","png"))
+       
+        ## Path for loading all Images 
         # For training 
         all_train_class = []
         for image_path in x_train:
@@ -77,6 +82,11 @@ class imagenet_dataset_single_machine():
             self.x_val = self.dataset_shuffle[0:50000]
             self.x_train = self.dataset_shuffle[50000:]
 
+        if self.bi_mask is not None: 
+
+            self.x_train_image_mask= np.stack((np.array(self.x_train), np.array(self.bi_mask)), axis=-1)
+            print(self.x_train_image_mask.shape)
+
     @classmethod
     def parse_images(self, image_path):
         # Loading and reading Image
@@ -93,6 +103,20 @@ class imagenet_dataset_single_machine():
         img=tf.image.convert_image_dtype(img, tf.float32)
         
         return img, lable
+    
+    @classmethod
+    def parse_images_mask_lable_pair(self, image_mask_path, lable, IMG_SIZE):
+        # Loading and reading Image
+        image_path, mask_path= image_mask_path[0], image_mask_path[1] 
+        img = tf.io.read_file(image_path)
+        img = tf.io.decode_jpeg(img, channels=3)
+        img=tf.image.convert_image_dtype(img, tf.float32)
+        img= tf.image.resize(img, (IMG_SIZE, IMG_SIZE))
+
+        bi_mask = tf.io.read_file(mask_path)
+        bi_mask = tf.io.decode_jpeg(bi_mask, channels=1)
+        bi_mask= tf.image.resize(bi_mask, (IMG_SIZE,IMG_SIZE))
+        return img, bi_mask, lable
 
     @classmethod
     def parse_images_label(self, image_path):
@@ -191,12 +215,62 @@ class imagenet_dataset_single_machine():
 
         return train_ds
 
-    def simclr_inception_style_crop_image_mask(self, input_context):
-        pass
+    def simclr_inception_style_crop_image_mask(self):
+        
+        train_ds_one = (tf.data.Dataset.from_tensor_slices((self.x_train_image_mask, self.x_train_lable))
+                        .shuffle(self.BATCH_SIZE * 100, seed=self.seed)
+                        #.map(self.parse_images_label,  num_parallel_calls=AUTO)
+                        .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)),  num_parallel_calls=AUTO)
 
-    def simclr_random_global_crop_image_mask(self, input_context):
-        pass
+                        .map(lambda x,y,z: (simclr_augment_inception_style_image_mask(x,y, self.IMG_SIZE), z), num_parallel_calls=AUTO)
+                        .batch(self.BATCH_SIZE)
+                        .prefetch(AUTO)
+                        )
+        
 
+        train_ds_two = (tf.data.Dataset.from_tensor_slices((self.x_train_image_mask, self.x_train_lable))
+                        .shuffle(self.BATCH_SIZE * 100, seed=self.seed)
+                        #.map(self.parse_images_label,  num_parallel_calls=AUTO)
+                        .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)),  num_parallel_calls=AUTO)
+                        .map(lambda x, y,z: (simclr_augment_inception_style_image_mask(x,y, self.IMG_SIZE), z), num_parallel_calls=AUTO)
+                        
+                        .batch(self.BATCH_SIZE)
+                        .prefetch(AUTO)
+                        )
+        #train_ds_one= self.strategy.experimental_distribute_dataset(train_ds_two)
+        
+        train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
+        train_ds= self.strategy.experimental_distribute_dataset(train_ds)
+        # train_ds = train_ds.batch(self.BATCH_SIZE)
+        # # 2. modify dataset with prefetch
+        # train_ds = train_ds.prefetch(AUTO)
+
+        return train_ds
+
+    def simclr_random_global_crop_image_mask(self):
+        
+        train_ds_one = (tf.data.Dataset.from_tensor_slices((self.x_train_image_mask, self.x_train_lable))
+                        .shuffle(self.BATCH_SIZE * 100, seed=self.seed)
+                        #.map(self.parse_images_label,  num_parallel_calls=AUTO)
+                        .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)),  num_parallel_calls=AUTO)
+                        .map(lambda x, y,z: (simclr_augment_randcrop_global_view_image_mask(x,y, self.IMG_SIZE), z), num_parallel_calls=AUTO)
+                        .batch(self.BATCH_SIZE)
+                        .prefetch(AUTO)
+                        )
+        
+
+        train_ds_two = (tf.data.Dataset.from_tensor_slices((self.x_train_image_mask, self.x_train_lable))
+                        .shuffle(self.BATCH_SIZE * 100, seed=self.seed)
+                        #.map(self.parse_images_label,  num_parallel_calls=AUTO)
+                        .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)),  num_parallel_calls=AUTO)
+                        .map(lambda x, y,z: (simclr_augment_randcrop_global_view_image_mask(x,y, self.IMG_SIZE), z), num_parallel_calls=AUTO)
+                        .batch(self.BATCH_SIZE)
+                        .prefetch(AUTO)
+                        )
+        #train_ds_one= self.strategy.experimental_distribute_dataset(train_ds_two)
+        
+        train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
+        train_ds= self.strategy.experimental_distribute_dataset(train_ds)
 
 class imagenet_dataset_multi_machine():
 
