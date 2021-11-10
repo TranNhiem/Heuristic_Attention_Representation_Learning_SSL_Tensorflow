@@ -58,11 +58,11 @@ class imagenet_dataset_single_machine():
             all_val_class.append(label.numpy())
 
     
-        numeric_train_cls = []
+        numeric_val_cls = []
         for i in range(len(all_val_class)):
             for k, v in class_dic.items():
                 if all_train_class[i] == k:
-                    numeric_train_cls.append(v)
+                    numeric_val_cls.append(v)
 
         self.x_train_lable = tf.one_hot(numeric_train_cls, depth=999)
         self.x_val_lable = tf.one_hot(numeric_val_cls, depth=999)

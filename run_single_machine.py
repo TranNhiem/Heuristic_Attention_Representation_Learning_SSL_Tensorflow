@@ -20,7 +20,7 @@ gpus = tf.config.experimental.list_physical_devices('GPU')
 if gpus:
 
     try:
-        tf.config.experimental.set_visible_devices(gpus[0:2], 'GPU')
+        tf.config.experimental.set_visible_devices(gpus[4:6], 'GPU')
         logical_gpus = tf.config.experimental.list_logical_devices('GPU')
         print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPU")
     except RuntimeError as e:
@@ -54,7 +54,7 @@ flags.DEFINE_integer(
     'Train batch_size .')
 
 flags.DEFINE_integer(
-    'val_batch_size', 128,
+    'val_batch_size', 30,
     'Validaion_Batch_size.')
 
 
@@ -515,7 +515,7 @@ def main(argv):
 
     train_ds = train_dataset.simclr_inception_style_crop()
     val_ds = train_dataset.supervised_validation()
-    num_classes = 1000
+    num_classes = 999
 
     num_train_examples = len(x_train)
     num_eval_examples = len(x_val)
