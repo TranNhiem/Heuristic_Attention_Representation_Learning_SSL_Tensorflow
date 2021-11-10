@@ -13,7 +13,7 @@ FLAGS = flags.FLAGS
 
 class imagenet_dataset_single_machine():
 
-    def __init__(self, img_size, train_batch, val_batch, img_path=None, x_val=None, x_train=None,):
+    def __init__(self, img_size, train_batch, val_batch, strategy, img_path=None, x_val=None, x_train=None,):
         '''
         args: 
         IMG_SIZE: Image training size 
@@ -26,10 +26,10 @@ class imagenet_dataset_single_machine():
         self.IMG_SIZE = img_size
         self.BATCH_SIZE = train_batch
         self.val_batch = val_batch
+        self.strategy= strategy
 
         self.seed = FLAGS.SEED
         self.x_train = x_train
-        
         self.x_val = x_val
        
 
@@ -79,7 +79,7 @@ class imagenet_dataset_single_machine():
         # Loading and reading Image
         img = tf.io.read_file(image_path)
         img = tf.io.decode_jpeg(img, channels=3)
-        #img=tf.image.convert_image_dtype(img, tf.float32)
+        img=tf.image.convert_image_dtype(img, tf.float32)
         return img
 
     @classmethod
@@ -87,8 +87,7 @@ class imagenet_dataset_single_machine():
         # Loading and reading Image
         img = tf.io.read_file(image_path)
         img = tf.io.decode_jpeg(img, channels=3)
-        #img=tf.image.convert_image_dtype(img, tf.float32)
-
+        img=tf.image.convert_image_dtype(img, tf.float32)
         
         return img, lable
 
@@ -116,6 +115,8 @@ class imagenet_dataset_single_machine():
                   .prefetch(AUTO)
                   )
 
+        val_ds= self.strategy.experimental_distribute_dataset(val_ds)
+
         return val_ds
 
     def simclr_inception_style_crop(self):
@@ -134,6 +135,7 @@ class imagenet_dataset_single_machine():
                         .batch(self.BATCH_SIZE)
                         .prefetch(AUTO)
                         )
+        #train_ds_one= self.strategy.experimental_distribute_dataset(train_ds_one)
 
         train_ds_two = (tf.data.Dataset.from_tensor_slices((self.x_train, self.x_train_lable))
                         .shuffle(self.BATCH_SIZE * 100, seed=self.seed)
@@ -146,9 +148,10 @@ class imagenet_dataset_single_machine():
                         .batch(self.BATCH_SIZE)
                         .prefetch(AUTO)
                         )
-
+        #train_ds_one= self.strategy.experimental_distribute_dataset(train_ds_two)
+        
         train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
-
+        train_ds= self.strategy.experimental_distribute_dataset(train_ds)
         # train_ds = train_ds.batch(self.BATCH_SIZE)
         # # 2. modify dataset with prefetch
         # train_ds = train_ds.prefetch(AUTO)
