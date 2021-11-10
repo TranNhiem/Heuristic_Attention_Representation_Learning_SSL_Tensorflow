@@ -94,7 +94,6 @@ class imagenet_dataset_single_machine():
         
         return img, lable
 
-
     @classmethod
     def parse_images_label(self, image_path):
         img = tf.io.read_file(image_path)
@@ -126,7 +125,6 @@ class imagenet_dataset_single_machine():
         '''
         This class property return self-supervised training data
         '''
-
         train_ds_one = (tf.data.Dataset.from_tensor_slices((self.x_train, self.x_train_lable))
                         .shuffle(self.BATCH_SIZE * 100, seed=self.seed)
                         #.map(self.parse_images_label,  num_parallel_calls=AUTO)
@@ -186,7 +184,9 @@ class imagenet_dataset_single_machine():
                         .batch(self.BATCH_SIZE)
                         .prefetch(AUTO)
                         )
+        
         train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
+        #adding the distribute data to GPUs
         train_ds= self.strategy.experimental_distribute_dataset(train_ds)
 
         return train_ds
