@@ -31,8 +31,9 @@ print(x_train[1:10])
 # Encode all Class
 all_train_class = []
 for image_path in x_train:
-    label = tf.strings.split(image_path, os.path.sep)[5]
-    all_train_class.append(label.numpy())
+    #label = tf.strings.split(image_path, os.path.sep)[5]
+    label= image_path.split("/")[5]
+    all_train_class.append(label)
 
 print(all_train_class[1:100])
 number_class = set(all_train_class)
@@ -40,8 +41,9 @@ all_cls = list(number_class)
 
 all_val_class = []
 for image_path in x_val:
-    label = tf.strings.split(image_path, os.path.sep)[5]
-    all_val_class.append(label.numpy())
+    #label = tf.strings.split(image_path, os.path.sep)[5]
+    label= image_path.split("/")[5]
+    all_val_class.append(label)
 
 number_val_class = set(all_val_class)
 all_val_cls = list(number_val_class)
