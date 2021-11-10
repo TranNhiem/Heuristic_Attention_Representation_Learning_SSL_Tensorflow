@@ -505,13 +505,12 @@ def main(argv):
     x_val = dataset[0:50000]
     x_train = dataset[50000:200000]
 
-
     strategy = tf.distribute.MirroredStrategy()
     train_global_batch = FLAGS.train_batch_size * strategy.num_replicas_in_sync
     val_global_batch = FLAGS.val_batch_size * strategy.num_replicas_in_sync
 
-    train_dataset = imagenet_dataset_single_machine(img_size=FLAGS.image_size, train_batch=train_global_batch, val_batch=val_global_batch,
-                                                    img_path=None, x_val=x_val,  x_train=x_train)
+    train_dataset = imagenet_dataset_single_machine(img_size=FLAGS.image_size, train_batch=train_global_batch,  val_batch=val_global_batch,
+                                                    strategy=strategy, img_path=None, x_val=x_val,  x_train=x_train)
 
     train_ds = train_dataset.simclr_inception_style_crop()
     val_ds = train_dataset.supervised_validation()
@@ -810,7 +809,6 @@ def main(argv):
         if FLAGS.mode == 'train_then_eval':
             perform_evaluation(model, val_ds, eval_steps,
                                checkpoint_manager.latest_checkpoint, strategy)
-
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
