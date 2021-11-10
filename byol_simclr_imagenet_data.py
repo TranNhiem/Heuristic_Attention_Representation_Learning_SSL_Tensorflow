@@ -221,7 +221,6 @@ class imagenet_dataset_single_machine():
                         .shuffle(self.BATCH_SIZE * 100, seed=self.seed)
                         #.map(self.parse_images_label,  num_parallel_calls=AUTO)
                         .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)),  num_parallel_calls=AUTO)
-
                         .map(lambda x,y,z: (simclr_augment_inception_style_image_mask(x,y, self.IMG_SIZE), z), num_parallel_calls=AUTO)
                         .batch(self.BATCH_SIZE)
                         .prefetch(AUTO)
@@ -233,13 +232,14 @@ class imagenet_dataset_single_machine():
                         #.map(self.parse_images_label,  num_parallel_calls=AUTO)
                         .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)),  num_parallel_calls=AUTO)
                         .map(lambda x, y,z: (simclr_augment_inception_style_image_mask(x,y, self.IMG_SIZE), z), num_parallel_calls=AUTO)
-                        
                         .batch(self.BATCH_SIZE)
                         .prefetch(AUTO)
                         )
         #train_ds_one= self.strategy.experimental_distribute_dataset(train_ds_two)
         
         train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
+        # train_ds=train_ds.batch(self.BATCH_SIZE)
+        # train_ds=train_ds.prefetch(AUTO)
         train_ds= self.strategy.experimental_distribute_dataset(train_ds)
         # train_ds = train_ds.batch(self.BATCH_SIZE)
         # # 2. modify dataset with prefetch
@@ -271,6 +271,8 @@ class imagenet_dataset_single_machine():
         
         train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
         train_ds= self.strategy.experimental_distribute_dataset(train_ds)
+        
+        return train_ds
 
 class imagenet_dataset_multi_machine():
 

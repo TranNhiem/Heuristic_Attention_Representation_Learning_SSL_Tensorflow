@@ -8,6 +8,10 @@ from sklearn.preprocessing import OneHotEncoder
 import time
 import glob
 import os
+
+import matplotlib.pyplot as plt
+
+
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if gpus:
 
@@ -110,7 +114,7 @@ x_train = dataset[50000:200000]
 # print("number of validation sample", len(all_val_class))
 
 
-
+import numpy as np
 from byol_simclr_imagenet_data import imagenet_dataset_single_machine
 strategy = tf.distribute.MirroredStrategy()
 train_global_batch=32
@@ -120,10 +124,27 @@ train_dataset = imagenet_dataset_single_machine(img_size=image_size, train_batch
                                                 strategy=strategy, img_path=None, x_val=x_val,  x_train=x_train, bi_mask=True)
 
 train_ds = train_dataset.simclr_random_global_crop_image_mask()
-val_ds = train_dataset.supervised_validation()
+#val_ds = train_dataset.supervised_validation()
 
-ds_one, ds_two = next(iter(train_ds))
-image, mask, label= ds_one
-print(image.shape)
-print(mask.shape)
-print(label.shape)
+# for _, (ds_one, ds_two) in enumerate(train_ds):
+#     # ds_one=np.array(ds_one)
+#     # print(ds_one.shape) 
+
+image, mask, _= next(iter(train_ds))
+print(image)
+print(mask)
+print(label)
+
+plt.figure(figsize=(10, 5))
+for n in range(10):
+    ax = plt.subplot(2, 10, n + 1)
+    plt.imshow(image[n])#.numpy().astype("int")
+    ax = plt.subplot(2, 10, n + 11)
+    plt.imshow(tf.squeeze(mask[n])/255)#.numpy().astype("int")
+    plt.axis("off")
+plt.show()
+# break
+# image, mask, label= next(iter(ds_one))
+# print(image.shape)
+# print(mask.shape)
+# print(label.shape)
