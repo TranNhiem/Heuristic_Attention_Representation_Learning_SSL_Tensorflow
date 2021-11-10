@@ -4,7 +4,8 @@ import os
 from imutils import paths
 from absl import flags
 import random
-
+from sklearn.preprocessing import OneHotEncoder
+import time
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if gpus:
 
@@ -62,9 +63,14 @@ for i in range(len(all_train_class)):
         if all_train_class[i] == k:
             numeric_train_cls.append(v)
 
-
-one_hot_encode_cls = tf.one_hot(numeric_train_cls, depth=999)
-one_hot_encode_cls
+start_time= time.time()
+one_hot_encode_cls_tf = tf.one_hot(numeric_train_cls, depth=999)
+print("Time complete onehot_Ecode tensorflow", time.time() - start_time)
+# start_time_1= time.time()
+# enc = OneHotEncoder(handle_unknown='ignore')
+# one_hot_encode_cls= enc.fit_transform([numeric_train_cls])
+# print("Time complete onehot_Ecode sklearn", time.time() - start_time_1)
+# one_hot_encode_cls
 
 print(one_hot_encode_cls[1000:1050])
 # logging.info("number of training sample", len(one_hot_encode_cls))
