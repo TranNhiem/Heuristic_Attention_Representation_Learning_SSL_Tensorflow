@@ -130,10 +130,10 @@ train_ds = train_dataset.simclr_random_global_crop_image_mask()
 #     # ds_one=np.array(ds_one)
 #     # print(ds_one.shape) 
 
-image, mask, _= next(iter(train_ds))
+image, mask, _, = next(iter(train_ds))
 print(image)
 print(mask)
-print(label)
+#print(label)
 
 plt.figure(figsize=(10, 5))
 for n in range(10):
