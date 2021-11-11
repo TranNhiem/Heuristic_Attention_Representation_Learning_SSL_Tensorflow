@@ -232,16 +232,16 @@ def nt_xent_symetrize_loss_simcrl(hidden1, hidden2, LARGE_NUM,
 '''Binary mask Loss with Nt-Xent Loss # SYMMETRIZED Loss'''
 
 
-# negative_mask
-def binary_mask_nt_xent_asymetrize_loss(v1_object, v2_object, v1_background, v2_background, alpha=0.8, temperature=1):
+# negative_mas
+def binary_mask_nt_xent_asymetrize_loss(v1_object, v2_object, v1_background, v2_background,LARGE_NUM, alpha=0.8, temperature=1):
     # L2 Norm
     batch_size = tf.shape(v1_object)[0]
     v1_object = tf.math.l2_normalize(v1_object, -1)
     v2_object = tf.math.l2_normalize(v2_object, -1)
     v1_background = tf.math.l2_normalize(v1_background, -1)
     v2_background = tf.math.l2_normalize(v2_background, -1)
-
-    INF = 1e9
+    #INF=1e-9
+    INF = LARGE_NUM
 
     labels = tf.one_hot(tf.range(batch_size), batch_size * 2)
     masks = tf.one_hot(tf.range(batch_size), batch_size)
