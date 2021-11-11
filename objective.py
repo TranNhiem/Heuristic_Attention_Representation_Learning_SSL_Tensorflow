@@ -35,8 +35,8 @@ def add_contrastive_loss(hidden1, hidden2,
                          hidden_norm=True,
                          temperature=1.0,
                          strategy=None):
+                         
     """Compute loss for model.
-
     Args:
       hidden: hidden vector (`Tensor`) of shape (bsz, dim).
       hidden_norm: whether or not to use normalization on the hidden vector.
