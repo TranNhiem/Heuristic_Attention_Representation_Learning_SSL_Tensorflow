@@ -13,6 +13,7 @@ import metrics
 from byol_simclr_imagenet_data import imagenet_dataset_single_machine
 from self_supervised_losses import nt_xent_symetrize_loss_simcrl
 import model as all_model
+from Model_resnet_harry import SSL_train_model_Model
 import objective as obj_lib
 from imutils import paths
 from wandb.keras import WandbCallback
@@ -501,6 +502,7 @@ def perform_evaluation(model, val_ds, val_steps, ckpt, strategy):
 
 
 def main(argv):
+
     if len(argv) > 1:
 
         raise app.UsageError('Too many command-line arguments.')
@@ -652,12 +654,7 @@ def main(argv):
             def train_step(ds_one, ds_two):
                 # Get the data from
                 images_mask_one, lable_1, = ds_one  # lable_one
-                images_one = images_mask_one[0]
-                masks_one = images_mask_one[1]
-
                 images_mask_two, lable_2,  = ds_two  # lable_two
-                images_two = images_mask_two[0]
-                masks_two = images_mask_two[1]
 
                 with tf.GradientTape() as tape:
                     # 2. Summaries are recorded only on replica 0. So effectively this
@@ -667,17 +664,11 @@ def main(argv):
                     #    those of scalar summaries.
                     # 4. We intentionally run the summary op before the actual model
                     #    training so that it can run in parallel.
-                    should_record = tf.equal(
-                        (optimizer.iterations + 1) % steps_per_loop, 0)
-
-                    with tf.summary.record_if(should_record):
-                        tf.summary.image('image', images_one,
-                                         step=optimizer.iterations + 1)
 
                     proj_head_output_1, supervised_head_output_1 = model(
-                        images_one, training=True)
+                        images_mask_one, training=True)
                     proj_head_output_2, supervised_head_output_2 = model(
-                        images_two, training=True)
+                        images_mask_two, training=True)
 
                     # Compute Contrastive Train Loss -->
                     loss = None
@@ -805,7 +796,6 @@ def main(argv):
         if FLAGS.mode == 'train_then_eval':
             perform_evaluation(model, val_ds, eval_steps,
                                checkpoint_manager.latest_checkpoint, strategy)
-
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
