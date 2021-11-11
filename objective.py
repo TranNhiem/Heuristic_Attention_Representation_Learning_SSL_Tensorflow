@@ -35,7 +35,6 @@ def add_contrastive_loss(hidden1, hidden2,
                          hidden_norm=True,
                          temperature=1.0,
                          strategy=None):
-                         
     """Compute loss for model.
     Args:
       hidden: hidden vector (`Tensor`) of shape (bsz, dim).
@@ -51,7 +50,7 @@ def add_contrastive_loss(hidden1, hidden2,
     # Get (normalized) hidden1 and hidden2.
     if hidden_norm:
         hidden1 = tf.math.l2_normalize(hidden1, -1)  # 1
-        hidden1 = tf.math.l2_normalize(hidden1, -1)
+        hidden2 = tf.math.l2_normalize(hidden2, -1)
     #hidden1, hidden2 = tf.split(hidden, 2, 0)
     batch_size = tf.shape(hidden1)[0]
 
