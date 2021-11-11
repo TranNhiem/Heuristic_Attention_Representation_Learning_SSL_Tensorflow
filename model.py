@@ -18,7 +18,7 @@
 import math
 from absl import flags
 
-import data_util
+
 import lars_optimizer
 import resnet
 import tensorflow as tf

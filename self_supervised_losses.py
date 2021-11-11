@@ -224,7 +224,7 @@ def nt_xent_symetrize_loss_simcrl(hidden1, hidden2, LARGE_NUM,
         labels, tf.concat([logits_ab, logits_aa], 1))
     loss_b = tf.nn.softmax_cross_entropy_with_logits(
         labels, tf.concat([logits_ba, logits_bb], 1))
-    loss = tf.reduce_mean(loss_a + loss_b)
+    loss = tf.reduce_mean(loss_a + loss_b) / 2
 
     return loss, logits_ab, labels
 
