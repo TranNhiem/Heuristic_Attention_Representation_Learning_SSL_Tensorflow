@@ -286,10 +286,11 @@ def binary_mask_nt_xent_asymetrize_loss(v1_object, v2_object, v1_background, v2_
         [alpha * logits_o_ab + (1-alpha)*logits_b_ab, alpha * logits_o_aa + alpha * logits_b_aa], 1))
     loss_b = tf.nn.softmax_cross_entropy_with_logits(labels, tf.concat(
         [alpha * logits_o_ba + (1-alpha)*logits_b_ba, alpha * logits_o_bb + alpha * logits_b_bb], 1))
+    
+    # adding Devide /2
+    loss = tf.reduce_mean(loss_a + loss_b)/2
 
-    loss = tf.reduce_mean(loss_a + loss_b)
-
-    return loss
+    return loss, 
 
 
 ######################################################################################
