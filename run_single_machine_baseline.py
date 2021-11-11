@@ -27,7 +27,7 @@ if gpus:
         print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPU")
     except RuntimeError as e:
         print(e)
-LARGE_NUM = 1e9
+
 FLAGS = flags.FLAGS
 
 # General Define
@@ -38,6 +38,10 @@ flags.DEFINE_integer(
 flags.DEFINE_integer(
     'IMG_width', 224,
     'image width.')
+
+flags.DEFINE_float(
+    'LARGE_NUM', 1e9,
+    'LARGE_NUM to multiply with Logit.')
 
 flags.DEFINE_integer(
     'image_size', 224,
@@ -636,7 +640,7 @@ def main(argv):
             def distributed_loss(x1, x2):
                 # each GPU loss per_replica batch loss
                 per_example_loss, logits_ab, labels = nt_xent_symetrize_loss_simcrl(
-                    x1, x2, LARGE_NUM=FLAGS.LARG_NUM, hidden_norm=FLAGS.hidden_norm, temperature=FLAGS.temperature)
+                    x1, x2, LARGE_NUM=FLAGS.LARGE_NUM, hidden_norm=FLAGS.hidden_norm, temperature=FLAGS.temperature)
                 # total sum loss //Global batch_size
                 loss = tf.reduce_sum(per_example_loss) * \
                     (1./train_global_batch)
@@ -791,6 +795,7 @@ def main(argv):
         if FLAGS.mode == 'train_then_eval':
             perform_evaluation(model, val_ds, eval_steps,
                                checkpoint_manager.latest_checkpoint, strategy)
+
 
     # Pre-Training and Finetune
 if __name__ == '__main__':

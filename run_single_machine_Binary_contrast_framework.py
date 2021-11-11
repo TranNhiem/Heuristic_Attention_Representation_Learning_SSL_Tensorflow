@@ -43,6 +43,10 @@ flags.DEFINE_integer(
     'image_size', 224,
     'image size.')
 
+flags.DEFINE_float(
+    'LARGE_NUM', 1e-9,
+    'The Large_num for mutliply with logit')
+
 flags.DEFINE_integer(
     'SEED', 26,
     'random seed.')
@@ -791,6 +795,7 @@ def main(argv):
         if FLAGS.mode == 'train_then_eval':
             perform_evaluation(model, val_ds, eval_steps,
                                checkpoint_manager.latest_checkpoint, strategy)
+
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
