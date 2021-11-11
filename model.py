@@ -177,7 +177,6 @@ class ProjectionHead(tf.keras.layers.Layer):
 
         return proj_head_output, hiddens_list[FLAGS.ft_proj_selector]
 
-
 class SupervisedHead(tf.keras.layers.Layer):
 
     def __init__(self, num_classes, name='head_supervised', **kwargs):
@@ -189,6 +188,24 @@ class SupervisedHead(tf.keras.layers.Layer):
         inputs = tf.identity(inputs, name='logits_sup')
         return inputs
 
+
+"""# Indexer"""
+class Indexer(tf.keras.layers.Layer):
+    def __init__(self, Backbone="Resnet",**kwargs):
+        super(Indexer, self).__init__(**kwargs)
+    def call(self, input):
+        feature_map = input[0]
+        mask = input[1]
+        if feature_map.shape[1] != mask.shape[1] and feature_map.shape[0] != mask.shape[0]:
+            mask = tf.image.resize(mask,(feature_map.shape[0],feature_map.shape[1]))
+        mask = tf.cast(mask,dtype=tf.bool)
+        mask = tf.cast(mask,dtype=feature_map.dtype)
+        obj = tf.multiply(feature_map,mask)
+        mask = tf.cast(mask,dtype=tf.bool)
+        mask = tf.logical_not(mask)
+        mask = tf.cast(mask,dtype=feature_map.dtype)
+        back = tf.multiply(feature_map, mask)
+        return obj,back
 
 class Model(tf.keras.models.Model):
     """Resnet model with projection or supervised layer."""
@@ -203,7 +220,7 @@ class Model(tf.keras.models.Model):
             cifar_stem=FLAGS.image_size <= 32)
         # Projcetion head
         self._projection_head = ProjectionHead()
-
+        self.indexer= Indexer()
         # Supervised classficiation head
         if FLAGS.train_mode == 'finetune' or FLAGS.lineareval_while_pretraining:
             self.supervised_head = SupervisedHead(num_classes)
@@ -221,18 +238,7 @@ class Model(tf.keras.models.Model):
             raise ValueError('The input channels dimension must be statically known '
                              f'(got input shape {inputs.shape})')
 
-        # num_transforms = inputs.shape[3] // 3
-        # num_transforms = tf.repeat(3, num_transforms)
-        # # Split channels, and optionally apply extra batched augmentation.
-        # features_list = tf.split(
-        #     features, num_or_size_splits=num_transforms, axis=-1)
 
-        # if FLAGS.use_blur and training and FLAGS.train_mode == 'pretrain':
-        #     features_list = data_util.batch_random_blur(features_list,
-        #                                                 FLAGS.image_size,
-        #                                                 FLAGS.image_size)
-        # # (num_transforms * bsz, h, w, c)
-        # features = tf.concat(features_list, 0)
 
         # # Base network forward pass.
         hiddens = self.resnet_model(features, training=training)
