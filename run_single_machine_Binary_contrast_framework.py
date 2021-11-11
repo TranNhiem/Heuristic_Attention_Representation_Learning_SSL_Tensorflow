@@ -11,8 +11,7 @@ import tensorflow as tf
 from learning_rate_optimizer import WarmUpAndCosineDecay
 import metrics
 from byol_simclr_imagenet_data import imagenet_dataset_single_machine
-from self_supervised_losses import nt_xent_symetrize_loss_simcrl
-import model as all_model
+from self_supervised_losses import binary_mask_nt_xent_asymetrize_loss
 from Model_resnet_harry import SSL_train_model_Model
 import objective as obj_lib
 from imutils import paths
@@ -546,7 +545,8 @@ def main(argv):
 
     # Configure the Encoder Architecture.
     with strategy.scope():
-        model = all_model.Model(num_classes)
+
+        model = SSL_train_model_Model
 
     # Configure Wandb Training
     # Weight&Bias Tracking Experiment
@@ -641,10 +641,10 @@ def main(argv):
             steps_per_loop = checkpoint_steps
 
             # Scale loss  --> Aggregating all Gradients
-            def distributed_loss(x1, x2):
+            def distributed_loss(x1, x2, v1, v2):
                 # each GPU loss per_replica batch loss
-                per_example_loss, logits_ab, labels = nt_xent_symetrize_loss_simcrl(
-                    x1, x2, LARGE_NUM=FLAGS.LARG_NUM, hidden_norm=FLAGS.hidden_norm, temperature=FLAGS.temperature)
+                per_example_loss, logits_ab, labels = binary_mask_nt_xent_asymetrize_loss(
+                    x1, x2, v1, v2, LARGE_NUM=FLAGS.LARG_NUM,  temperature=FLAGS.temperature)
                 # total sum loss //Global batch_size
                 loss = tf.reduce_sum(per_example_loss) * \
                     (1./train_global_batch)
@@ -655,6 +655,7 @@ def main(argv):
                 # Get the data from
                 images_mask_one, lable_1, = ds_one  # lable_one
                 images_mask_two, lable_2,  = ds_two  # lable_two
+                
 
                 with tf.GradientTape() as tape:
                     # 2. Summaries are recorded only on replica 0. So effectively this

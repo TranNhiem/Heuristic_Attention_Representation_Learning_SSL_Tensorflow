@@ -456,13 +456,13 @@ def simclr_augment_inception_style_image_mask(image,mask, IMG_SIZE):
     # transformations (except for random crops) need to be applied
     # randomly to impose translational invariance. (Two Options implementation)
     #image= flip_random_crop(image, crop_size)
-    # stacked_image= tf.concat([image,mask],axis=2)
+    stacked_image= tf.concat([image,mask],axis=2)
 
-    # stacked_image = inception_style_croping(stacked_image, IMG_SIZE, IMG_SIZE)
-    # image= stacked_image[:,:,0:3]
-    # mask= stacked_image[:,:,3] 
-    image =inception_style_croping(image, IMG_SIZE, IMG_SIZE)
-    mask =inception_style_croping(mask, IMG_SIZE, IMG_SIZE)
+    stacked_image = inception_style_croping(stacked_image, IMG_SIZE, IMG_SIZE)
+    image= stacked_image[:,:,0:3]
+    mask= stacked_image[:,:,3] 
+    # image =inception_style_croping(image, IMG_SIZE, IMG_SIZE)
+    # mask =inception_style_croping(mask, IMG_SIZE, IMG_SIZE)
     image = random_apply(color_jitter, p=0.8, x=image, )
     image = random_apply(color_drop, p=0.2, x=image, )
     image = random_apply(random_blur, p=1.0, x=image,)
@@ -476,7 +476,6 @@ def simclr_augment_inception_style_image_mask(image,mask, IMG_SIZE):
 # Evaluation-Supervised Processing Data
 # *****************************************************
 CROP_PROPORTION = 0.875  # Standard for ImageNet.
-
 
 def croping_for_eval(image, height, width, crop=True):
     """Preprocesses the given image for evaluation.
