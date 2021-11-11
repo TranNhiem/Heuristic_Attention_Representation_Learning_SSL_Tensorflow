@@ -287,7 +287,6 @@ def build_saved_model(model, include_projection_head=True):
 
 # configure Json format saving file
 
-
 def json_serializable(val):
     #
     try:
