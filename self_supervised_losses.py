@@ -249,7 +249,8 @@ def binary_mask_nt_xent_asymetrize_loss(v1_object, v2_object, v1_background, v2_
     # Object feature  dissimilar
     logits_o_aa = tf.matmul(v1_object, v1_object,
                             transpose_b=True) / temperature
-    print(logits_o_aa.shape)
+    
+    #print(logits_o_aa.shape)
     logits_o_aa = logits_o_aa - masks * INF  # remove the same samples
     logits_o_bb = tf.matmul(v2_object, v2_object,
                             transpose_b=True) / temperature

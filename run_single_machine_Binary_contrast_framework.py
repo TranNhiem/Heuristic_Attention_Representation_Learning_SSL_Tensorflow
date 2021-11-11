@@ -22,7 +22,7 @@ gpus = tf.config.experimental.list_physical_devices('GPU')
 if gpus:
 
     try:
-        tf.config.experimental.set_visible_devices(gpus[0:8], 'GPU')
+        tf.config.experimental.set_visible_devices(gpus[0:2], 'GPU')
         logical_gpus = tf.config.experimental.list_logical_devices('GPU')
         print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPU")
     except RuntimeError as e:
@@ -397,8 +397,9 @@ def _restore_latest_or_from_pretrain(checkpoint_manager):
         for x in output_layer_parameters:
             x.assign(tf.zeros_like(x))
 
-
 # Perform Testing Step Here
+
+
 def perform_evaluation(model, val_ds, val_steps, ckpt, strategy):
     """Perform evaluation.--> Only Inference to measure the pretrain model representation"""
 
@@ -509,17 +510,18 @@ def main(argv):
     imagenet_path = "/data/SSL_dataset/ImageNet/1K/"
     dataset = list(paths.list_images(imagenet_path))
     random.Random(FLAGS.SEED_data_split).shuffle(dataset)
-    x_val = dataset[0:50000]
-    x_train = dataset[50000:]
+    x_val = dataset[0:5000]
+    x_train = dataset[5000: 20000]
 
     strategy = tf.distribute.MirroredStrategy()
     train_global_batch = FLAGS.train_batch_size * strategy.num_replicas_in_sync
     val_global_batch = FLAGS.val_batch_size * strategy.num_replicas_in_sync
 
     train_dataset = imagenet_dataset_single_machine(img_size=FLAGS.image_size, train_batch=train_global_batch,  val_batch=val_global_batch,
-                                                    strategy=strategy, img_path=None, x_val=x_val,  x_train=x_train)
+                                                    strategy=strategy, img_path=None, x_val=x_val,  x_train=x_train, bi_mask=True)
 
-    train_ds = train_dataset.simclr_inception_style_crop()
+    train_ds = train_dataset.simclr_inception_style_crop_image_mask()
+
     val_ds = train_dataset.supervised_validation()
     num_classes = 999
 
@@ -649,8 +651,13 @@ def main(argv):
             @tf.function
             def train_step(ds_one, ds_two):
                 # Get the data from
-                images_one, lable_one = ds_one
-                images_two, lable_two = ds_two
+                images_mask_one, lable_1, = ds_one  # lable_one
+                images_one = images_mask_one[0]
+                masks_one = images_mask_one[1]
+
+                images_mask_two, lable_2,  = ds_two  # lable_two
+                images_two = images_mask_two[0]
+                masks_two = images_mask_two[1]
 
                 with tf.GradientTape() as tape:
                     # 2. Summaries are recorded only on replica 0. So effectively this
@@ -662,6 +669,7 @@ def main(argv):
                     #    training so that it can run in parallel.
                     should_record = tf.equal(
                         (optimizer.iterations + 1) % steps_per_loop, 0)
+
                     with tf.summary.record_if(should_record):
                         tf.summary.image('image', images_one,
                                          step=optimizer.iterations + 1)
@@ -703,7 +711,7 @@ def main(argv):
                         if FLAGS.train_mode == 'pretrain' and FLAGS.lineareval_while_pretraining:
                             outputs = tf.concat(
                                 [supervised_head_output_1, supervised_head_output_2], 0)
-                            l = tf.concat([lable_one, lable_two], 0)
+                            l = tf.concat([lable_1, lable_2], 0)
 
                             # Calculte the cross_entropy loss with Labels
                             sup_loss = obj_lib.add_supervised_loss(
@@ -764,6 +772,8 @@ def main(argv):
 
                     total_loss += distributed_train_step(ds_one, ds_two)
                     num_batches += 1
+                    if num_batches == 3:
+                        break
 
                     with summary_writer.as_default():
                         cur_step = global_step.numpy()

@@ -440,6 +440,8 @@ def simclr_augment_randcrop_global_view_image_mask(image,mask, IMG_SIZE):
     #stacked_image= rand_distribe_crop_global_local_views_flip(stacked_image, IMG_SIZE,  min_scale, max_scale, high_resol=True)
     # image= stacked_image[:,:,0:3]
     # mask= stacked_image[:,:,3] 
+    print(image.shape)
+    print(mask.shape)
     image=rand_distribe_crop_global_local_views_flip(image, IMG_SIZE,  min_scale, max_scale, high_resol=True)
     mask=  rand_distribe_crop_global_local_views_flip(mask, IMG_SIZE,  min_scale, max_scale, high_resol=True)
     # image= stacked_image[:,:,0:3]

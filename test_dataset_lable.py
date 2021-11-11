@@ -120,19 +120,28 @@ strategy = tf.distribute.MirroredStrategy()
 train_global_batch=32
 val_global_batch=32
 image_size=224
+bi_mask=True
 train_dataset = imagenet_dataset_single_machine(img_size=image_size, train_batch=train_global_batch,  val_batch=val_global_batch,
                                                 strategy=strategy, img_path=None, x_val=x_val,  x_train=x_train, bi_mask=True)
 
+
 train_ds = train_dataset.simclr_random_global_crop_image_mask()
+
+ds=[]
+for _, (ds_one, ds_two) in enumerate(train_ds):
+    ds= ds_one
+    
+    break
+    
 #val_ds = train_dataset.supervised_validation()
 
 # for _, (ds_one, ds_two) in enumerate(train_ds):
 #     # ds_one=np.array(ds_one)
 #     # print(ds_one.shape) 
 
-image, mask, _, = next(iter(train_ds))
-print(image)
-print(mask)
+image_mask, lable = ds
+image=image_mask[0]
+mask=image_mask[1]
 #print(label)
 
 plt.figure(figsize=(10, 5))
