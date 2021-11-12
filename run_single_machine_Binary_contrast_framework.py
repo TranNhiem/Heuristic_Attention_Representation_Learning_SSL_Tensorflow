@@ -13,6 +13,7 @@ import metrics
 from byol_simclr_imagenet_data import imagenet_dataset_single_machine
 from self_supervised_losses import binary_mask_nt_xent_asymetrize_loss
 from Model_resnet_harry import SSL_train_model_Model
+from model import build_optimizer
 import objective as obj_lib
 from imutils import paths
 from wandb.keras import WandbCallback
@@ -301,7 +302,6 @@ def build_saved_model(model, include_projection_head=True):
 
 # configure Json format saving file
 
-
 def json_serializable(val):
     #
     try:
@@ -531,7 +531,7 @@ def main(argv):
     train_ds = train_dataset.simclr_inception_style_crop_image_mask()
 
     val_ds = train_dataset.supervised_validation()
-    num_classes = 999
+    num_classes = FLAGS.num_class
 
     num_train_examples = len(x_train)
     num_eval_examples = len(x_val)
@@ -594,6 +594,7 @@ def main(argv):
     # *****************************************************************
     # Pre-Training and Evaluate
     # *****************************************************************
+    
     else:
         summary_writer = tf.summary.create_file_writer(FLAGS.model_dir)
 
@@ -609,8 +610,7 @@ def main(argv):
                 train_epochs=train_epochs, train_steps=train_steps)
 
             # Current Implement the Mixpercision optimizer
-            optimizer = all_model.build_optimizer(lr_schedule)
-
+            optimizer = build_optimizer(lr_schedule)
             # Build tracking metrics
             all_metrics = []
             # Linear classfiy metric
@@ -618,16 +618,19 @@ def main(argv):
             total_loss_metric = tf.keras.metrics.Mean('train/total_loss')
             all_metrics.extend([weight_decay_metric, total_loss_metric])
 
+
             if FLAGS.train_mode == 'pretrain':
-                # for contrastive metrics
-                contrast_loss_metric = tf.keras.metrics.Mean(
-                    'train/contrast_loss')
-                contrast_acc_metric = tf.keras.metrics.Mean(
-                    "train/contrast_acc")
-                contrast_entropy_metric = tf.keras.metrics.Mean(
-                    'train/contrast_entropy')
+
+                # contrastive metrics (Object - Background seperate Representation)
+                contrast_Binary_loss_metric = tf.keras.metrics.Mean(
+                    'train/contrast_Binary_loss')
+                contrast_Binary_acc_metric = tf.keras.metrics.Mean(
+                    "train/contrast_Binary_acc_average_Obj_Backg")                     
+                contrast_Binary_entropy_metric = tf.keras.metrics.Mean(
+                    'train/contrast_Binary_entropy_average_Obj_Backg')
+
                 all_metrics.extend(
-                    [contrast_loss_metric, contrast_acc_metric, contrast_entropy_metric])
+                    [contrast_Binary_loss_metric, contrast_Binary_acc_metric, contrast_Binary_entropy_metric ])
 
             if FLAGS.train_mode == 'finetune' or FLAGS.lineareval_while_pretraining:
                 logging.info(

@@ -54,7 +54,7 @@ def update_pretrain_binary_metrics_train_v0( contrast_binary_loss, contrast_bi_a
                                   ):
     '''
     args: 
-    
+
         bi_co_loss, Binary_contrastive_loss
         logits_Obj, object logits output
         logits_Backg, : background logits output
@@ -72,7 +72,7 @@ def update_pretrain_binary_metrics_train_v0( contrast_binary_loss, contrast_bi_a
     contrast_binary_loss.update_state(bi_co_loss)
 
     ## Calculate contrast binary accuracy (Object feature -- Background feature)
-    #object feature
+    #Object feature
     contrast_acc_obj = tf.equal(
         tf.argmax(labels_binary_con, 1), tf.argmax(logits_Obj, axis=1))
     contrast_acc_obj = tf.reduce_mean(tf.cast(contrast_acc_val, tf.float32))
@@ -83,13 +83,19 @@ def update_pretrain_binary_metrics_train_v0( contrast_binary_loss, contrast_bi_a
     contrast_acc_backg = tf.reduce_mean(tf.cast(contrast_acc_backg, tf.float32))
 
     total_contrast_acc= (contrast_acc_obj + contrast_acc_backg)/2
-    contrast_bi_acc.update_state(contrast_acc_val)
     
+    contrast_bi_acc.update_state(contrast_acc_val)
+    '''
+    Noted consider update contrast_bi_acc BASE on Object Only
+    '''
+    #contrast_bi_acc.update_state(contrast_acc_obj)
+
     ## Calculate Contrast-Binary-Entropy
     #Object feature
     prob_con_obj = tf.nn.softmax(logits_Obj)
     entropy_con_Obj = -tf.reduce_mean(
         tf.reduce_sum(prob_con_obj * tf.math.log(prob_con_obj + 1e-8), -1))
+    
     #backgroud feature
     prob_con_backg = tf.nn.softmax(logits_Backg)
     entropy_con_Backg = -tf.reduce_mean(
@@ -97,27 +103,49 @@ def update_pretrain_binary_metrics_train_v0( contrast_binary_loss, contrast_bi_a
     all_entropy_prob=(entropy_con_Obj+entropy_con_Backg)/2
     
     contrast_bi_entroy.update_state(all_entropy_prob)
+    '''
+    Noted consider update contrast_bi_acc BASE on Object Only
+    '''
+    #contrast_bi_entroy.update_state(entropy_con_Obj)
 
 
-def update_pretrain_binary_metrics_eval(contrast_binary_loss_metric,
+def update_pretrain_binary_metrics_eval_v0(contrast_binary_loss_metric,
                                  contrastive_top_1_accuracy_metric,
                                  contrastive_top_5_accuracy_metric,
                                  contrast_binary_loss, logits_object, logits_backg, labels_con):
     
     '''
     args: 
+     contrast_binary_loss: is the total loss sum up at the end 
+     logits_object: is main object logits output 
+     logits_backg: is the main background logits output  
+     labels_con: is the lable for (Objects-backgroud logits) --> share the same lable Index
 
     Return 
+        Update result for three metrics: 
+        + contrastive_binary_loss 
+        + contrastive_top_1 accuracy
+        + contrastive_top_5 accuracy
     
     '''
     
     ## Total contrast_binary_loss each run
-    contrast_losscontrast_binary_loss_metric_metric.update_state(contrast_binary_loss)
+    contrast_binary_loss_metric.update_state(contrast_binary_loss)
+    
     ## Contrastive accuracy of feature and background
-    contrastive_top_1_accuracy_metric.update_state(
-        tf.argmax(labels_con, 1), tf.argmax(logits_con, axis=1))
+    
+    # Contrastive  accuracy for Object 
+  
+    object_top1= tf.argmax(labels_con, 1), tf.argmax(logits_object, axis=1)
+    backgroud_top1= tf.argmax(labels_con, 1), tf.argmax(logits_backg, axis=1)
+    all_top1=(object_top1+ backgroud_top1)/2
+    
+    '''
+    Noted consider update contrast_bi_acc BASE on Object Only
+    '''
+    #contrastive_top_1_accuracy_metric.update(object_top1)
 
-    contrastive_top_5_accuracy_metric.update_state(labels_con, logits_con)
+    contrastive_top_5_accuracy_metric.update_state(labels_con, logits_object)
 
 
 
