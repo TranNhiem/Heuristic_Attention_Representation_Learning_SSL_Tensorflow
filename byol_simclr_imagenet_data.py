@@ -239,7 +239,7 @@ class imagenet_dataset_single_machine():
         train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
         # train_ds=train_ds.batch(self.BATCH_SIZE)
         # train_ds=train_ds.prefetch(AUTO)
-        train_ds = self.strategy.experimental_distribute_dataset(train_ds)
+        #train_ds = self.strategy.experimental_distribute_dataset(train_ds)
         # train_ds = train_ds.batch(self.BATCH_SIZE)
         # # 2. modify dataset with prefetch
         # train_ds = train_ds.prefetch(AUTO)
@@ -268,7 +268,7 @@ class imagenet_dataset_single_machine():
         #train_ds_one= self.strategy.experimental_distribute_dataset(train_ds_two)
 
         train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
-        train_ds = self.strategy.experimental_distribute_dataset(train_ds)
+        #train_ds = self.strategy.experimental_distribute_dataset(train_ds)
 
         return train_ds
 

@@ -1,3 +1,5 @@
+from byol_simclr_imagenet_data import imagenet_dataset_single_machine
+import numpy as np
 from absl import logging
 import tensorflow as tf
 import os
@@ -42,9 +44,10 @@ dataset = list(paths.list_images(imagenet_path))
 # for name in glob(os.listdir(binary_mask)):
 #     dataset_mask.append(name)
 random.Random(100).shuffle(dataset)
-dataset_mask=[]
-for path in dataset: 
-    dataset_mask.append(path.replace("1K/", "binary_image_by_USS/").replace("JPEG","png"))
+dataset_mask = []
+for path in dataset:
+    dataset_mask.append(path.replace(
+        "1K/", "binary_image_by_USS/").replace("JPEG", "png"))
 
 x_val = dataset[0:50000]
 x_train = dataset[50000:200000]
@@ -53,15 +56,14 @@ x_train = dataset[50000:200000]
 # print(x_binary[1:20])
 # x_image_mask= zip(x_train, x_binary)
 # i=0
-# for path in x_image_mask: 
+# for path in x_image_mask:
 #     image, mask= path[0], path[1]
 
 #     print(image)
 #     print(mask)
 #     i+=1
-#     if i==10: 
+#     if i==10:
 #         break
-
 
 
 # # Encode all Class
@@ -114,46 +116,33 @@ x_train = dataset[50000:200000]
 # print("number of validation sample", len(all_val_class))
 
 
-import numpy as np
-from byol_simclr_imagenet_data import imagenet_dataset_single_machine
 strategy = tf.distribute.MirroredStrategy()
-train_global_batch=32
-val_global_batch=32
-image_size=224
-bi_mask=True
+train_global_batch = 32
+val_global_batch = 32
+image_size = 224
+bi_mask = True
 train_dataset = imagenet_dataset_single_machine(img_size=image_size, train_batch=train_global_batch,  val_batch=val_global_batch,
                                                 strategy=strategy, img_path=None, x_val=x_val,  x_train=x_train, bi_mask=True)
 
 
-train_ds = train_dataset.simclr_random_global_crop_image_mask()
-
-ds=[]
+#train_ds = train_dataset.simclr_random_global_crop_image_mask()
+train_ds = train_dataset.simclr_inception_style_crop_image_mask()
+ds = []
 for _, (ds_one, ds_two) in enumerate(train_ds):
-    ds= ds_one
-    
-    break
-    
-#val_ds = train_dataset.supervised_validation()
+    ds = ds_one
 
-# for _, (ds_one, ds_two) in enumerate(train_ds):
-#     # ds_one=np.array(ds_one)
-#     # print(ds_one.shape) 
+    break
 
 image_mask, lable = ds
-image=image_mask[0]
-mask=image_mask[1]
-#print(label)
+image = image_mask[0]
+mask = image_mask[1]
 
 plt.figure(figsize=(10, 5))
 for n in range(10):
     ax = plt.subplot(2, 10, n + 1)
-    plt.imshow(image[n])#.numpy().astype("int")
+    plt.imshow(image[n])  # .numpy().astype("int")
     ax = plt.subplot(2, 10, n + 11)
-    plt.imshow(tf.squeeze(mask[n])/255)#.numpy().astype("int")
+    plt.imshow(tf.squeeze(mask[n])/255)  # .numpy().astype("int")
     plt.axis("off")
 plt.show()
-# break
-# image, mask, label= next(iter(ds_one))
-# print(image.shape)
-# print(mask.shape)
-# print(label.shape)
+print(image[0])
