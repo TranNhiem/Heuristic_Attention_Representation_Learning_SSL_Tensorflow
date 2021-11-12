@@ -229,21 +229,27 @@ def nt_xent_symetrize_loss_simcrl(hidden1, hidden2, LARGE_NUM,
     return loss, logits_ab, labels
 
 
-'''Binary mask Loss with Nt-Xent Loss # SYMMETRIZED Loss'''
 '''
-Noted Consideration Design 
-1. The contrasting Similarity between object_1 and object_2, background_1 and background_2
-2. Negative Pair will increasing 2 times 
-+ (The number of Lables will Increase to 2
-+ the masks is the same of Original Contrast loss?
-3. Scaling Alpha value shound be (Mulitply -- Divided at the same)
-4.
+Binary mask Loss with Nt-Xent Loss # SYMMETRIZED Loss
+For vectore Representation [Object and Background]
 '''
-
-
-
-# negative_mas
 def binary_mask_nt_xent_asymetrize_loss(v1_object, v2_object, v1_background, v2_background, LARGE_NUM, alpha=0.8, temperature=1):
+    
+    '''
+    Noted Consideration Design 
+    1. The contrasting 
+        Similarity between object_1 and object_2, background_1 and background_2
+        disimilarity object_1 <-> background_1, background_2
+        disimilarity background <-> bject_1 and object_2
+
+    2. Negative Pair will increasing 2 times 
+        + (The number of Lables will Increase to 2
+        + the masks is the same of Original Contrast loss?
+    3. Scaling Alpha value shound be (Mulitply -- Divided at the same)
+    
+    '''
+    
+    
     # L2 Norm
     batch_size = tf.shape(v1_object)[0]
     v1_object = tf.math.l2_normalize(v1_object, -1)
@@ -293,6 +299,54 @@ def binary_mask_nt_xent_asymetrize_loss(v1_object, v2_object, v1_background, v2_
     loss = tf.reduce_mean(loss_a + loss_b) / 2.0
 
     return loss, logits_o_ab, logits_b_ab, labels
+
+
+
+'''
+Binary mask Loss with Nt-Xent Loss # SYMMETRIZED Loss
+For vectore Representation [Only Object]
+
+'''
+def binary_mask_nt_xent_only_Object_loss(v1_object, v2_object, LARGE_NUM, temperature=1):
+    
+    '''
+    Noted Consideration Design 
+    1. The contrasting Similarity between object_1 and object_2
+    '''
+    
+    # L2 Norm
+    batch_size = tf.shape(v1_object)[0]
+    v1_object = tf.math.l2_normalize(v1_object, -1)
+    v2_object = tf.math.l2_normalize(v2_object, -1)
+    
+
+    #INF = 1e9
+    INF= LARGE_NUM
+
+    labels = tf.one_hot(tf.range(batch_size), batch_size * 2) 
+    masks = tf.one_hot(tf.range(batch_size), batch_size) 
+
+    # Object feature  dissimilar
+    logits_o_aa = tf.matmul(v1_object, v1_object, transpose_b=True) / temperature
+    #print(logits_o_aa.shape)
+    logits_o_aa = logits_o_aa - masks * INF  # remove the same samples
+    logits_o_bb = tf.matmul(v2_object, v2_object, transpose_b=True) / temperature
+    logits_o_bb = logits_o_bb - masks * INF  # remove the same samples
+
+    # Object feature  similar
+    logits_o_ab = tf.matmul(v1_object, v2_object, transpose_b=True) / temperature
+    logits_o_ba = tf.matmul(v2_object, v1_object, transpose_b=True) / temperature
+    
+    loss_a = tf.nn.softmax_cross_entropy_with_logits(labels, tf.concat(
+        [ logits_o_ab ,  logits_o_aa ], 1))
+
+    loss_b = tf.nn.softmax_cross_entropy_with_logits(labels, tf.concat(
+        [ logits_o_ba , logits_o_bb ], 1))
+
+
+    loss = tf.reduce_mean(loss_a + loss_b) / 2.0
+
+    return loss, logits_o_ab,  labels
 
 
 ######################################################################################
