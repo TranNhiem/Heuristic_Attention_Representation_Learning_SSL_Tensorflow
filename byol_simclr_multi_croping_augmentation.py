@@ -453,7 +453,7 @@ def simclr_augment_randcrop_global_view_image_mask(image, mask, IMG_SIZE):
     image = random_apply(color_jitter, p=0.8, x=image, )
     image = random_apply(color_drop, p=0.2, x=image, )
     image = random_apply(random_blur, p=1.0, x=image,)
-    #image = image
+    mask = mask/255.
     return image, mask
 
 
@@ -475,7 +475,7 @@ def simclr_augment_inception_style_image_mask(image, mask, IMG_SIZE):
     image = random_apply(color_jitter, p=0.8, x=image, )
     image = random_apply(color_drop, p=0.2, x=image, )
     image = random_apply(random_blur, p=1.0, x=image,)
-    #image = image/255.
+    mask = mask/255.
     return image, mask
 
 

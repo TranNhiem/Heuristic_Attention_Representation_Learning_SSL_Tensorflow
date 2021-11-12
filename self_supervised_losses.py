@@ -233,7 +233,7 @@ def nt_xent_symetrize_loss_simcrl(hidden1, hidden2, LARGE_NUM,
 
 
 # negative_mas
-def binary_mask_nt_xent_asymetrize_loss(v1_object, v2_object, v1_background, v2_background,LARGE_NUM, alpha=0.8, temperature=1):
+def binary_mask_nt_xent_asymetrize_loss(v1_object, v2_object, v1_background, v2_background, LARGE_NUM, alpha=0.8, temperature=1):
     # L2 Norm
     batch_size = tf.shape(v1_object)[0]
     v1_object = tf.math.l2_normalize(v1_object, -1)
@@ -241,14 +241,15 @@ def binary_mask_nt_xent_asymetrize_loss(v1_object, v2_object, v1_background, v2_
     v1_background = tf.math.l2_normalize(v1_background, -1)
     v2_background = tf.math.l2_normalize(v2_background, -1)
 
-    INF = 1e9
+    #INF = 1e9
+    INF= LARGE_NUM
 
     labels = tf.one_hot(tf.range(batch_size), batch_size * 2)
     masks = tf.one_hot(tf.range(batch_size), batch_size)
 
     # Object feature  dissimilar
     logits_o_aa = tf.matmul(v1_object, v1_object, transpose_b=True) / temperature
-    print(logits_o_aa.shape)
+    #print(logits_o_aa.shape)
     logits_o_aa = logits_o_aa - masks * INF  # remove the same samples
     logits_o_bb = tf.matmul(v2_object, v2_object, transpose_b=True) / temperature
     logits_o_bb = logits_o_bb - masks * INF  # remove the same samples

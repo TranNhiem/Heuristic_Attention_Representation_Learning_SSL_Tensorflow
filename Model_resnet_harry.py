@@ -9,7 +9,7 @@ Original file is located at
 # Heuristic Attention Model
 """
 
-import tensorflow.compat.v2 as tf
+import tensorflow as tf
 import matplotlib.pyplot as plt
 # class Flags():
 #   def __init__(self):
@@ -821,11 +821,13 @@ class ProjectionHead(tf.keras.layers.Layer):
     self.linear_layers = []
     if FLAGS.proj_head_mode == 'none':
       pass  # directly use the output hiddens as hiddens
+    
     elif FLAGS.proj_head_mode == 'linear':
       self.linear_layers = [
           LinearLayer(
               num_classes=out_dim, use_bias=False, use_bn=True, name='l_0')
       ]
+    
     elif FLAGS.proj_head_mode == 'nonlinear':
       for j in range(FLAGS.num_proj_layers):
         if j != FLAGS.num_proj_layers - 1:
@@ -905,8 +907,10 @@ class Indexer(tf.keras.layers.Layer):
 """# Train Model"""
 
 class SSL_train_model_Model(tf.keras.models.Model):
-    def __init__(self, Backbone="Resnet",num_classes = 1000,**kwargs):
+      
+    def __init__(self, Backbone= "Resnet", num_classes = 1000,**kwargs):
         super(SSL_train_model_Model, self).__init__(**kwargs)
+        
         if Backbone == "Resnet":
             self.encoder = resnet(resnet_depth=FLAGS.resnet_depth,
                                 width_multiplier=FLAGS.width_multiplier)
@@ -946,18 +950,22 @@ class SSL_train_model_Model(tf.keras.models.Model):
             obj, back = self.indexer([feature_map_upsample, mask])
             obj, _ = self.projection_head(self.flatten(obj),training = training)
             back, _ = self.projection_head(self.flatten(back),training = training)
+
         projection_head_outputs, supervised_head_inputs = self.projection_head(self.flatten(feature_map_upsample),training = training)
 
 
         if FLAGS.train_mode == 'finetune':
             supervised_head_outputs = self.supervised_head(supervised_head_inputs,training)
             return None,None,None, supervised_head_outputs
+
         elif FLAGS.train_mode == 'pretrain' and FLAGS.lineareval_while_pretraining:
             # When performing pretraining and linear evaluation together we do not
             # want information from linear eval flowing back into pretraining network
             # so we put a stop_gradient.
             supervised_head_outputs = self.supervised_head(tf.stop_gradient(supervised_head_inputs), training)
+            
             return obj, back, projection_head_outputs, supervised_head_outputs
+        
         else:
             return obj, back, projection_head_outputs, None
 

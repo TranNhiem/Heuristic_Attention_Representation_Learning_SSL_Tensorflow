@@ -29,8 +29,9 @@ if gpus:
         print(e)
 LARGE_NUM = 1e9
 FLAGS = flags.FLAGS
-
+#---------------------------------------------------
 # General Define
+#---------------------------------------------------
 flags.DEFINE_integer(
     'IMG_height', 224,
     'image height.')
@@ -46,7 +47,10 @@ flags.DEFINE_integer(
 flags.DEFINE_float(
     'LARGE_NUM', 1e-9,
     'The Large_num for mutliply with logit')
-
+flags.DEFINE_integer(
+    'num_class', 999, 
+    'Number of class in dataset.'
+)
 flags.DEFINE_integer(
     'SEED', 26,
     'random seed.')
@@ -63,13 +67,12 @@ flags.DEFINE_integer(
     'val_batch_size', 100,
     'Validaion_Batch_size.')
 
-
 flags.DEFINE_integer(
     'train_epochs', 100,
     'Number of epochs to train for.')
-
-
+#---------------------------------------------------
 # Define for Linear Evaluation
+#---------------------------------------------------
 flags.DEFINE_enum(
     'linear_evaluate', 'standard', ['standard', 'randaug', 'cropping_randaug'],
     'How to scale the learning rate as a function of batch size.')
@@ -78,7 +81,6 @@ flags.DEFINE_integer(
     'eval_steps', 0,
     'Number of steps to eval for. If not provided, evals over entire dataset.')
 
-
 flags.DEFINE_float(
     'randaug_transform', 1,
     'Number of augmentation transformations.')
@@ -86,10 +88,9 @@ flags.DEFINE_float(
 flags.DEFINE_float(
     'randaug_magnitude', 7,
     'Number of augmentation transformations.')
-
-
+#---------------------------------------------------
 # Define for Learning Rate Optimizer
-
+#---------------------------------------------------
 # Learning Rate Scheudle
 
 flags.DEFINE_float(
@@ -99,7 +100,6 @@ flags.DEFINE_float(
 flags.DEFINE_integer(
     'warmup_epochs', 10,  # Configure BYOL and SimCLR
     'warmup epoch steps for Cosine Decay learning rate schedule.')
-
 
 flags.DEFINE_enum(
     'lr_rate_scaling', 'linear', ['linear', 'sqrt', 'no_scale', ],
@@ -118,10 +118,9 @@ flags.DEFINE_float(
 
 flags.DEFINE_float('weight_decay', 1e-6, 'Amount of weight decay to use.')
 
-
+#------------------------------------------------------------------------------
 # Configure for Encoder - Projection Head, Linear Evaluation Architecture
-
-
+#------------------------------------------------------------------------------
 # Encoder Configure
 
 flags.DEFINE_boolean(
@@ -175,8 +174,11 @@ flags.DEFINE_boolean(
     'hidden_norm', True,
     'L2 Normalization Vector representation.')
 
+#-------------------------------------------------------------------
+# Configure Model Training -- Evaluation -- FineTuning -- 
+#-------------------------------------------------------------------
 
-# Configure Model Training
+# Configure Model Training [BaseLine Model]
 
 flags.DEFINE_enum(
     'mode', 'train', ['train', 'eval', 'train_then_eval'],
@@ -194,6 +196,12 @@ flags.DEFINE_enum(
         'contrastive', 'contrastive_supervised', ],
     'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
 
+# Configure Model Training [Contrastive Binary Model]
+flags.DEFINE_float(
+    'alpha', 0.8 , 
+    'Alpha value is configuration the weighted of Object and Background in Model Total Loss'
+)
+
 # Fine Tuning configure
 
 flags.DEFINE_bool(
@@ -207,7 +215,10 @@ flags.DEFINE_integer(
     'just the linear head.')
 
 
+#-------------------------------------------------------------------
 # Configure Saving and Restore Model
+#-------------------------------------------------------------------
+
 # Saving Model
 flags.DEFINE_string(
     'model_dir', "./model_ckpt/simclrResNet/",
@@ -221,10 +232,10 @@ flags.DEFINE_integer(
     'keep_checkpoint_max', 5,
     'Maximum number of checkpoints to keep.')
 
-
 # Loading Model
 
 # Restore model weights only, but not global step and optimizer states
+
 flags.DEFINE_string(
     'checkpoint', None,
     'Loading from the given checkpoint for fine-tuning if a finetuning '
@@ -265,7 +276,6 @@ def get_salient_tensors_dict(include_projection_head):
         result['proj_head_output'] = graph.get_tensor_by_name(
             'projection_head/proj_head_output:0')
     return result
-
 
 def build_saved_model(model, include_projection_head=True):
     """Returns a tf.Module for saving to SavedModel."""
@@ -326,7 +336,6 @@ def save(model, global_step):
             tf.io.gfile.rmtree(os.path.join(export_dir, str(step_to_delete)))
 
 # Restore the checkpoint forom the file
-
 
 def try_restore_from_checkpoint(model, global_step, optimizer):
     """Restores the latest ckpt if it exists, otherwise check FLAGS.checkpoint."""
@@ -546,7 +555,7 @@ def main(argv):
     # Configure the Encoder Architecture.
     with strategy.scope():
 
-        model = SSL_train_model_Model
+        model = SSL_train_model_Model(num_classes=FLAGS.num_classes)
 
     # Configure Wandb Training
     # Weight&Bias Tracking Experiment
@@ -643,12 +652,13 @@ def main(argv):
             # Scale loss  --> Aggregating all Gradients
             def distributed_loss(x1, x2, v1, v2):
                 # each GPU loss per_replica batch loss
-                per_example_loss, logits_ab, labels = binary_mask_nt_xent_asymetrize_loss(
-                    x1, x2, v1, v2, LARGE_NUM=FLAGS.LARG_NUM,  temperature=FLAGS.temperature)
+                per_example_loss, logits_o_ab, logits_b_ab, labels = binary_mask_nt_xent_asymetrize_loss(
+                    x1, x2, v1, v2, LARGE_NUM=FLAGS.LARG_NUM,alpha=FLAGS.alpha, temperature=FLAGS.temperature)
                 # total sum loss //Global batch_size
                 loss = tf.reduce_sum(per_example_loss) * \
                     (1./train_global_batch)
-                return loss, logits_ab, labels
+
+                return loss, logits_o_ab, logits_b_ab, labels
 
             @tf.function
             def train_step(ds_one, ds_two):
