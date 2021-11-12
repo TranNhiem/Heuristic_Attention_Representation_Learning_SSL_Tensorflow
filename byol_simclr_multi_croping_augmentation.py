@@ -412,7 +412,7 @@ def simclr_augment_randcrop_global_views(image, IMG_SIZE):
     image = random_apply(color_jitter, p=0.8, x=image, )
     image = random_apply(color_drop, p=0.2, x=image, )
     image = random_apply(random_blur, p=1.0, x=image,)
-    image = image/255.
+    #image = image/255.
     return image
 
 
@@ -428,7 +428,7 @@ def simclr_augment_inception_style(image, IMG_SIZE):
     image = random_apply(color_jitter, p=0.8, x=image, )
     image = random_apply(color_drop, p=0.2, x=image, )
     image = random_apply(random_blur, p=1.0, x=image,)
-    image = image/255.
+    #image = image/255.
     return image
 # @tf.function
 
@@ -439,7 +439,7 @@ def simclr_augment_randcrop_global_view_image_mask(image, mask, IMG_SIZE):
     max_scale = 1.0
 
     stacked_image = tf.concat([image, mask], axis=2)
-    print(stacked_image.shape)
+    # print(stacked_image.shape)
 
     stacked_image = rand_distribe_crop_global_local_views_flip(
         stacked_image, IMG_SIZE,  min_scale, max_scale, high_resol=True)
@@ -466,7 +466,7 @@ def simclr_augment_inception_style_image_mask(image, mask, IMG_SIZE):
 
     stacked_image = tf.concat([image, mask], axis=2)
     stacked_image = inception_style_croping(stacked_image, IMG_SIZE, IMG_SIZE)
-    print(stacked_image.shape)
+    # print(stacked_image.shape)
 
     image = stacked_image[:, :, 0:3]
     mask = stacked_image[:, :, 3]

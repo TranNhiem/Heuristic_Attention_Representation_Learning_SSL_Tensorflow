@@ -120,29 +120,43 @@ strategy = tf.distribute.MirroredStrategy()
 train_global_batch = 32
 val_global_batch = 32
 image_size = 224
-bi_mask = True
+bi_mask = False
 train_dataset = imagenet_dataset_single_machine(img_size=image_size, train_batch=train_global_batch,  val_batch=val_global_batch,
-                                                strategy=strategy, img_path=None, x_val=x_val,  x_train=x_train, bi_mask=True)
+                                                strategy=strategy, img_path=None, x_val=x_val,  x_train=x_train, bi_mask=bi_mask)
 
 
 #train_ds = train_dataset.simclr_random_global_crop_image_mask()
-train_ds = train_dataset.simclr_inception_style_crop_image_mask()
+#train_ds = train_dataset.simclr_inception_style_crop_image_mask()
+#train_ds = train_dataset.simclr_random_global_crop()
+train_ds = train_dataset.simclr_inception_style_crop()
 ds = []
 for _, (ds_one, ds_two) in enumerate(train_ds):
     ds = ds_one
 
     break
 
-image_mask, lable = ds
-image = image_mask[0]
-mask = image_mask[1]
+# image_mask, lable = ds
+# image = image_mask[0]
+# mask = image_mask[1]
+
+# plt.figure(figsize=(10, 5))
+# for n in range(10):
+#     ax = plt.subplot(2, 10, n + 1)
+#     plt.imshow(image[n])  # .numpy().astype("int")
+#     ax = plt.subplot(2, 10, n + 11)
+#     plt.imshow(tf.squeeze(mask[n])/255)  # .numpy().astype("int")
+#     plt.axis("off")
+# plt.show()
+# print(image[0])
+
+image, lable = ds
 
 plt.figure(figsize=(10, 5))
 for n in range(10):
     ax = plt.subplot(2, 10, n + 1)
     plt.imshow(image[n])  # .numpy().astype("int")
-    ax = plt.subplot(2, 10, n + 11)
-    plt.imshow(tf.squeeze(mask[n])/255)  # .numpy().astype("int")
+    # ax = plt.subplot(2, 10, n + 11)
+    # plt.imshow(tf.squeeze(mask[n])/255)  # .numpy().astype("int")
     plt.axis("off")
 plt.show()
-print(image[0])
+print(image)
