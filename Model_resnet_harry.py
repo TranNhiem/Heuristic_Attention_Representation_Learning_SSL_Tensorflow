@@ -10,6 +10,7 @@ Original file is located at
 """
 
 import tensorflow as tf
+from absl import flags
 import matplotlib.pyplot as plt
 # class Flags():
 #   def __init__(self):

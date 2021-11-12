@@ -261,18 +261,21 @@ def binary_mask_nt_xent_asymetrize_loss(v1_object, v2_object, v1_background, v2_
     labels = tf.one_hot(tf.range(batch_size), batch_size * 2) #??
     masks = tf.one_hot(tf.range(batch_size), batch_size) # ??
 
-    # Object feature  dissimilar
+    # Object feature dissimilar
     logits_o_aa = tf.matmul(v1_object, v1_object, transpose_b=True) / temperature
-    #print(logits_o_aa.shape)
     logits_o_aa = logits_o_aa - masks * INF  # remove the same samples
     logits_o_bb = tf.matmul(v2_object, v2_object, transpose_b=True) / temperature
     logits_o_bb = logits_o_bb - masks * INF  # remove the same samples
 
-    # object and background feature  dissimilar
-    logits_b_aa = tf.matmul(v1_object, v1_background, transpose_b=True) / temperature
-    # logits_b_aa = logits_b_aa - masks * INF# remove the same samples
-    logits_b_bb = tf.matmul(v2_object, v2_background, transpose_b=True) / temperature
-    # logits_b_bb = logits_b_bb - masks * INF# remove the same samples
+    # object_a and background_a feature  dissimilar
+    logits_ob_aa = tf.matmul(v1_object, v1_background, transpose_b=True) / temperature
+    # object_a and background_b feature  dissimilar
+    logits_ob_ab = tf.matmul(v1_object, v2_background, transpose_b=True) / temperature
+
+    # object_b and background_b feature  dissimilar
+    logits_ob_bb = tf.matmul(v2_object, v2_background, transpose_b=True) / temperature
+    # object_b and background_a feature  dissimilar
+    logits_ob_ba = tf.matmul(v2_object, v1_background, transpose_b=True) / temperature
 
     # Object feature  similar
     logits_o_ab = tf.matmul(v1_object, v2_object, transpose_b=True) / temperature
@@ -288,10 +291,10 @@ def binary_mask_nt_xent_asymetrize_loss(v1_object, v2_object, v1_background, v2_
     #     [alpha * logits_o_ba + (1 - alpha) * logits_b_ba, alpha * logits_o_bb + alpha * logits_b_bb], 1))
 
     loss_a = tf.nn.softmax_cross_entropy_with_logits(labels, tf.concat(
-        [alpha * logits_o_ab + (1 - alpha) * logits_b_ab, alpha * logits_o_aa +(1- alpha) * logits_b_aa], 1))
+        [alpha * logits_o_ab + (1 - alpha) * logits_b_ab, alpha * logits_o_aa +(1- alpha) * (logits_ob_aa + logits_ob_ab)], 1))
     
     loss_b = tf.nn.softmax_cross_entropy_with_logits(labels, tf.concat(
-        [alpha * logits_o_ba + (1 - alpha) * logits_b_ba, alpha * logits_o_bb + (1- alpha) * logits_b_bb], 1))
+        [alpha * logits_o_ba + (1 - alpha) * logits_b_ba, alpha * logits_o_bb + (1- alpha) * (logits_ob_bb + logits_ob_ba)], 1))
 
 
     loss = tf.reduce_mean(loss_a + loss_b) / 2.0
