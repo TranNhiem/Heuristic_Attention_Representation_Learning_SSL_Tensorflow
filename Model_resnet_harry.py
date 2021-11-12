@@ -11,19 +11,19 @@ Original file is located at
 
 import tensorflow.compat.v2 as tf
 import matplotlib.pyplot as plt
-class Flags():
-  def __init__(self):
-      self.batch_norm_decay = 0.9
-      self.global_bn = True
-      self.se_ratio = 0
-      self.sk_ratio = 0
-      self.train_mode = 'pretrain'
-      self.fine_tune_after_block = -1
-      self.proj_head_mode = 'nonlinear'
-      self.proj_out_dim = 256
-      self.num_proj_layers = 2
-      self.ft_proj_selector = 0
-FLAGS = Flags()
+# class Flags():
+#   def __init__(self):
+#       self.batch_norm_decay = 0.9
+#       self.global_bn = True
+#       self.se_ratio = 0
+#       self.sk_ratio = 0
+#       self.train_mode = 'pretrain'
+#       self.fine_tune_after_block = -1
+#       self.proj_head_mode = 'nonlinear'
+#       self.proj_out_dim = 256
+#       self.num_proj_layers = 2
+#       self.ft_proj_selector = 0
+# FLAGS = Flags()
 
 """# Encoder
 
@@ -51,10 +51,7 @@ Residual networks (ResNets) were proposed in:
 [1] Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun
     Deep Residual Learning for Image Recognition. arXiv:1512.03385
 """
-
-
-import tensorflow.compat.v2 as tf
-
+FLAGS = flags.FLAGS
 BATCH_NORM_EPSILON = 1e-5
 
 class BatchNormRelu(tf.keras.layers.Layer):  # pylint: disable=missing-docstring
@@ -908,30 +905,63 @@ class Indexer(tf.keras.layers.Layer):
 """# Train Model"""
 
 class SSL_train_model_Model(tf.keras.models.Model):
-    def __init__(self, Backbone="Resnet",**kwargs):
+    def __init__(self, Backbone="Resnet",num_classes = 1000,**kwargs):
         super(SSL_train_model_Model, self).__init__(**kwargs)
         if Backbone == "Resnet":
-            self.encoder = resnet(18,2)
+            self.encoder = resnet(resnet_depth=FLAGS.resnet_depth,
+                                width_multiplier=FLAGS.width_multiplier)
         else:
             raise ValueError(f"Didn't have this {Backbone} model")
 
         self.indexer = Indexer()
         self.flatten = tf.keras.layers.Flatten()
+
         self.projection_head = ProjectionHead()
+
+        if FLAGS.train_mode == 'finetune' or FLAGS.lineareval_while_pretraining:
+            self.supervised_head = SupervisedHead(num_classes)
         
     def call(self, inputs ,training):
-        mask = inputs[1]
-        inputs = inputs[0]
-        # print(inputs.shape)
-        feature_map = self.encoder(inputs)
-        # print(feature_map.shape)
+
+        if FLAGS.train_mode == 'pretrain':
+            mask = inputs[1]
+            inputs = inputs[0]
+
+        if training and FLAGS.train_mode == 'pretrain':
+            if FLAGS.fine_tune_after_block > -1:
+                raise ValueError('Does not support layer freezing during pretraining,'
+                                 'should set fine_tune_after_block<=-1 for safety.')
+        if inputs.shape[3] is None:
+            raise ValueError('The input channels dimension must be statically known '
+                             f'(got input shape {inputs.shape})')
+
+        # Base network forward pass
+        feature_map = self.encoder(inputs,training = training)
+        # Pixel shuffle
         feature_map_upsample = tf.nn.depth_to_space(feature_map,inputs.shape[1]/feature_map.shape[1]) # PixelShuffle
-        obj ,back = self.indexer([feature_map_upsample,mask])
-        
-        obj = self.projection_head(self.flatten(obj))
-        back = self.projection_head(self.flatten(back))
-        feature_map_upsample = self.projection_head(self.flatten(feature_map_upsample))
-        print(feature_map_upsample.shape)
+
+        #Add heads
+        if FLAGS.train_mode == 'pretrain':
+            # object and background indexer
+            obj, back = self.indexer([feature_map_upsample, mask])
+            obj, _ = self.projection_head(self.flatten(obj),training = training)
+            back, _ = self.projection_head(self.flatten(back),training = training)
+        projection_head_outputs, supervised_head_inputs = self.projection_head(self.flatten(feature_map_upsample),training = training)
+
+
+        if FLAGS.train_mode == 'finetune':
+            supervised_head_outputs = self.supervised_head(supervised_head_inputs,training)
+            return None,None,None, supervised_head_outputs
+        elif FLAGS.train_mode == 'pretrain' and FLAGS.lineareval_while_pretraining:
+            # When performing pretraining and linear evaluation together we do not
+            # want information from linear eval flowing back into pretraining network
+            # so we put a stop_gradient.
+            supervised_head_outputs = self.supervised_head(tf.stop_gradient(supervised_head_inputs), training)
+            return obj, back, projection_head_outputs, supervised_head_outputs
+        else:
+            return obj, back, projection_head_outputs, None
+
+
         return obj, back, feature_map_upsample
         #return feature_map_upsample
 
