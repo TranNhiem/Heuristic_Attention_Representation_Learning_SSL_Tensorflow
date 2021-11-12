@@ -23,18 +23,21 @@ import tensorflow as tf
 def update_pretrain_metrics_train(contrast_loss, contrast_acc, contrast_entropy,
                                   loss, logits_con, labels_con):
     """Updated pretraining metrics."""
+    #total contrastive_loss
     contrast_loss.update_state(loss)
 
     contrast_acc_val = tf.equal(
         tf.argmax(labels_con, 1), tf.argmax(logits_con, axis=1))
     contrast_acc_val = tf.reduce_mean(tf.cast(contrast_acc_val, tf.float32))
+    
+    #Contrastive acc
     contrast_acc.update_state(contrast_acc_val)
 
     prob_con = tf.nn.softmax(logits_con)
     entropy_con = -tf.reduce_mean(
         tf.reduce_sum(prob_con * tf.math.log(prob_con + 1e-8), -1))
+    
     contrast_entropy.update_state(entropy_con)
-
 
 def update_pretrain_metrics_eval(contrast_loss_metric,
                                  contrastive_top_1_accuracy_metric,
@@ -44,6 +47,78 @@ def update_pretrain_metrics_eval(contrast_loss_metric,
     contrastive_top_1_accuracy_metric.update_state(
         tf.argmax(labels_con, 1), tf.argmax(logits_con, axis=1))
     contrastive_top_5_accuracy_metric.update_state(labels_con, logits_con)
+
+
+def update_pretrain_binary_metrics_train_v0( contrast_binary_loss, contrast_bi_acc, contrast_bi_entroy, 
+                                    bi_co_loss, logits_Obj, logits_Backg, labels_binary_con
+                                  ):
+    '''
+    args: 
+    
+        bi_co_loss, Binary_contrastive_loss
+        logits_Obj, object logits output
+        logits_Backg, : background logits output
+        labels_binary_con: is the label (Object and background feature) belong to
+
+    Return: 
+        Update result of these three metrics
+        contrast_binary_loss, is total Binary contrast loss for each distributed run
+        contrast_bi_acc, is the accuracy contrastive average result of Object and Backgroud
+        contrast_bi_entroy is the entropy probability accuracy (average result) of object and backgroud
+
+    '''
+    
+    # Binary contrast framework
+    contrast_binary_loss.update_state(bi_co_loss)
+
+    ## Calculate contrast binary accuracy (Object feature -- Background feature)
+    #object feature
+    contrast_acc_obj = tf.equal(
+        tf.argmax(labels_binary_con, 1), tf.argmax(logits_Obj, axis=1))
+    contrast_acc_obj = tf.reduce_mean(tf.cast(contrast_acc_val, tf.float32))
+    
+    #background feature
+    contrast_acc_backg=tf.equal(
+        tf.argmax(labels_binary_con, 1), tf.argmax(logits_Backg, axis=1))
+    contrast_acc_backg = tf.reduce_mean(tf.cast(contrast_acc_backg, tf.float32))
+
+    total_contrast_acc= (contrast_acc_obj + contrast_acc_backg)/2
+    contrast_bi_acc.update_state(contrast_acc_val)
+    
+    ## Calculate Contrast-Binary-Entropy
+    #Object feature
+    prob_con_obj = tf.nn.softmax(logits_Obj)
+    entropy_con_Obj = -tf.reduce_mean(
+        tf.reduce_sum(prob_con_obj * tf.math.log(prob_con_obj + 1e-8), -1))
+    #backgroud feature
+    prob_con_backg = tf.nn.softmax(logits_Backg)
+    entropy_con_Backg = -tf.reduce_mean(
+        tf.reduce_sum(prob_con_backg * tf.math.log(prob_con_backg + 1e-8), -1))
+    all_entropy_prob=(entropy_con_Obj+entropy_con_Backg)/2
+    
+    contrast_bi_entroy.update_state(all_entropy_prob)
+
+
+def update_pretrain_binary_metrics_eval(contrast_binary_loss_metric,
+                                 contrastive_top_1_accuracy_metric,
+                                 contrastive_top_5_accuracy_metric,
+                                 contrast_binary_loss, logits_object, logits_backg, labels_con):
+    
+    '''
+    args: 
+
+    Return 
+    
+    '''
+    
+    ## Total contrast_binary_loss each run
+    contrast_losscontrast_binary_loss_metric_metric.update_state(contrast_binary_loss)
+    ## Contrastive accuracy of feature and background
+    contrastive_top_1_accuracy_metric.update_state(
+        tf.argmax(labels_con, 1), tf.argmax(logits_con, axis=1))
+
+    contrastive_top_5_accuracy_metric.update_state(labels_con, logits_con)
+
 
 
 def update_finetune_metrics_train(supervised_loss_metric, supervised_acc_metric,

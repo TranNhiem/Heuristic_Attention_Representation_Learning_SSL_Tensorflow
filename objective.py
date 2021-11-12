@@ -110,6 +110,7 @@ def tpu_cross_replica_concat(tensor, strategy=None):
     num_replicas = strategy.num_replicas_in_sync
 
     replica_context = tf.distribute.get_replica_context()
+    
     with tf.name_scope('tpu_cross_replica_concat'):
         # This creates a tensor that is like the input tensor but has an added
         # replica dimension as the outermost dimension. On each replica it will
