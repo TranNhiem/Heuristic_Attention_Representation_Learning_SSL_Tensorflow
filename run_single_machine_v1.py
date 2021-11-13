@@ -20,7 +20,7 @@ gpus = tf.config.experimental.list_physical_devices('GPU')
 if gpus:
 
     try:
-        tf.config.experimental.set_visible_devices(gpus[2:4], 'GPU')
+        tf.config.experimental.set_visible_devices(gpus[0:8], 'GPU')
         logical_gpus = tf.config.experimental.list_logical_devices('GPU')
         print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPU")
     except RuntimeError as e:
@@ -54,7 +54,7 @@ flags.DEFINE_integer(
     'Train batch_size .')
 
 flags.DEFINE_integer(
-    'val_batch_size', 30,
+    'val_batch_size', 32,
     'Validaion_Batch_size.')
 
 
@@ -505,14 +505,14 @@ with strategy.scope():
         dataset = list(paths.list_images(imagenet_path))
         random.Random(FLAGS.SEED_data_split).shuffle(dataset)
         x_val = dataset[0:50000]
-        x_train = dataset[50000:200000]
+        x_train = dataset[50000:]
 
 
         train_global_batch = FLAGS.train_batch_size * strategy.num_replicas_in_sync
         val_global_batch = FLAGS.val_batch_size * strategy.num_replicas_in_sync
 
         train_dataset = imagenet_dataset_single_machine(img_size=FLAGS.image_size, train_batch=train_global_batch,  val_batch=val_global_batch,
-                                                        strategy=strategy, img_path=None, x_val=x_val,  x_train=x_train)
+                                                        strategy=strategy, img_path=None, x_val=x_val,  x_train=x_train, )
 
         train_ds = train_dataset.simclr_inception_style_crop()
         val_ds = train_dataset.supervised_validation()
@@ -687,7 +687,7 @@ with strategy.scope():
                             labels, tf.concat([logits_ab, logits_aa], 1))
                         loss_b = tf.nn.softmax_cross_entropy_with_logits(
                             labels, tf.concat([logits_ba, logits_bb], 1))
-                        con_loss = tf.reduce_mean(loss_a + loss_b)
+                        con_loss = tf.reduce_mean(loss_a + loss_b)/2
 
                         scale_con_loss = tf.reduce_sum(
                             con_loss) * (1. / train_global_batch)
@@ -696,6 +696,7 @@ with strategy.scope():
 
                         logits_con = logits_ab
                         labels_con = labels
+                        
                         if loss is None:
                             loss = scale_con_loss
                         else:
