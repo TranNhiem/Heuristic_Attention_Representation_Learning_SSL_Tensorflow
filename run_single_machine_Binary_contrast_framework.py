@@ -29,9 +29,9 @@ if gpus:
         print(e)
 
 FLAGS = flags.FLAGS
-#---------------------------------------------------
+# ---------------------------------------------------
 # General Define
-#---------------------------------------------------
+# ---------------------------------------------------
 flags.DEFINE_integer(
     'IMG_height', 224,
     'image height.')
@@ -48,7 +48,7 @@ flags.DEFINE_float(
     'LARGE_NUM', 1e-9,
     'The Large_num for mutliply with logit')
 flags.DEFINE_integer(
-    'num_classes', 999, 
+    'num_classes', 999,
     'Number of class in dataset.'
 )
 flags.DEFINE_integer(
@@ -60,19 +60,19 @@ flags.DEFINE_integer(
     'random seed for spliting data.')
 
 flags.DEFINE_integer(
-    'train_batch_size', 2,
+    'train_batch_size', 25,
     'Train batch_size .')
 
 flags.DEFINE_integer(
-    'val_batch_size', 2,
+    'val_batch_size', 25,
     'Validaion_Batch_size.')
 
 flags.DEFINE_integer(
     'train_epochs', 100,
     'Number of epochs to train for.')
-#---------------------------------------------------
+# ---------------------------------------------------
 # Define for Linear Evaluation
-#---------------------------------------------------
+# ---------------------------------------------------
 flags.DEFINE_enum(
     'linear_evaluate', 'standard', ['standard', 'randaug', 'cropping_randaug'],
     'How to scale the learning rate as a function of batch size.')
@@ -88,9 +88,9 @@ flags.DEFINE_float(
 flags.DEFINE_float(
     'randaug_magnitude', 7,
     'Number of augmentation transformations.')
-#---------------------------------------------------
+# ---------------------------------------------------
 # Define for Learning Rate Optimizer
-#---------------------------------------------------
+# ---------------------------------------------------
 # Learning Rate Scheudle
 
 flags.DEFINE_float(
@@ -118,9 +118,9 @@ flags.DEFINE_float(
 
 flags.DEFINE_float('weight_decay', 1e-6, 'Amount of weight decay to use.')
 
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Configure for Encoder - Projection Head, Linear Evaluation Architecture
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Encoder Configure
 
 flags.DEFINE_boolean(
@@ -174,9 +174,9 @@ flags.DEFINE_boolean(
     'hidden_norm', True,
     'L2 Normalization Vector representation.')
 
-#-------------------------------------------------------------------
-# Configure Model Training -- Evaluation -- FineTuning -- 
-#-------------------------------------------------------------------
+# -------------------------------------------------------------------
+# Configure Model Training -- Evaluation -- FineTuning --
+# -------------------------------------------------------------------
 
 # Configure Model Training [BaseLine Model]
 
@@ -198,19 +198,17 @@ flags.DEFINE_enum(
 
 # Configure Model Training [Contrastive Binary Model]
 flags.DEFINE_float(
-    'alpha', 0.8 , 
+    'alpha', 0.8,
     'Alpha value is configuration the weighted of Object and Background in Model Total Loss'
 )
 
 flags.DEFINE_enum(
-    'contrast_binary_loss', 'sum_contrast_obj_back', ["sum_contrast_obj_back", 
-                                                        "only_object",
-                                                        "original_contrast_back_object"],
+    'contrast_binary_loss', 'sum_contrast_obj_back', ["sum_contrast_obj_back",
+                                                      "only_object",
+                                                      "original_contrast_back_object"],
     # sum_contrast_obj_back is Sum-up contrastive loss from backgroud and Object with scaling alpha
     #
     'Contrast binary Framework consider three different LOSSES')
-
-
 
 
 # Fine Tuning configure
@@ -226,9 +224,9 @@ flags.DEFINE_integer(
     'just the linear head.')
 
 
-#-------------------------------------------------------------------
+# -------------------------------------------------------------------
 # Configure Saving and Restore Model
-#-------------------------------------------------------------------
+# -------------------------------------------------------------------
 
 # Saving Model
 flags.DEFINE_string(
@@ -263,6 +261,7 @@ flags.DEFINE_integer(
 
 # Helper function to save and resore model.
 
+
 def get_salient_tensors_dict(include_projection_head):
     """Returns a dictionary of tensors."""
     graph = tf.compat.v1.get_default_graph()
@@ -286,6 +285,7 @@ def get_salient_tensors_dict(include_projection_head):
         result['proj_head_output'] = graph.get_tensor_by_name(
             'projection_head/proj_head_output:0')
     return result
+
 
 def build_saved_model(model, include_projection_head=True):
     """Returns a tf.Module for saving to SavedModel."""
@@ -313,6 +313,7 @@ def build_saved_model(model, include_projection_head=True):
 
 # configure Json format saving file
 
+
 def json_serializable(val):
     #
     try:
@@ -321,6 +322,7 @@ def json_serializable(val):
 
     except TypeError:
         return False
+
 
 def save(model, global_step):
     """Export as SavedModel for finetuning and inference."""
@@ -344,6 +346,7 @@ def save(model, global_step):
             tf.io.gfile.rmtree(os.path.join(export_dir, str(step_to_delete)))
 
 # Restore the checkpoint forom the file
+
 
 def try_restore_from_checkpoint(model, global_step, optimizer):
     """Restores the latest ckpt if it exists, otherwise check FLAGS.checkpoint."""
@@ -380,6 +383,7 @@ def try_restore_from_checkpoint(model, global_step, optimizer):
 
     return checkpoint_manager
 
+
 def _restore_latest_or_from_pretrain(checkpoint_manager):
     """Restores the latest ckpt if training already.
     Or restores from FLAGS.checkpoint if in finetune mode.
@@ -414,6 +418,8 @@ def _restore_latest_or_from_pretrain(checkpoint_manager):
             x.assign(tf.zeros_like(x))
 
 # Perform Testing Step Here
+
+
 def perform_evaluation(model, val_ds, val_steps, ckpt, strategy):
     """Perform evaluation.--> Only Inference to measure the pretrain model representation"""
 
@@ -538,7 +544,6 @@ def main(argv):
     train_ds = train_dataset.simclr_random_global_crop_image_mask()
 
     val_ds = train_dataset.supervised_validation()
-    
 
     num_train_examples = len(x_train)
     num_eval_examples = len(x_val)
@@ -601,7 +606,7 @@ def main(argv):
     # *****************************************************************
     # Pre-Training and Evaluate
     # *****************************************************************
-    
+
     else:
         summary_writer = tf.summary.create_file_writer(FLAGS.model_dir)
 
@@ -625,19 +630,18 @@ def main(argv):
             total_loss_metric = tf.keras.metrics.Mean('train/total_loss')
             all_metrics.extend([weight_decay_metric, total_loss_metric])
 
-
             if FLAGS.train_mode == 'pretrain':
 
                 # contrastive metrics (Object - Background seperate Representation)
                 contrast_Binary_loss_metric = tf.keras.metrics.Mean(
                     'train/contrast_Binary_loss')
                 contrast_Binary_acc_metric = tf.keras.metrics.Mean(
-                    "train/contrast_Binary_acc_Obj")                     
+                    "train/contrast_Binary_acc_Obj")
                 contrast_Binary_entropy_metric = tf.keras.metrics.Mean(
                     'train/contrast_Binary_entropy_Obj')
 
                 all_metrics.extend(
-                    [contrast_Binary_loss_metric, contrast_Binary_acc_metric, contrast_Binary_entropy_metric ])
+                    [contrast_Binary_loss_metric, contrast_Binary_acc_metric, contrast_Binary_entropy_metric])
 
             if FLAGS.train_mode == 'finetune' or FLAGS.lineareval_while_pretraining:
                 logging.info(
@@ -661,7 +665,7 @@ def main(argv):
             def distributed_Binary_contrast_loss(x1, x2, v1, v2):
                 # each GPU loss per_replica batch loss
                 per_example_loss, logits_o_ab, logits_b_ab, labels = binary_mask_nt_xent_object_backgroud_sum_loss(
-                    x1, x2, v1, v2, LARGE_NUM=FLAGS.LARG_NUM,alpha=FLAGS.alpha, temperature=FLAGS.temperature)
+                    x1, x2, v1, v2, LARGE_NUM=FLAGS.LARGE_NUM, alpha=FLAGS.alpha, temperature=FLAGS.temperature)
                 # total sum loss //Global batch_size
                 loss = tf.reduce_sum(per_example_loss) * \
                     (1./train_global_batch)
@@ -673,26 +677,25 @@ def main(argv):
                 # Get the data from
                 images_mask_one, lable_1, = ds_one  # lable_one
                 images_mask_two, lable_2,  = ds_two  # lable_two
-                
 
                 with tf.GradientTape() as tape:
 
                     obj_1, backg_1,  proj_head_output_1, supervised_head_output_1 = model(
-                        [images_mask_one[0],tf.expand_dims(images_mask_one[1], axis=-1)] , training=True)
-                    obj_2, backg_2,proj_head_output_2, supervised_head_output_2 = model(
-                        [images_mask_one[0],tf.expand_dims(images_mask_one[1], axis=-1)], training=True)
+                        [images_mask_one[0], tf.expand_dims(images_mask_one[1], axis=-1)], training=True)
+                    obj_2, backg_2, proj_head_output_2, supervised_head_output_2 = model(
+                        [images_mask_one[0], tf.expand_dims(images_mask_one[1], axis=-1)], training=True)
 
                     # Compute Contrastive Train Loss -->
                     loss = None
                     if obj_1 is not None:
                         # Compute Contrastive Loss model
-                        loss, logits_o_ab, logit_b_ab,labels = distributed_Binary_contrast_loss(
-                             obj_1, obj_2,  backg_1, backg_2)
+                        loss, logits_o_ab, logit_b_ab, labels = distributed_Binary_contrast_loss(
+                            obj_1, obj_2,  backg_1, backg_2)
 
                         # Output to Update Contrastive
                         logits_con = logits_o_ab
                         labels_con = labels
-                        
+
                         scale_con_loss = loss
                         if loss is None:
                             loss = scale_con_loss
