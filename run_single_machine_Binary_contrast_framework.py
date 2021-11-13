@@ -22,12 +22,12 @@ from wandb.keras import WandbCallback
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if gpus:
     try:
-        tf.config.experimental.set_visible_devices(gpus, 'GPU')
+        tf.config.experimental.set_visible_devices(gpus[0:8], 'GPU')
         logical_gpus = tf.config.experimental.list_logical_devices('GPU')
         print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPU")
     except RuntimeError as e:
         print(e)
-LARGE_NUM = 1e9
+
 FLAGS = flags.FLAGS
 #---------------------------------------------------
 # General Define
@@ -60,11 +60,11 @@ flags.DEFINE_integer(
     'random seed for spliting data.')
 
 flags.DEFINE_integer(
-    'train_batch_size', 100,
+    'train_batch_size', 20,
     'Train batch_size .')
 
 flags.DEFINE_integer(
-    'val_batch_size', 100,
+    'val_batch_size', 20,
     'Validaion_Batch_size.')
 
 flags.DEFINE_integer(
