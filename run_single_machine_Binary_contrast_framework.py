@@ -48,7 +48,7 @@ flags.DEFINE_float(
     'LARGE_NUM', 1e-9,
     'The Large_num for mutliply with logit')
 flags.DEFINE_integer(
-    'num_class', 999, 
+    'num_classes', 999, 
     'Number of class in dataset.'
 )
 flags.DEFINE_integer(
@@ -60,11 +60,11 @@ flags.DEFINE_integer(
     'random seed for spliting data.')
 
 flags.DEFINE_integer(
-    'train_batch_size', 20,
+    'train_batch_size', 2,
     'Train batch_size .')
 
 flags.DEFINE_integer(
-    'val_batch_size', 20,
+    'val_batch_size', 2,
     'Validaion_Batch_size.')
 
 flags.DEFINE_integer(
@@ -201,6 +201,17 @@ flags.DEFINE_float(
     'alpha', 0.8 , 
     'Alpha value is configuration the weighted of Object and Background in Model Total Loss'
 )
+
+flags.DEFINE_enum(
+    'contrast_binary_loss', 'sum_contrast_obj_back', ["sum_contrast_obj_back", 
+                                                        "only_object",
+                                                        "original_contrast_back_object"],
+    # sum_contrast_obj_back is Sum-up contrastive loss from backgroud and Object with scaling alpha
+    #
+    'Contrast binary Framework consider three different LOSSES')
+
+
+
 
 # Fine Tuning configure
 
@@ -524,7 +535,7 @@ def main(argv):
     train_dataset = imagenet_dataset_single_machine(img_size=FLAGS.image_size, train_batch=train_global_batch,  val_batch=val_global_batch,
                                                     strategy=strategy, img_path=None, x_val=x_val,  x_train=x_train, bi_mask=True)
 
-    train_ds = train_dataset.simclr_inception_style_crop_image_mask()
+    train_ds = train_dataset.simclr_random_global_crop_image_mask()
 
     val_ds = train_dataset.supervised_validation()
     
@@ -667,9 +678,9 @@ def main(argv):
                 with tf.GradientTape() as tape:
 
                     obj_1, backg_1,  proj_head_output_1, supervised_head_output_1 = model(
-                        images_mask_one, training=True)
+                        [images_mask_one[0],tf.expand_dims(images_mask_one[1], axis=-1)] , training=True)
                     obj_2, backg_2,proj_head_output_2, supervised_head_output_2 = model(
-                        images_mask_two, training=True)
+                        [images_mask_one[0],tf.expand_dims(images_mask_one[1], axis=-1)], training=True)
 
                     # Compute Contrastive Train Loss -->
                     loss = None

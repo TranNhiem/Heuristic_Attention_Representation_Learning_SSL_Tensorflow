@@ -36,7 +36,7 @@ class imagenet_dataset_single_machine():
 
             for p in self.x_train:
                 self.bi_mask.append(
-                    p.replace("1K/", "binary_image_by_USS/").replace("JPEG", "png"))
+                    p.replace("1K/", "1K_binary_image_by_USS/").replace("JPEG", "png"))
 
         # Path for loading all Images
         # For training

@@ -931,6 +931,8 @@ class SSL_train_model_Model(tf.keras.models.Model):
         if FLAGS.train_mode == 'pretrain':
             mask = inputs[1]
             inputs = inputs[0]
+            print(mask.shape)
+            print(inputs.shape)
 
         if training and FLAGS.train_mode == 'pretrain':
             if FLAGS.fine_tune_after_block > -1:
@@ -944,11 +946,13 @@ class SSL_train_model_Model(tf.keras.models.Model):
         feature_map = self.encoder(inputs,training = training)
         # Pixel shuffle
         feature_map_upsample = tf.nn.depth_to_space(feature_map,inputs.shape[1]/feature_map.shape[1]) # PixelShuffle
-
+        print("feature_map_upsample",feature_map_upsample.shape )
         #Add heads
         if FLAGS.train_mode == 'pretrain':
             # object and background indexer
             obj, back = self.indexer([feature_map_upsample, mask])
+            print("this object feature", obj.shape)
+            print("this is backg feature", back.shape)
             obj, _ = self.projection_head(self.flatten(obj),training = training)
             back, _ = self.projection_head(self.flatten(back),training = training)
 
