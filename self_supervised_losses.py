@@ -168,6 +168,7 @@ def nt_xent_asymetrize_loss_v2(z,  temperature):
     denominators = tf.reduce_sum(tf.multiply(negative_mask, similarity), axis=1)
     losses = -tf.math.log(numerator/denominators)
     total_loss=tf.reduce_mean(losses)
+    
     return total_loss, similarity, lables
 
 def nt_xent_symetrize_loss_simcrl(hidden1, hidden2, LARGE_NUM,

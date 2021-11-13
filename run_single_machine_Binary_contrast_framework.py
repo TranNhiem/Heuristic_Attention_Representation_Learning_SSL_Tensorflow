@@ -11,9 +11,9 @@ import tensorflow as tf
 from learning_rate_optimizer import WarmUpAndCosineDecay
 import metrics
 from byol_simclr_imagenet_data import imagenet_dataset_single_machine
-from self_supervised_losses import binary_mask_nt_xent_asymetrize_loss
+from self_supervised_losses import binary_mask_nt_xent_object_backgroud_sum_loss
 from Model_resnet_harry import SSL_train_model_Model
-from model import build_optimizer
+from model import build_optimizer, add_weight_decay
 import objective as obj_lib
 from imutils import paths
 from wandb.keras import WandbCallback
@@ -528,7 +528,6 @@ def main(argv):
 
     val_ds = train_dataset.supervised_validation()
     
-    num_classes = FLAGS.num_class
 
     num_train_examples = len(x_train)
     num_eval_examples = len(x_val)
@@ -557,7 +556,7 @@ def main(argv):
     configs = {
 
         "Model_Arch": "ResNet50",
-        "Training mode": "SSL",
+        "Training mode": "Constrastive Binary Framework",
         "DataAugmentation_types": "SimCLR_Inception_style_Croping",
         "Dataset": "ImageNet1k",
 
@@ -622,9 +621,9 @@ def main(argv):
                 contrast_Binary_loss_metric = tf.keras.metrics.Mean(
                     'train/contrast_Binary_loss')
                 contrast_Binary_acc_metric = tf.keras.metrics.Mean(
-                    "train/contrast_Binary_acc_average_Obj_Backg")                     
+                    "train/contrast_Binary_acc_Obj")                     
                 contrast_Binary_entropy_metric = tf.keras.metrics.Mean(
-                    'train/contrast_Binary_entropy_average_Obj_Backg')
+                    'train/contrast_Binary_entropy_Obj')
 
                 all_metrics.extend(
                     [contrast_Binary_loss_metric, contrast_Binary_acc_metric, contrast_Binary_entropy_metric ])
@@ -648,9 +647,9 @@ def main(argv):
             steps_per_loop = checkpoint_steps
 
             # Scale loss  --> Aggregating all Gradients
-            def distributed_loss(x1, x2, v1, v2):
+            def distributed_Binary_contrast_loss(x1, x2, v1, v2):
                 # each GPU loss per_replica batch loss
-                per_example_loss, logits_o_ab, logits_b_ab, labels = binary_mask_nt_xent_asymetrize_loss(
+                per_example_loss, logits_o_ab, logits_b_ab, labels = binary_mask_nt_xent_object_backgroud_sum_loss(
                     x1, x2, v1, v2, LARGE_NUM=FLAGS.LARG_NUM,alpha=FLAGS.alpha, temperature=FLAGS.temperature)
                 # total sum loss //Global batch_size
                 loss = tf.reduce_sum(per_example_loss) * \
@@ -666,29 +665,23 @@ def main(argv):
                 
 
                 with tf.GradientTape() as tape:
-                    # 2. Summaries are recorded only on replica 0. So effectively this
-                    #    summary would be written once per host when should_record == True.
-                    # 3. optimizer.iterations is incremented in the call to apply_gradients.
-                    #    So we use  `iterations + 1` here so that the step number matches
-                    #    those of scalar summaries.
-                    # 4. We intentionally run the summary op before the actual model
-                    #    training so that it can run in parallel.
 
-                    proj_head_output_1, supervised_head_output_1 = model(
+                    obj_1, backg_1,  proj_head_output_1, supervised_head_output_1 = model(
                         images_mask_one, training=True)
-                    proj_head_output_2, supervised_head_output_2 = model(
+                    obj_2, backg_2,proj_head_output_2, supervised_head_output_2 = model(
                         images_mask_two, training=True)
 
                     # Compute Contrastive Train Loss -->
                     loss = None
-                    if proj_head_output_1 is not None:
+                    if obj_1 is not None:
                         # Compute Contrastive Loss model
-                        loss, logits_ab, labels = distributed_loss(
-                            proj_head_output_1, proj_head_output_2)
+                        loss, logits_o_ab, logit_b_ab,labels = distributed_Binary_contrast_loss(
+                             obj_1, obj_2,  backg_1, backg_2)
 
                         # Output to Update Contrastive
-                        logits_con = logits_ab
+                        logits_con = logits_o_ab
                         labels_con = labels
+                        
                         scale_con_loss = loss
                         if loss is None:
                             loss = scale_con_loss
@@ -696,14 +689,11 @@ def main(argv):
                             loss += scale_con_loss
 
                         # Update Self-Supervised Metrics
-                        metrics.update_pretrain_metrics_train(contrast_loss_metric,
-                                                              contrast_acc_metric,
-                                                              contrast_entropy_metric,
+                        metrics.update_pretrain_metrics_train(contrast_Binary_loss_metric,
+                                                              contrast_Binary_acc_metric,
+                                                              contrast_Binary_entropy_metric,
                                                               scale_con_loss, logits_con,
                                                               labels_con)
-                    # Scale the loss base on the Global Batch_size Update Gradient Correctly
-                    # scale_loss = tf.nn.compute_average_loss(
-                    #     loss, global_batch_size=train_global_batch)
 
                     # Compute the Supervised train Loss
                     if supervised_head_output_1 is not None:
@@ -731,7 +721,7 @@ def main(argv):
                     else:
                         loss += scale_sup_loss
 
-                    weight_decay_loss = all_model.add_weight_decay(
+                    weight_decay_loss = add_weight_decay(
                         model, adjust_per_optimizer=True)
 
                     weight_decay_loss_scale = tf.nn.scale_regularization_loss(
@@ -789,9 +779,9 @@ def main(argv):
                 # Wandb Configure for Visualize the Model Training
                 wandb.log({
                     "epochs": epoch+1,
-                    "train_contrast_loss": contrast_loss_metric.result(),
-                    "train_contrast_acc": contrast_acc_metric.result(),
-                    "train_contrast_acc_entropy": contrast_entropy_metric.result(),
+                    "train_contrast_loss": contrast_Binary_loss_metric.result(),
+                    "train_contrast_acc": contrast_Binary_acc_metric.result(),
+                    "train_contrast_acc_entropy": contrast_Binary_entropy_metric.result(),
                     "train/weight_decay": weight_decay_metric.result(),
                     "train/total_loss": total_loss,
                     "train/supervised_loss":    supervised_loss_metric.result(),
