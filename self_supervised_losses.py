@@ -21,7 +21,6 @@ def multiclass_npair_loss(z, y):
 
 # Supervised Contrastive Learning Paper
 
-
 def multi_class_npair_loss_temperature(z, y, temperature):
     x_feature = tf.math.l2_normalize(z,  axis=1)
     similarity = tf.divide(
@@ -34,8 +33,6 @@ def multi_class_npair_loss_temperature(z, y, temperature):
 ######################################################################################
 
 '''N-Pair Loss'''
-
-
 def multiclass_N_pair_loss(p, z):
     x_i = tf.math.l2_normalize(p, axis=1)
     x_j = tf.math.l2_normalize(z, axis=1)
@@ -55,8 +52,6 @@ def multiclass_N_pair_loss(p, z):
 
 '''SimCLR Paper Nt-Xent Loss Keras Version'''
 # Nt-Xent Loss Symmetrized
-
-
 def nt_xent_symmetrize_keras(p, z, temperature):
     # cosine similarity the dot product of p,z two feature vectors
     x_i = tf.math.l2_normalize(p, axis=1)
@@ -74,45 +69,6 @@ def nt_xent_symmetrize_keras(p, z, temperature):
         contrastive_labels, tf.transpose(similarity), from_logits=True, )
     return (loss_1_2 + loss_2_1) / 2
 
-
-'''SimCLR Paper Nt-Xent Loss # SYMETRIC Loss'''
-# Nt-Xent ---> N_Pair loss with Temperature scale
-# Nt-Xent Loss (Remember in this case Concatenate Two Tensor Together)
-
-
-def nt_xent_symetrize_loss_v1(z,  temperature):
-    '''The issue of design this loss two image is in one array
-    when we multiply them that will lead two two same things mul together???
-
-    '''
-    # Feeding data (ALready stack two version Augmented Image)[2*bs, 128]
-    z = tf.math.l2_normalize(z, axis=1)
-
-    similarity_matrix = tf.matmul(
-        z, z, transpose_b=True)  # pairwise similarity
-    similarity = tf.exp(similarity_matrix / temperature)
-
-    ij_indices = tf.reshape(tf.range(z.shape[0]), shape=[-1, 2])
-    ji_indices = tf.reverse(ij_indices, axis=[1])
-
-    #[[0, 1], [1, 0], [2, 3], [3, 2], ...]
-    positive_indices = tf.reshape(tf.concat(
-        [ij_indices, ji_indices], axis=1), shape=[-1, 2])  # Indice positive pair
-    # --> Output N-D array
-    numerator = tf.gather_nd(similarity, positive_indices)
-    # 2N-1 (sample)
-    # mask that discards self-similarity
-    negative_mask = 1 - tf.eye(z.shape[0])
-
-    # compute sume across dimensions of Tensor (Axis is important in this case)
-    # None sum all element scalar, 0 sum all the row, 1 sum all column -->1D metric
-    denominators = tf.reduce_sum(
-        tf.multiply(negative_mask, similarity), axis=1)
-
-    losses = -tf.math.log(numerator/denominators)
-
-    return tf.reduce_mean(losses)
-
 '''SimCLR paper Asytemrize_loss V2'''
 
 # Mask to remove the positive example from the rest of Negative Example
@@ -128,14 +84,13 @@ def get_negative_mask(batch_size):
         negative_mask[i, i+batch_size] = 0
     return tf.constant(negative_mask)
 
-
 consie_sim_1d = tf.keras.losses.CosineSimilarity(
     axis=1, reduction=tf.keras.losses.Reduction.NONE)
 cosine_sim_2d = tf.keras.losses.CosineSimilarity(
     axis=2, reduction=tf.keras.losses.Reduction.NONE)
 
-
-def nt_xent_asymetrize_loss_v2(p, z, temperature):  # negative_mask
+def nt_xent_asymetrize_loss_v1(p, z, temperature):  # negative_mask
+    
     # L2 Norm
     batch_size = tf.shape(p)[0]
     batch_size = tf.cast(batch_size, tf.int32)
@@ -169,15 +124,51 @@ def nt_xent_asymetrize_loss_v2(p, z, temperature):  # negative_mask
         l_neg /= temperature
 
         logits = tf.concat([pos_loss, l_neg], axis=1)  # [N, K+1]
-        tf.keras.losses.SparseCategoricalCrossentropy()
+        
         loss_ = tf.keras.losses.SparseCategoricalCrossentropy(
             from_logits=True, reduction=tf.keras.losses.Reduction.SUM)
         loss += loss_(y_pred=logits, y_true=l_labels)
+    
     batch_size = tf.cast(batch_size, tf.float32)
     loss = loss/(2*batch_size)
-
     return loss
 
+'''SimCLR Paper Nt-Xent Loss # SYMETRIC Loss'''
+# Nt-Xent ---> N_Pair loss with Temperature scale
+# Nt-Xent Loss (Remember in this case Concatenate Two Tensor Together)
+def nt_xent_asymetrize_loss_v2(z,  temperature):
+    '''The issue of design this loss two image is in one array
+    when we multiply them that will lead two two same things mul together???
+
+    '''
+    # Feeding data (ALready stack two version Augmented Image)[2*bs, 128]
+    z = tf.math.l2_normalize(z, axis=1)
+    similarity_matrix = tf.matmul(z, z, transpose_b=True)  # pairwise similarity
+    similarity = tf.exp(similarity_matrix / temperature)
+
+    batch_size= tf.shape(z)[0]
+    labels = tf.one_hot(tf.range(batch_size), batch_size * 2)
+    
+
+    ij_indices = tf.reshape(tf.range(z.shape[0]), shape=[-1, 2])
+    ji_indices = tf.reverse(ij_indices, axis=[1])
+
+    #[[0, 1], [1, 0], [2, 3], [3, 2], ...]
+    positive_indices = tf.reshape(tf.concat(
+        [ij_indices, ji_indices], axis=1), shape=[-1, 2])  # Indice positive pair
+    
+    # --> Output N-D array
+    numerator = tf.gather_nd(similarity, positive_indices)
+    # 2N-1 (sample)
+    # mask that discards self-similarity
+    negative_mask = 1 - tf.eye(z.shape[0])
+
+    # compute sume across dimensions of Tensor (Axis is important in this case)
+    # None sum all element scalar, 0 sum all the row, 1 sum all column -->1D metric
+    denominators = tf.reduce_sum(tf.multiply(negative_mask, similarity), axis=1)
+    losses = -tf.math.log(numerator/denominators)
+    total_loss=tf.reduce_mean(losses)
+    return total_loss, similarity, lables
 
 def nt_xent_symetrize_loss_simcrl(hidden1, hidden2, LARGE_NUM,
                                   hidden_norm=True,
@@ -226,23 +217,23 @@ def nt_xent_symetrize_loss_simcrl(hidden1, hidden2, LARGE_NUM,
 
     return loss, logits_ab, labels
 
-
-'''
-Binary mask Loss with Nt-Xent Loss # SYMMETRIZED Loss
-For vectore Representation [Object and Background]
-'''
-def binary_mask_nt_xent_asymetrize_loss(v1_object, v2_object, v1_background, v2_background, LARGE_NUM, alpha=0.8, temperature=1):
+def binary_mask_nt_xent_object_backgroud_sum_loss(v1_object, v2_object, v1_background, v2_background,
+                                                  LARGE_NUM=1e-9, alpha=0.8, temperature=1):
     
     '''
-    Noted Consideration Design 
+    Noted this Design 
+
     1. The contrasting 
         Similarity between object_1 and object_2, background_1 and background_2
-        disimilarity object_1 <-> background_1, background_2
-        disimilarity background <-> bject_1 and object_2
+        disimilarity object_1 <-> object_2
+        disimilarity background_1 <-> background_2
+
+        !! ATTENTION this design not Contrast object <--> background feature and vice versa
 
     2. Negative Pair will increasing 2 times 
         + The number of Lables will Increase to 2
         + the masks is the same of Original Contrast loss?
+
     3. Scaling Alpha value shound be (Mulitply -- Divided at the same)
     
     '''
@@ -259,56 +250,90 @@ def binary_mask_nt_xent_asymetrize_loss(v1_object, v2_object, v1_background, v2_
 
     labels = tf.one_hot(tf.range(batch_size), batch_size * 2) #??
     masks = tf.one_hot(tf.range(batch_size), batch_size) # ??
-
-    # Object feature dissimilar
+    #------------------------------------------------------
+    #Similarity
+    #------------------------------------------------------
+    ## Object feature Simmilarity
     logits_o_aa = tf.matmul(v1_object, v1_object, transpose_b=True) / temperature
     logits_o_aa = logits_o_aa - masks * INF  # remove the same samples
     logits_o_bb = tf.matmul(v2_object, v2_object, transpose_b=True) / temperature
     logits_o_bb = logits_o_bb - masks * INF  # remove the same samples
 
-    # object_a and background_a feature  dissimilar
-    logits_ob_aa = tf.matmul(v1_object, v1_background, transpose_b=True) / temperature
-    # object_a and background_b feature  dissimilar
-    logits_ob_ab = tf.matmul(v1_object, v2_background, transpose_b=True) / temperature
+    ## Background Feature Simmilarity
+    logits_b_aa = tf.matmul(v1_background, v1_background, transpose_b=True) / temperature
+    logits_b_aa = logits_b_aa - masks * INF
+    logits_b_bb = tf.matmul(v2_background, v2_background, transpose_b=True) / temperature
+    logits_b_bb = logits_b_bb - masks * INF
 
-    # object_b and background_b feature  dissimilar
-    logits_ob_bb = tf.matmul(v2_object, v2_background, transpose_b=True) / temperature
-    # object_b and background_a feature  dissimilar
-    logits_ob_ba = tf.matmul(v2_object, v1_background, transpose_b=True) / temperature
-
-    # Object feature  similar
+    #------------------------------------------------------
+    #Disimilarity
+    #------------------------------------------------------
+    # Object Disimilarity 
     logits_o_ab = tf.matmul(v1_object, v2_object, transpose_b=True) / temperature
-    logits_o_ba = tf.matmul(v2_object, v1_object, transpose_b=True) / temperature
-    # background feature  similar
+    logits_o_ba = tf.matmul(v2_object, v1_object,transpose_b=True) / temperature
+
+    loss_o_a = tf.nn.softmax_cross_entropy_with_logits(labels, tf.concat([logits_o_ab, logits_o_aa], 1))
+    loss_o_b = tf.nn.softmax_cross_entropy_with_logits( labels, tf.concat([logits_o_ba, logits_o_bb], 1))
+    # Sum up all the Object loss together
+    loss_object = tf.reduce_mean(loss_o_a + loss_o_b) / 2
+
+    # Background Disimilarity 
     logits_b_ab = tf.matmul(v1_background, v2_background, transpose_b=True) / temperature
-    logits_b_ba = tf.matmul(v2_background, v1_background, transpose_b=True) / temperature
+    logits_b_ba = tf.matmul(v2_background, v1_background,transpose_b=True) / temperature
+
+    loss_b_a = tf.nn.softmax_cross_entropy_with_logits(labels, tf.concat([logits_b_ab, logits_b_aa], 1))
+    loss_b_b = tf.nn.softmax_cross_entropy_with_logits( labels, tf.concat([logits_b_ba, logits_b_bb], 1))
+    # Sum up all the Object loss together
+    loss_background = tf.reduce_mean(loss_b_a + loss_b_b) / 2
+
+
+    total_loss = (alpha*loss_object + (1-alpha)*loss_background) / 2.0
+
+    return total_loss , logits_o_ab, logits_b_ab, labels
+
+def binary_mask_nt_xent_object_backgroud_sum_loss_v1(object_f, background_f,alpha=0.8, temperature=1):
+    ## For Object 
+    z=object_f
+    z = tf.math.l2_normalize(z, axis=1)
+    ob_similarity_matrix = tf.matmul(z, z, transpose_b=True)  # pairwise similarity
+    Ob_similarity = tf.exp(ob_similarity_matrix / temperature)
+
+    ## For Backgroud
+    k=background_f
+    k = tf.math.l2_normalize(k, axis=1)
+    back_similarity_matrix = tf.matmul(k, k, transpose_b=True)  # pairwise similarity
+    back_similarity = tf.exp(back_similarity_matrix / temperature)
+
+    ij_indices = tf.reshape(tf.range(k.shape[0]), shape=[-1, 2])
+    ji_indices = tf.reverse(ij_indices, axis=[1])
+    #[[0, 1], [1, 0], [2, 3], [3, 2], ...]
+    positive_indices = tf.reshape(tf.concat([ij_indices, ji_indices], axis=1), shape=[-1, 2])  # Indice positive pair
+    batch_size= tf.shape(z)[0]
+    labels = tf.one_hot(tf.range(batch_size), batch_size * 2)
     
-    # loss_a = tf.nn.softmax_cross_entropy_with_logits(labels, tf.concat(
-    #     [alpha * logits_o_ab + (1 - alpha) * logits_b_ab, alpha * logits_o_aa + alpha * logits_b_aa], 1))
+    # --> Output N-D array
+    numerator_object = tf.gather_nd(Ob_similarity, positive_indices)
+    numerator_back = tf.gather_nd(back_similarity, positive_indices)
+    # 2N-1 (sample)
+    # mask that discards self-similarity
+    negative_mask = 1 - tf.eye(z.shape[0])
+
+    # compute sume across dimensions of Tensor (Axis is important in this case)
+    # None sum all element scalar, 0 sum all the row, 1 sum all column -->1D metric
+    denominators_obj = tf.reduce_sum( tf.multiply(negative_mask, Ob_similarity), axis=1)
+    losses_object = -tf.math.log(numerator_object/denominators_obj)
+
+    denominators_back = tf.reduce_sum( tf.multiply(negative_mask, back_similarity), axis=1)
+    losses_back = -tf.math.log(numerator_back/denominators_back)
+    total_loss= tf.reduce_mean(alpha*losses_object + (1-alpha)*losses_object)/2
     
-    # loss_b = tf.nn.softmax_cross_entropy_with_logits(labels, tf.concat(
-    #     [alpha * logits_o_ba + (1 - alpha) * logits_b_ba, alpha * logits_o_bb + alpha * logits_b_bb], 1))
-
-    loss_a = tf.nn.softmax_cross_entropy_with_logits(labels, tf.concat(
-        [alpha * logits_o_ab + (1 - alpha) * logits_b_ab, alpha * logits_o_aa +(1- alpha) * (logits_ob_aa + logits_ob_ab)], 1))
-    
-    loss_b = tf.nn.softmax_cross_entropy_with_logits(labels, tf.concat(
-        [alpha * logits_o_ba + (1 - alpha) * logits_b_ba, alpha * logits_o_bb + (1- alpha) * (logits_ob_bb + logits_ob_ba)], 1))
-
-
-    loss = tf.reduce_mean(loss_a + loss_b) / 2.0
-
-    return loss, logits_o_ab, logits_b_ab, labels
-
-
+    return total_loss , Ob_similarity, back_similarity, labels
 
 '''
 Binary mask Loss with Nt-Xent Loss # SYMMETRIZED Loss
 For vectore Representation [Only Object]
-
 '''
-def binary_mask_nt_xent_only_Object_loss(v1_object, v2_object, LARGE_NUM, temperature=1):
-    
+def binary_mask_nt_xent_only_Object_loss(v1_object, v2_object, LARGE_NUM, temperature=1): 
     '''
     Noted Consideration Design 
     1. The contrasting Similarity between object_1 and object_2
@@ -318,7 +343,6 @@ def binary_mask_nt_xent_only_Object_loss(v1_object, v2_object, LARGE_NUM, temper
     batch_size = tf.shape(v1_object)[0]
     v1_object = tf.math.l2_normalize(v1_object, -1)
     v2_object = tf.math.l2_normalize(v2_object, -1)
-    
 
     #INF = 1e9
     INF= LARGE_NUM
@@ -347,7 +371,6 @@ def binary_mask_nt_xent_only_Object_loss(v1_object, v2_object, LARGE_NUM, temper
     loss = tf.reduce_mean(loss_a + loss_b) / 2.0
 
     return loss, logits_o_ab,  labels
-
 
 ######################################################################################
 '''NONE CONTRASTIVE LOSS'''
