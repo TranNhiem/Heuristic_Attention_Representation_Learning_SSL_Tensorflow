@@ -329,13 +329,11 @@ def binary_mask_nt_xent_object_backgroud_sum_loss_v1(object_f, background_f,alph
     
     return total_loss , Ob_similarity, back_similarity, labels
 
-
 '''
 Binary mask Loss with Nt-Xent Loss # SYMMETRIZED Loss
 For vectore Representation [Only Object]
 '''
-def binary_mask_nt_xent_only_Object_loss(v1_object, v2_object, LARGE_NUM, temperature=1):
-    
+def binary_mask_nt_xent_only_Object_loss(v1_object, v2_object, LARGE_NUM, temperature=1): 
     '''
     Noted Consideration Design 
     1. The contrasting Similarity between object_1 and object_2
@@ -345,7 +343,6 @@ def binary_mask_nt_xent_only_Object_loss(v1_object, v2_object, LARGE_NUM, temper
     batch_size = tf.shape(v1_object)[0]
     v1_object = tf.math.l2_normalize(v1_object, -1)
     v2_object = tf.math.l2_normalize(v2_object, -1)
-    
 
     #INF = 1e9
     INF= LARGE_NUM
@@ -374,7 +371,6 @@ def binary_mask_nt_xent_only_Object_loss(v1_object, v2_object, LARGE_NUM, temper
     loss = tf.reduce_mean(loss_a + loss_b) / 2.0
 
     return loss, logits_o_ab,  labels
-
 
 ######################################################################################
 '''NONE CONTRASTIVE LOSS'''
