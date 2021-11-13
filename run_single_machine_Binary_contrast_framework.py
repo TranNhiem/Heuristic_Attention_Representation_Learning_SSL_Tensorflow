@@ -60,11 +60,11 @@ flags.DEFINE_integer(
     'random seed for spliting data.')
 
 flags.DEFINE_integer(
-    'train_batch_size', 25,
+    'train_batch_size', 40,
     'Train batch_size .')
 
 flags.DEFINE_integer(
-    'val_batch_size', 25,
+    'val_batch_size', 40,
     'Validaion_Batch_size.')
 
 flags.DEFINE_integer(
@@ -532,7 +532,7 @@ def main(argv):
     dataset = list(paths.list_images(imagenet_path))
     random.Random(FLAGS.SEED_data_split).shuffle(dataset)
     x_val = dataset[0:5000]
-    x_train = dataset[5000: 20000]
+    x_train = dataset[5000:]
 
     strategy = tf.distribute.MirroredStrategy()
     train_global_batch = FLAGS.train_batch_size * strategy.num_replicas_in_sync
@@ -809,6 +809,7 @@ def main(argv):
         if FLAGS.mode == 'train_then_eval':
             perform_evaluation(model, val_ds, eval_steps,
                                checkpoint_manager.latest_checkpoint, strategy)
+
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
