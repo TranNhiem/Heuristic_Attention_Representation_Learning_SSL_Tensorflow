@@ -311,7 +311,6 @@ def json_serializable(val):
     except TypeError:
         return False
 
-
 def save(model, global_step):
     """Export as SavedModel for finetuning and inference."""
     saved_model = build_saved_model(model)
@@ -370,7 +369,6 @@ def try_restore_from_checkpoint(model, global_step, optimizer):
 
     return checkpoint_manager
 
-
 def _restore_latest_or_from_pretrain(checkpoint_manager):
     """Restores the latest ckpt if training already.
     Or restores from FLAGS.checkpoint if in finetune mode.
@@ -405,8 +403,6 @@ def _restore_latest_or_from_pretrain(checkpoint_manager):
             x.assign(tf.zeros_like(x))
 
 # Perform Testing Step Here
-
-
 def perform_evaluation(model, val_ds, val_steps, ckpt, strategy):
     """Perform evaluation.--> Only Inference to measure the pretrain model representation"""
 
@@ -531,6 +527,7 @@ def main(argv):
     train_ds = train_dataset.simclr_inception_style_crop_image_mask()
 
     val_ds = train_dataset.supervised_validation()
+    
     num_classes = FLAGS.num_class
 
     num_train_examples = len(x_train)
