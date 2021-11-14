@@ -287,7 +287,6 @@ def build_saved_model(model, include_projection_head=True):
 
 # configure Json format saving file
 
-
 def json_serializable(val):
     #
     try:
@@ -320,7 +319,6 @@ def save(model, global_step):
             tf.io.gfile.rmtree(os.path.join(export_dir, str(step_to_delete)))
 
 # Restore the checkpoint forom the file
-
 
 def try_restore_from_checkpoint(model, global_step, optimizer):
     """Restores the latest ckpt if it exists, otherwise check FLAGS.checkpoint."""
@@ -390,7 +388,6 @@ def _restore_latest_or_from_pretrain(checkpoint_manager):
 
         for x in output_layer_parameters:
             x.assign(tf.zeros_like(x))
-
 
 # Perform Testing Step Here
 def perform_evaluation(model, val_ds, val_steps, ckpt, strategy):
@@ -734,10 +731,10 @@ with strategy.scope():
 
                     '''Attention'''
                     # Noted Consideration Aggregate (Supervised + Contrastive Loss) --> Update the Model Gradient
-                    if loss is None:
-                        loss = scale_sup_loss
-                    else:
-                        loss += scale_sup_loss
+                        if loss is None:
+                            loss = scale_sup_loss
+                        else:
+                            loss += scale_sup_loss
 
                     weight_decay_loss = all_model.add_weight_decay(
                         model, adjust_per_optimizer=True)

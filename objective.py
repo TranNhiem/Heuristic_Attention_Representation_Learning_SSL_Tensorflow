@@ -31,6 +31,7 @@ def add_supervised_loss(labels, logits):
     return tf.reduce_mean(losses)
 
 
+
 def add_contrastive_loss(hidden1, hidden2,
                          hidden_norm=True,
                          temperature=1.0,

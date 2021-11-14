@@ -721,7 +721,8 @@ def main(argv):
                             # Calculte the cross_entropy loss with Labels
                             sup_loss = obj_lib.add_supervised_loss(labels=l, logits=outputs)
                             
-                            scale_sup_loss = tf.reduce_sum(sup_loss) * (1. / train_global_batch)
+                            scale_sup_loss =tf.nn.compute_average_loss(sup_loss, global_batch_size=train_global_batch)
+
 
                             # Update Supervised Metrics
                             metrics.update_finetune_metrics_train(supervised_loss_metric,
@@ -730,30 +731,28 @@ def main(argv):
 
                     '''Attention'''
                     # Noted Consideration Aggregate (Supervised + Contrastive Loss) --> Update the Model Gradient
-                    if loss is None:
-                        loss = scale_sup_loss
-                    else:
-                        loss += scale_sup_loss
+                        if loss is None:
+                            loss = scale_sup_loss
+                        else:
+                            loss += scale_sup_loss
 
                     weight_decay_loss = add_weight_decay(model, adjust_per_optimizer=True)
 
                     weight_decay_loss_scale = tf.nn.scale_regularization_loss(weight_decay_loss)
                     weight_decay_metric.update_state(weight_decay_loss_scale)
                     
-                    loss += weight_decay_loss_scale
-                    scale_loss = tf.reduce_sum(loss) * (1. / train_global_batch)
-
+                    loss += weight_decay_loss_scale  
                     # Contrast Loss +  Supervised + Regularization Loss
-                    total_loss_metric.update_state(scale_loss)
+                    total_loss_metric.update_state(loss)
 
                     for var in model.trainable_variables:
                         logging.info(var.name)
                     
                     ## Update model with Contrast Loss +  Supervised + Regularization Loss
-                    grads = tape.gradient(scale_loss, model.trainable_variables)
+                    grads = tape.gradient(loss, model.trainable_variables)
                     optimizer.apply_gradients(zip(grads, model.trainable_variables))
 
-                return scale_loss
+                return loss
 
             @tf.function
             def distributed_train_step(ds_one, ds_two):

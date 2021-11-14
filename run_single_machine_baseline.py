@@ -241,7 +241,6 @@ flags.DEFINE_integer(
 
 # Helper function to save and resore model.
 
-
 def get_salient_tensors_dict(include_projection_head):
     """Returns a dictionary of tensors."""
     graph = tf.compat.v1.get_default_graph()
@@ -265,7 +264,6 @@ def get_salient_tensors_dict(include_projection_head):
         result['proj_head_output'] = graph.get_tensor_by_name(
             'projection_head/proj_head_output:0')
     return result
-
 
 def build_saved_model(model, include_projection_head=True):
     """Returns a tf.Module for saving to SavedModel."""
@@ -293,7 +291,6 @@ def build_saved_model(model, include_projection_head=True):
 
 # configure Json format saving file
 
-
 def json_serializable(val):
     #
     try:
@@ -302,7 +299,6 @@ def json_serializable(val):
 
     except TypeError:
         return False
-
 
 def save(model, global_step):
     """Export as SavedModel for finetuning and inference."""
@@ -326,7 +322,6 @@ def save(model, global_step):
             tf.io.gfile.rmtree(os.path.join(export_dir, str(step_to_delete)))
 
 # Restore the checkpoint forom the file
-
 
 def try_restore_from_checkpoint(model, global_step, optimizer):
     """Restores the latest ckpt if it exists, otherwise check FLAGS.checkpoint."""
@@ -362,7 +357,6 @@ def try_restore_from_checkpoint(model, global_step, optimizer):
             x.assign(tf.zeros_like(x))
 
     return checkpoint_manager
-
 
 def _restore_latest_or_from_pretrain(checkpoint_manager):
     """Restores the latest ckpt if training already.
@@ -517,23 +511,20 @@ def main(argv):
     val_global_batch = FLAGS.val_batch_size * strategy.num_replicas_in_sync
 
     train_dataset = imagenet_dataset_single_machine(img_size=FLAGS.image_size, train_batch=train_global_batch,  val_batch=val_global_batch,
-                                                    strategy=strategy, img_path=None, x_val=x_val,  x_train=x_train)
+                                                    strategy=strategy, img_path=None, x_val=x_val,  x_train=x_train, bi_mask=False)
 
-    train_ds = train_dataset.simclr_inception_style_crop()
+    train_ds = train_dataset.simclr_random_global_crop()
     val_ds = train_dataset.supervised_validation()
     num_classes = 999
 
     num_train_examples = len(x_train)
     num_eval_examples = len(x_val)
 
-    train_steps = FLAGS.eval_steps or int(
-        num_train_examples * FLAGS.train_epochs // train_global_batch)
-    eval_steps = FLAGS.eval_steps or int(
-        math.ceil(num_eval_examples / val_global_batch))
+    train_steps = FLAGS.eval_steps or int(num_train_examples * FLAGS.train_epochs // train_global_batch)
+    eval_steps = FLAGS.eval_steps or int(math.ceil(num_eval_examples / val_global_batch))
 
     epoch_steps = int(round(num_train_examples / train_global_batch))
-    checkpoint_steps = (FLAGS.checkpoint_steps or (
-        FLAGS.checkpoint_epochs * epoch_steps))
+    checkpoint_steps = (FLAGS.checkpoint_steps or ( FLAGS.checkpoint_epochs * epoch_steps))
 
     logging.info('# train examples: %d', num_train_examples)
     logging.info('# train_steps: %d', train_steps)
@@ -653,18 +644,7 @@ def main(argv):
                 images_two, lable_two = ds_two
 
                 with tf.GradientTape() as tape:
-                    # 2. Summaries are recorded only on replica 0. So effectively this
-                    #    summary would be written once per host when should_record == True.
-                    # 3. optimizer.iterations is incremented in the call to apply_gradients.
-                    #    So we use  `iterations + 1` here so that the step number matches
-                    #    those of scalar summaries.
-                    # 4. We intentionally run the summary op before the actual model
-                    #    training so that it can run in parallel.
-                    should_record = tf.equal(
-                        (optimizer.iterations + 1) % steps_per_loop, 0)
-                    with tf.summary.record_if(should_record):
-                        tf.summary.image('image', images_one,
-                                         step=optimizer.iterations + 1)
+      
 
                     proj_head_output_1, supervised_head_output_1 = model(
                         images_one, training=True)
@@ -675,41 +655,33 @@ def main(argv):
                     loss = None
                     if proj_head_output_1 is not None:
                         # Compute Contrastive Loss model
-                        loss, logits_ab, labels = distributed_loss(
-                            proj_head_output_1, proj_head_output_2)
+                        loss, logits_ab, labels = distributed_loss( proj_head_output_1, proj_head_output_2)
 
-                        # Output to Update Contrastive
-                        logits_con = logits_ab
-                        labels_con = labels
-                        scale_con_loss = loss
                         if loss is None:
-                            loss = scale_con_loss
+                            loss = loss
                         else:
-                            loss += scale_con_loss
+                            loss += loss
 
                         # Update Self-Supervised Metrics
                         metrics.update_pretrain_metrics_train(contrast_loss_metric,
                                                               contrast_acc_metric,
                                                               contrast_entropy_metric,
-                                                              scale_con_loss, logits_con,
-                                                              labels_con)
-                    # Scale the loss base on the Global Batch_size Update Gradient Correctly
-                    # scale_loss = tf.nn.compute_average_loss(
-                    #     loss, global_batch_size=train_global_batch)
+                                                              loss, logits_ab,
+                                                              labels)
+
 
                     # Compute the Supervised train Loss
                     if supervised_head_output_1 is not None:
 
                         if FLAGS.train_mode == 'pretrain' and FLAGS.lineareval_while_pretraining:
-                            outputs = tf.concat(
-                                [supervised_head_output_1, supervised_head_output_2], 0)
-                            l = tf.concat([lable_one, lable_two], 0)
+                            
+                            outputs = tf.concat([supervised_head_output_1, supervised_head_output_2], 0)
+                            supervise_lable = tf.concat([lable_one, lable_two], 0)
 
                             # Calculte the cross_entropy loss with Labels
-                            sup_loss = obj_lib.add_supervised_loss(
-                                labels=l, logits=outputs)
-                            scale_sup_loss = tf.reduce_sum(
-                                sup_loss) * (1. / train_global_batch)
+                            sup_loss = obj_lib.add_supervised_loss(labels=supervise_lable, logits=outputs)
+                            
+                            scale_sup_loss = tf.nn.compute_average_loss(sup_loss, global_batch_size=train_global_batch)
 
                             # Update Supervised Metrics
                             metrics.update_finetune_metrics_train(supervised_loss_metric,
@@ -718,34 +690,28 @@ def main(argv):
 
                     '''Attention'''
                     # Noted Consideration Aggregate (Supervised + Contrastive Loss) --> Update the Model Gradient
-                    if loss is None:
-                        loss = scale_sup_loss
-                    else:
-                        loss += scale_sup_loss
+                        if loss is None:
+                            loss = scale_sup_loss
+                        else:
+                            loss += scale_sup_loss
 
                     weight_decay_loss = all_model.add_weight_decay(
                         model, adjust_per_optimizer=True)
 
-                    weight_decay_loss_scale = tf.nn.scale_regularization_loss(
-                        weight_decay_loss)
+                    weight_decay_loss_scale = tf.nn.scale_regularization_loss(weight_decay_loss)
                     weight_decay_metric.update_state(weight_decay_loss_scale)
+                    
                     loss += weight_decay_loss_scale
-
-                    scale_loss = tf.reduce_sum(
-                        loss) * (1. / train_global_batch)
-                    total_loss_metric.update_state(scale_loss)
+                    total_loss_metric.update_state(loss)
 
                     logging.info('Trainable variables:')
-
                     for var in model.trainable_variables:
                         logging.info(var.name)
+                    
+                    grads = tape.gradient(loss, model.trainable_variables)
+                    optimizer.apply_gradients(zip(grads, model.trainable_variables))
 
-                    grads = tape.gradient(
-                        scale_loss, model.trainable_variables)
-                    optimizer.apply_gradients(
-                        zip(grads, model.trainable_variables))
-
-                return scale_loss
+                return loss
 
             @tf.function
             def distributed_train_step(ds_one, ds_two):

@@ -7,9 +7,7 @@ from absl import logging
 import numpy as np
 import random
 AUTO = tf.data.experimental.AUTOTUNE
-
 FLAGS = flags.FLAGS
-
 
 class imagenet_dataset_single_machine():
 
@@ -33,7 +31,6 @@ class imagenet_dataset_single_machine():
         self.x_val = x_val
         self.bi_mask = []
         if bi_mask:
-
             for p in self.x_train:
                 self.bi_mask.append(
                     p.replace("1K/", "1K_binary_image_by_USS/").replace("JPEG", "png"))
