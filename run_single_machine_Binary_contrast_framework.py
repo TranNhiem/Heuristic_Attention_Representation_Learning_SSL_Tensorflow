@@ -739,21 +739,19 @@ def main(argv):
 
                     weight_decay_loss_scale = tf.nn.scale_regularization_loss(weight_decay_loss)
                     weight_decay_metric.update_state(weight_decay_loss_scale)
-                    loss += weight_decay_loss_scale
-
-                    scale_loss = tf.reduce_sum(loss) * (1. / train_global_batch)
                     
-                    total_loss_metric.update_state(scale_loss)
+                    loss += weight_decay_loss_scale
+                    scale_loss = tf.reduce_sum(loss) * (1. / train_global_batch)
 
-                    logging.info('Trainable variables:')
+                    # Contrast Loss +  Supervised + Regularization Loss
+                    total_loss_metric.update_state(scale_loss)
 
                     for var in model.trainable_variables:
                         logging.info(var.name)
-
-                    grads = tape.gradient(
-                        scale_loss, model.trainable_variables)
-                    optimizer.apply_gradients(
-                        zip(grads, model.trainable_variables))
+                    
+                    ## Update model with Contrast Loss +  Supervised + Regularization Loss
+                    grads = tape.gradient(scale_loss, model.trainable_variables)
+                    optimizer.apply_gradients(zip(grads, model.trainable_variables))
 
                 return scale_loss
 
@@ -761,29 +759,30 @@ def main(argv):
             def distributed_train_step(ds_one, ds_two):
                 per_replica_losses = strategy.run(
                     train_step, args=(ds_one, ds_two))
-                return strategy.reduce(tf.distribute.ReduceOp.SUM, per_replica_losses,
-                                       axis=None)
+                return strategy.reduce(tf.distribute.ReduceOp.SUM, per_replica_losses,axis=None)
 
             global_step = optimizer.iterations
 
             for epoch in range(FLAGS.train_epochs):
 
                 total_loss = 0.0
+                
                 for _, (ds_one, ds_two) in enumerate(train_ds):
 
                     total_loss += distributed_train_step(ds_one, ds_two)
-
-                    # Log and write every Steps per Epoch
-                    with summary_writer.as_default():
-                        cur_step = global_step.numpy()
-                        checkpoint_manager.save(cur_step)
-                        logging.info('Completed: %d / %d steps',
-                                     cur_step, train_steps)
-                        metrics.log_and_write_metrics_to_summary(
-                            all_metrics, cur_step)
-                        tf.summary.scalar('learning_rate', lr_schedule(
-                            tf.cast(global_step, dtype=tf.float32)), global_step)
-                        summary_writer.flush()
+                    
+                    if (global_step.numpy()+ 1) % checkpoint_steps==0:
+                        # Log and write in Condition Steps per Epoch
+                        with summary_writer.as_default():
+                            cur_step = global_step.numpy()
+                            checkpoint_manager.save(cur_step)
+                            logging.info('Completed: %d / %d steps',
+                                        cur_step, train_steps)
+                            metrics.log_and_write_metrics_to_summary(
+                                all_metrics, cur_step)
+                            tf.summary.scalar('learning_rate', lr_schedule(
+                                tf.cast(global_step, dtype=tf.float32)), global_step)
+                            summary_writer.flush()
 
                 # Wandb Configure for Visualize the Model Training -- Log every Epochs
                 wandb.log({
@@ -800,6 +799,9 @@ def main(argv):
                     metric.reset_states()
 
                 # Saving Entire Model
+                if epoch == 50: 
+                    save = './model_ckpt/resnet_simclr/encoder_resnet50_mlp' + str(epoch) +".h5"
+                    model.save_weights(save)
 
             logging.info('Training Complete ...')
 
