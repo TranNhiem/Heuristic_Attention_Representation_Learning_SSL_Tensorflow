@@ -688,8 +688,8 @@ def main(argv):
                                                                   supervised_acc_metric, scale_sup_loss,
                                                                   l, outputs)
 
-                    '''Attention'''
-                    # Noted Consideration Aggregate (Supervised + Contrastive Loss) --> Update the Model Gradient
+                        '''Attention'''
+                        # Noted Consideration Aggregate (Supervised + Contrastive Loss) --> Update the Model Gradient
                         if loss is None:
                             loss = scale_sup_loss
                         else:
