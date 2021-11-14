@@ -721,8 +721,8 @@ def main(argv):
                             # Calculte the cross_entropy loss with Labels
                             sup_loss = obj_lib.add_supervised_loss(labels=l, logits=outputs)
                             
-                            scale_sup_loss =tf.nn.compute_average_loss(sup_loss, global_batch_size=train_global_batch)
-
+                            #scale_sup_loss =tf.nn.compute_average_loss(sup_loss, global_batch_size=train_global_batch)
+                            scale_sup_loss=tf.reduce_sum(sup_loss) * (1. / train_global_batch)
 
                             # Update Supervised Metrics
                             metrics.update_finetune_metrics_train(supervised_loss_metric,
