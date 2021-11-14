@@ -24,6 +24,13 @@ FLAGS = flags.FLAGS
 # ***********************************************************
 # Multi-GPU distributed Training Communication Method
 # ***********************************************************
+'''Noted to Run multi-machine need TO 
+
+1. Clone this two repository in two machines
+2. type this in command window corresponding to the Server IP 
+TF_CONFIG='{"cluster": {"worker": ["140.115.59.131:12345", "140.115.59.132:12345"]}, "task": {"index": 0, "type": "worker"}}' python run_multiple_machine_baseline.py
+'''
+
 flags.DEFINE_enum(
     'communication_method', 'auto', ['NCCL', 'auto'],
     'communication_method to aggreate gradient for multiple machines.')
@@ -898,7 +905,6 @@ def main(argv):
         if FLAGS.mode == 'train_then_eval':
             perform_evaluation(model, val_multi_worker_dataset, eval_steps,
                                checkpoint_manager.latest_checkpoint, strategy)
-
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
