@@ -60,15 +60,15 @@ flags.DEFINE_integer(
     'random seed for spliting data.')
 
 flags.DEFINE_integer(
-    'train_batch_size', 40,
+    'train_batch_size', 25,
     'Train batch_size .')
 
 flags.DEFINE_integer(
-    'val_batch_size', 40,
+    'val_batch_size', 25,
     'Validaion_Batch_size.')
 
 flags.DEFINE_integer(
-    'train_epochs', 100,
+    'train_epochs', 500,
     'Number of epochs to train for.')
 # ---------------------------------------------------
 # Define for Linear Evaluation
@@ -251,7 +251,7 @@ flags.DEFINE_string(
     'checkpoint does not already exist in model_dir.')
 
 flags.DEFINE_integer(
-    'checkpoint_epochs', 1,
+    'checkpoint_epochs', 10,
     'Number of epochs between checkpoints/summaries.')
 
 flags.DEFINE_integer(
@@ -447,6 +447,7 @@ def perform_evaluation(model, val_ds, val_steps, ckpt, strategy):
         logging.info('Restoring from %s', ckpt)
         checkpoint = tf.train.Checkpoint(
             model=model, global_step=tf.Variable(0, dtype=tf.int64))
+
         checkpoint.restore(ckpt).expect_partial()
         global_step = checkpoint.global_step
         logging.info('Performing eval at step %d', global_step.numpy())
@@ -463,7 +464,7 @@ def perform_evaluation(model, val_ds, val_steps, ckpt, strategy):
             label_top_1_accuracy, label_top_5_accuracy, outputs, labels)
 
         # Single machine loss
-        reg_loss = all_model.add_weight_decay(model, adjust_per_optimizer=True)
+        reg_loss = add_weight_decay(model, adjust_per_optimizer=True)
         regularization_loss.update_state(reg_loss)
 
     with strategy.scope():
@@ -474,6 +475,7 @@ def perform_evaluation(model, val_ds, val_steps, ckpt, strategy):
             strategy.run(single_step, (images, labels))
 
     iterator = iter(val_ds)
+
     for i in range(val_steps):
         run_single_step(iterator)
         logging.info("Complete validation for %d step ", i+1, val_steps)
@@ -531,8 +533,8 @@ def main(argv):
     imagenet_path = "/data/SSL_dataset/ImageNet/1K/"
     dataset = list(paths.list_images(imagenet_path))
     random.Random(FLAGS.SEED_data_split).shuffle(dataset)
-    x_val = dataset[0:5000]
-    x_train = dataset[5000:]
+    x_val = dataset[0:50000]
+    x_train = dataset[50000:]
 
     strategy = tf.distribute.MirroredStrategy()
     train_global_batch = FLAGS.train_batch_size * strategy.num_replicas_in_sync
@@ -550,6 +552,7 @@ def main(argv):
 
     train_steps = FLAGS.eval_steps or int(
         num_train_examples * FLAGS.train_epochs // train_global_batch)
+
     eval_steps = FLAGS.eval_steps or int(
         math.ceil(num_eval_examples / val_global_batch))
 
@@ -617,6 +620,7 @@ def main(argv):
             scale_lr = FLAGS.lr_rate_scaling
             warmup_epochs = FLAGS.warmup_epochs
             train_epochs = FLAGS.train_epochs
+
             lr_schedule = WarmUpAndCosineDecay(
                 base_lr, train_global_batch, num_train_examples, scale_lr, warmup_epochs,
                 train_epochs=train_epochs, train_steps=train_steps)
@@ -659,8 +663,6 @@ def main(argv):
             checkpoint_manager = try_restore_from_checkpoint(
                 model, optimizer.iterations, optimizer)
 
-            steps_per_loop = checkpoint_steps
-
             # Scale loss  --> Aggregating all Gradients
             def distributed_Binary_contrast_loss(x1, x2, v1, v2):
                 # each GPU loss per_replica batch loss
@@ -683,7 +685,7 @@ def main(argv):
                     obj_1, backg_1,  proj_head_output_1, supervised_head_output_1 = model(
                         [images_mask_one[0], tf.expand_dims(images_mask_one[1], axis=-1)], training=True)
                     obj_2, backg_2, proj_head_output_2, supervised_head_output_2 = model(
-                        [images_mask_one[0], tf.expand_dims(images_mask_one[1], axis=-1)], training=True)
+                        [images_mask_two[0], tf.expand_dims(images_mask_two[1], axis=-1)], training=True)
 
                     # Compute Contrastive Train Loss -->
                     loss = None
@@ -765,20 +767,17 @@ def main(argv):
                     train_step, args=(ds_one, ds_two))
                 return strategy.reduce(tf.distribute.ReduceOp.SUM, per_replica_losses,
                                        axis=None)
+
             global_step = optimizer.iterations
 
             for epoch in range(FLAGS.train_epochs):
 
                 total_loss = 0.0
-                num_batches = 0
-
                 for _, (ds_one, ds_two) in enumerate(train_ds):
 
                     total_loss += distributed_train_step(ds_one, ds_two)
-                    num_batches += 1
-                    if num_batches == 3:
-                        break
 
+                    # Log and write every Steps per Epoch
                     with summary_writer.as_default():
                         cur_step = global_step.numpy()
                         checkpoint_manager.save(cur_step)
@@ -786,11 +785,11 @@ def main(argv):
                                      cur_step, train_steps)
                         metrics.log_and_write_metrics_to_summary(
                             all_metrics, cur_step)
-                        tf.summary.scalar('learning_rate', lr_schedule(tf.cast(global_step, dtype=tf.float32)),
-                                          global_step)
+                        tf.summary.scalar('learning_rate', lr_schedule(
+                            tf.cast(global_step, dtype=tf.float32)), global_step)
                         summary_writer.flush()
 
-                # Wandb Configure for Visualize the Model Training
+                # Wandb Configure for Visualize the Model Training -- Log every Epochs
                 wandb.log({
                     "epochs": epoch+1,
                     "train_contrast_loss": contrast_Binary_loss_metric.result(),
@@ -803,6 +802,8 @@ def main(argv):
                 })
                 for metric in all_metrics:
                     metric.reset_states()
+
+                # Saving Entire Model
 
             logging.info('Training Complete ...')
 
