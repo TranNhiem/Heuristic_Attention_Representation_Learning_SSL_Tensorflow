@@ -625,8 +625,6 @@ def main(argv):
             checkpoint_manager = try_restore_from_checkpoint(
                 model, optimizer.iterations, optimizer)
 
-            steps_per_loop = checkpoint_steps
-
             # Scale loss  --> Aggregating all Gradients
             def distributed_loss(x1, x2):
                 # each GPU loss per_replica batch loss
@@ -724,13 +722,14 @@ def main(argv):
             for epoch in range(FLAGS.train_epochs):
 
                 total_loss = 0.0
-                num_batches = 0
+   
 
                 for _, (ds_one, ds_two) in enumerate(train_ds):
 
                     total_loss += distributed_train_step(ds_one, ds_two)
-                    num_batches += 1
+                    
                     if (global_step.numpy()+ 1) % checkpoint_steps==0:
+                        
                         with summary_writer.as_default():
                             cur_step = global_step.numpy()
                             checkpoint_manager.save(cur_step)
