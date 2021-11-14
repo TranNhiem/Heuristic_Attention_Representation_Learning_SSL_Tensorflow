@@ -255,7 +255,7 @@ flags.DEFINE_integer(
     'Number of epochs between checkpoints/summaries.')
 
 flags.DEFINE_integer(
-    'checkpoint_steps', 0,
+    'checkpoint_steps', 10,
     'Number of steps between checkpoints/summaries. If provided, overrides '
     'checkpoint_epochs.')
 
@@ -530,8 +530,10 @@ def main(argv):
 
     # Preparing dataset
     # Imagenet path prepare localy
-    imagenet_path = "/data/SSL_dataset/ImageNet/1K/"
+    #imagenet_path = "/data/SSL_dataset/ImageNet/1K/"
+    imagenet_path = "/data/rick109582607/Desktop/TinyML/self_supervised/1K/"
     dataset = list(paths.list_images(imagenet_path))
+    print(len(dataset))
     random.Random(FLAGS.SEED_data_split).shuffle(dataset)
     x_val = dataset[0:50000]
     x_train = dataset[50000:]
@@ -557,8 +559,9 @@ def main(argv):
         math.ceil(num_eval_examples / val_global_batch))
 
     epoch_steps = int(round(num_train_examples / train_global_batch))
-    
-    checkpoint_steps = (FLAGS.checkpoint_steps or (FLAGS.checkpoint_epochs * epoch_steps))
+
+    checkpoint_steps = (FLAGS.checkpoint_steps or (
+        FLAGS.checkpoint_epochs * epoch_steps))
 
     logging.info('# train examples: %d', num_train_examples)
     logging.info('# train_steps: %d', train_steps)
@@ -715,14 +718,16 @@ def main(argv):
                     if supervised_head_output_1 is not None:
 
                         if FLAGS.train_mode == 'pretrain' and FLAGS.lineareval_while_pretraining:
-                            outputs = tf.concat([supervised_head_output_1, supervised_head_output_2], 0)
+                            outputs = tf.concat(
+                                [supervised_head_output_1, supervised_head_output_2], 0)
                             l = tf.concat([lable_1, lable_2], 0)
 
                             # Calculte the cross_entropy loss with Labels
-                            sup_loss = obj_lib.add_supervised_loss(labels=l, logits=outputs)
-                            
-                            scale_sup_loss =tf.nn.compute_average_loss(sup_loss, global_batch_size=train_global_batch)
+                            sup_loss = obj_lib.add_supervised_loss(
+                                labels=l, logits=outputs)
 
+                            scale_sup_loss = tf.reduce_sum(sup_loss) * \
+                                (1./train_global_batch)
 
                             # Update Supervised Metrics
                             metrics.update_finetune_metrics_train(supervised_loss_metric,
@@ -736,21 +741,24 @@ def main(argv):
                         else:
                             loss += scale_sup_loss
 
-                    weight_decay_loss = add_weight_decay(model, adjust_per_optimizer=True)
+                    weight_decay_loss = add_weight_decay(
+                        model, adjust_per_optimizer=True)
 
-                    weight_decay_loss_scale = tf.nn.scale_regularization_loss(weight_decay_loss)
+                    weight_decay_loss_scale = tf.nn.scale_regularization_loss(
+                        weight_decay_loss)
                     weight_decay_metric.update_state(weight_decay_loss_scale)
-                    
-                    loss += weight_decay_loss_scale  
+
+                    loss += weight_decay_loss_scale
                     # Contrast Loss +  Supervised + Regularization Loss
                     total_loss_metric.update_state(loss)
 
                     for var in model.trainable_variables:
                         logging.info(var.name)
-                    
-                    ## Update model with Contrast Loss +  Supervised + Regularization Loss
+
+                    # Update model with Contrast Loss +  Supervised + Regularization Loss
                     grads = tape.gradient(loss, model.trainable_variables)
-                    optimizer.apply_gradients(zip(grads, model.trainable_variables))
+                    optimizer.apply_gradients(
+                        zip(grads, model.trainable_variables))
 
                 return loss
 
@@ -758,25 +766,25 @@ def main(argv):
             def distributed_train_step(ds_one, ds_two):
                 per_replica_losses = strategy.run(
                     train_step, args=(ds_one, ds_two))
-                return strategy.reduce(tf.distribute.ReduceOp.SUM, per_replica_losses,axis=None)
+                return strategy.reduce(tf.distribute.ReduceOp.SUM, per_replica_losses, axis=None)
 
             global_step = optimizer.iterations
 
             for epoch in range(FLAGS.train_epochs):
 
                 total_loss = 0.0
-                
+
                 for _, (ds_one, ds_two) in enumerate(train_ds):
 
                     total_loss += distributed_train_step(ds_one, ds_two)
-                    
-                    if (global_step.numpy()+ 1) % checkpoint_steps==0:
+
+                    if (global_step.numpy() + 1) % checkpoint_steps == 0:
                         # Log and write in Condition Steps per Epoch
                         with summary_writer.as_default():
                             cur_step = global_step.numpy()
                             checkpoint_manager.save(cur_step)
                             logging.info('Completed: %d / %d steps',
-                                        cur_step, train_steps)
+                                         cur_step, train_steps)
                             metrics.log_and_write_metrics_to_summary(
                                 all_metrics, cur_step)
                             tf.summary.scalar('learning_rate', lr_schedule(
@@ -798,9 +806,10 @@ def main(argv):
                     metric.reset_states()
 
                 # Saving Entire Model
-                if epoch == 50: 
-                    save = './model_ckpt/resnet_simclr/encoder_resnet50_mlp' + str(epoch) +".h5"
-                    model.save_weights(save)
+                if epoch == 50:
+                    save_ = './model_ckpt/resnet_simclr/encoder_resnet50_mlp' + \
+                        str(epoch) + ".h5"
+                    model.save_weights(save_)
 
             logging.info('Training Complete ...')
 
