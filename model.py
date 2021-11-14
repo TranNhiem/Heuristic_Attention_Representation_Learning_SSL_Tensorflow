@@ -34,7 +34,7 @@ def build_optimizer(lr_schedule):
     lr_schedule: learning values.
 
     Return:
-    The mix_percision optimizer.
+    optimizer.
     '''
 
     Optimizer_type = FLAGS.optimizer
@@ -43,6 +43,24 @@ def build_optimizer(lr_schedule):
     #optimizer_mix_percision = mixed_precision.LossScaleOptimizer(optimizer)
 
     return optimizer
+
+
+def build_optimizer_multi_machine(lr_schedule):
+    '''
+    Args
+    lr_schedule: learning values.
+
+    Return:
+    The mix_percision optimizer.
+    '''
+
+    Optimizer_type = FLAGS.optimizer
+    optimizers = get_optimizer(lr_schedule, Optimizer_type)
+    optimizer = optimizers.original_optimizer(FLAGS)
+    optimizer_mix_percision = mixed_precision.LossScaleOptimizer(optimizer)
+
+    return optimizer
+
 
 
 def add_weight_decay(model, adjust_per_optimizer=True):
