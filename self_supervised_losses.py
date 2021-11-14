@@ -232,6 +232,45 @@ def nt_xent_symetrize_loss_simcrl(hidden1, hidden2, LARGE_NUM,
 
     return loss, logits_ab, labels
 
+def nt_xent_symetrize_loss_object_level_whole_image_contrast(v1_object, v2_object, v1_background, v2_background,
+                                                                image_rep1, image_rep2, 
+                                                    LARGE_NUM=1e-9, weight_loss=0.8, hidden_norm=True, temperature=1): 
+    """Compute loss for model.
+
+    Args:
+        Object Level Representation: 
+        + v1_object, v2_object, v1_background, v2_background,
+        Image Level Representation: 
+        + image_rep1, image_rep2,
+        
+        hidden: hidden vector (`Tensor`) of shape (bsz, dim).
+        hidden_norm: whether or not to use normalization on the hidden vector.
+        temperature: a `floating` number for temperature scaling.
+
+    Returns:
+        A  Sumup of the loss scalar (Whole Image Represenation).
+        The logits for contrastive prediction task.
+        The labels for contrastive prediction task.
+    """
+
+    #********* ----------------------- ***********
+    # Contrastive Loss for Whole Image Representation
+    #********* ----------------------- ***********
+    image_loss, whole_image_logits, lables_image= nt_xent_symetrize_loss_simcrl (image_rep1, image_rep2, LARGE_NUM,
+                                                                    hidden_norm= hidden_norm, temperature=temperature)
+
+
+    #********* ----------------------- ***********
+    # Contrastive Loss for Whole Image Representation
+    #********* ----------------------- ***********
+    object_rep_1= tf.concat([v1_object,v1_background ], axis=0)
+    object_rep_2= tf.concat([v2_object,v2_background ], axis=0)
+    object_loss, object_level_logits, lables_object_level= nt_xent_symetrize_loss_simcrl (object_rep_1, object_rep_2, LARGE_NUM,
+                                                                    hidden_norm= hidden_norm, temperature=temperature)
+    total_loss= (weight_loss * object_loss + (1-weight_loss)*image_loss)/2
+    
+    return total_loss, whole_image_logits, object_level_logits, lables_image, lables_object_level
+
 
 def binary_mask_nt_xent_object_backgroud_sum_loss(v1_object, v2_object, v1_background, v2_background,
                                                   LARGE_NUM=1e-9, alpha=0.8, temperature=1):
@@ -361,13 +400,6 @@ def binary_mask_nt_xent_object_backgroud_sum_loss_v1(object_f, background_f, alp
         alpha*losses_object + (1-alpha)*losses_object)/2
 
     return total_loss, Ob_similarity, back_similarity, labels
-
-
-'''
-Binary mask Loss with Nt-Xent Loss # SYMMETRIZED Loss
-For vectore Representation [Only Object]
-
-'''
 
 
 def binary_mask_nt_xent_only_Object_loss(v1_object, v2_object, LARGE_NUM, temperature=1):
