@@ -28,6 +28,8 @@ FLAGS = flags.FLAGS
 
 1. Clone this two repository in two machines
 2. type this in command window corresponding to the Server IP 
+3. Configure "index" for Chief control machine set to 0, other machine just +1 ex: machine 2, "index": 1, machine 3, "index": 2
+
 TF_CONFIG='{"cluster": {"worker": ["140.115.59.131:12345", "140.115.59.132:12345"]}, "task": {"index": 0, "type": "worker"}}' python run_multiple_machine_baseline.py
 '''
 
@@ -78,11 +80,11 @@ flags.DEFINE_integer(
     'Number of class in dataset.')
 
 flags.DEFINE_integer(
-    'single_machine_train_batch_size', 100,
+    'single_machine_train_batch_size', 200,
     'Train batch_size .')
 
 flags.DEFINE_integer(
-    'single_machine_val_batch_size', 100,
+    'single_machine_val_batch_size', 200,
     'Validaion_Batch_size.')
 
 
