@@ -954,8 +954,8 @@ class SSL_train_model_Model(tf.keras.models.Model):
             mask = inputs[1]
             inputs = inputs[0]
 
-            print(mask.shape)
-            print(inputs.shape)
+            # print(mask.shape)
+            # print(inputs.shape)
 
         if training and FLAGS.train_mode == 'pretrain':
             if FLAGS.fine_tune_after_block > -1:

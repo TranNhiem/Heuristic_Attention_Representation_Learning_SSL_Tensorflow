@@ -557,8 +557,8 @@ def main(argv):
         math.ceil(num_eval_examples / val_global_batch))
 
     epoch_steps = int(round(num_train_examples / train_global_batch))
-    checkpoint_steps = (FLAGS.checkpoint_steps or (
-        FLAGS.checkpoint_epochs * epoch_steps))
+    
+    checkpoint_steps = (FLAGS.checkpoint_steps or (FLAGS.checkpoint_epochs * epoch_steps))
 
     logging.info('# train examples: %d', num_train_examples)
     logging.info('# train_steps: %d', train_steps)
@@ -715,15 +715,13 @@ def main(argv):
                     if supervised_head_output_1 is not None:
 
                         if FLAGS.train_mode == 'pretrain' and FLAGS.lineareval_while_pretraining:
-                            outputs = tf.concat(
-                                [supervised_head_output_1, supervised_head_output_2], 0)
+                            outputs = tf.concat([supervised_head_output_1, supervised_head_output_2], 0)
                             l = tf.concat([lable_1, lable_2], 0)
 
                             # Calculte the cross_entropy loss with Labels
-                            sup_loss = obj_lib.add_supervised_loss(
-                                labels=l, logits=outputs)
-                            scale_sup_loss = tf.reduce_sum(
-                                sup_loss) * (1. / train_global_batch)
+                            sup_loss = obj_lib.add_supervised_loss(labels=l, logits=outputs)
+                            
+                            scale_sup_loss = tf.reduce_sum(sup_loss) * (1. / train_global_batch)
 
                             # Update Supervised Metrics
                             metrics.update_finetune_metrics_train(supervised_loss_metric,
@@ -737,16 +735,14 @@ def main(argv):
                     else:
                         loss += scale_sup_loss
 
-                    weight_decay_loss = add_weight_decay(
-                        model, adjust_per_optimizer=True)
+                    weight_decay_loss = add_weight_decay(model, adjust_per_optimizer=True)
 
-                    weight_decay_loss_scale = tf.nn.scale_regularization_loss(
-                        weight_decay_loss)
+                    weight_decay_loss_scale = tf.nn.scale_regularization_loss(weight_decay_loss)
                     weight_decay_metric.update_state(weight_decay_loss_scale)
                     loss += weight_decay_loss_scale
 
-                    scale_loss = tf.reduce_sum(
-                        loss) * (1. / train_global_batch)
+                    scale_loss = tf.reduce_sum(loss) * (1. / train_global_batch)
+                    
                     total_loss_metric.update_state(scale_loss)
 
                     logging.info('Trainable variables:')
