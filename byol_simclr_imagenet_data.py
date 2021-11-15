@@ -9,6 +9,7 @@ import random
 AUTO = tf.data.experimental.AUTOTUNE
 FLAGS = flags.FLAGS
 
+
 class imagenet_dataset_single_machine():
 
     def __init__(self, img_size, train_batch, val_batch, strategy, img_path=None, x_val=None, x_train=None, bi_mask=False):
@@ -41,7 +42,7 @@ class imagenet_dataset_single_machine():
         for image_path in x_train:
             # label = tf.strings.split(image_path, os.path.sep)[5]
             # all_train_class.append(label.numpy())
-            label = image_path.split("/")[5]
+            label = image_path.split("/")[7]
             all_train_class.append(label)
 
         number_class = set(all_train_class)
@@ -60,7 +61,7 @@ class imagenet_dataset_single_machine():
         # For Validation
         all_val_class = []
         for image_path in x_val:
-            label = image_path.split("/")[5]
+            label = image_path.split("/")[7]
             all_val_class.append(label)
 
         numeric_val_cls = []
@@ -84,7 +85,6 @@ class imagenet_dataset_single_machine():
                 (np.array(self.x_train), np.array(self.bi_mask)), axis=-1)
             print(self.x_train_image_mask.shape)
 
-    
     @classmethod
     def parse_images(self, image_path):
         # Loading and reading Image
@@ -112,7 +112,7 @@ class imagenet_dataset_single_machine():
         img = tf.image.resize(img, (IMG_SIZE, IMG_SIZE))
 
         bi_mask = tf.io.read_file(mask_path)
-        bi_mask = tf.io.decode_jpeg(bi_mask, channels=1)
+        bi_mask = tf.io.decode_png(bi_mask, channels=1)
         bi_mask = tf.image.resize(bi_mask, (IMG_SIZE, IMG_SIZE))
         return img, bi_mask, lable
 
@@ -378,11 +378,13 @@ class imagenet_dataset_multi_machine():
 
     def supervised_validation(self, input_context):
         '''This for Supervised validation training'''
-        dis_tributed_batch = input_context.get_per_replica_batch_size(self.BATCH_SIZE)
+        dis_tributed_batch = input_context.get_per_replica_batch_size(
+            self.BATCH_SIZE)
         logging.info('Global batch size: %d', self.BATCH_SIZE)
         logging.info('Per-replica batch size: %d', dis_tributed_batch)
-        logging.info('num_input_pipelines: %d', input_context.num_input_pipelines)
-        
+        logging.info('num_input_pipelines: %d',
+                     input_context.num_input_pipelines)
+
         option = tf.data.Options()
         option.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.DATA
 
@@ -393,7 +395,7 @@ class imagenet_dataset_multi_machine():
                   .map(lambda x, y: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE)), y),
                        num_parallel_calls=AUTO,)
                   .map(lambda x, y: (supervised_augment_eval(x, FLAGS.IMG_height, FLAGS.IMG_width, FLAGS.randaug_transform, FLAGS.randaug_magnitude), y), num_parallel_calls=AUTO)
-                  
+
                   )
 
         val_ds.with_options(option)
@@ -430,7 +432,6 @@ class imagenet_dataset_multi_machine():
                         # .batch(self.BATCH_SIZE)
                         # .prefetch(AUTO)
                         )
-       
 
         train_ds_two = (tf.data.Dataset.from_tensor_slices((self.x_train, self.x_train_lable))
                         .shuffle(self.BATCH_SIZE * 100, seed=self.seed)
@@ -455,7 +456,6 @@ class imagenet_dataset_multi_machine():
         return train_ds
 
     def simclr_random_global_crop(self, input_context):
-        
         '''
             This class property return self-supervised training data
         '''
@@ -504,9 +504,9 @@ class imagenet_dataset_multi_machine():
         return train_ds
 
     def simclr_inception_style_crop_image_mask(self, input_context):
-        
-        
-        dis_tributed_batch = input_context.get_per_replica_batch_size(self.BATCH_SIZE)
+
+        dis_tributed_batch = input_context.get_per_replica_batch_size(
+            self.BATCH_SIZE)
         logging.info('Global batch size: %d', self.BATCH_SIZE)
         logging.info('Per-replica batch size: %d', dis_tributed_batch)
         logging.info('num_input_pipelines: %d',
@@ -516,7 +516,6 @@ class imagenet_dataset_multi_machine():
 
         option.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.DATA
 
-        
         train_ds_one = (tf.data.Dataset.from_tensor_slices((self.x_train_image_mask, self.x_train_lable))
                         .shuffle(self.BATCH_SIZE * 100, seed=self.seed)
                         # .map(self.parse_images_label,  num_parallel_calls=AUTO)
@@ -535,20 +534,19 @@ class imagenet_dataset_multi_machine():
                         # .prefetch(AUTO)
                         )
 
-
         train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
         train_ds.with_options(option)
         train_ds = train_ds.shard(input_context.num_input_pipelines,
                                   input_context.input_pipeline_id)
         train_ds = train_ds.batch(dis_tributed_batch)
         train_ds = train_ds.prefetch(AUTO)
-        
+
         return train_ds
 
     def simclr_random_global_crop_image_mask(self, input_context):
-        
-                
-        dis_tributed_batch = input_context.get_per_replica_batch_size(self.BATCH_SIZE)
+
+        dis_tributed_batch = input_context.get_per_replica_batch_size(
+            self.BATCH_SIZE)
         logging.info('Global batch size: %d', self.BATCH_SIZE)
         logging.info('Per-replica batch size: %d', dis_tributed_batch)
         logging.info('num_input_pipelines: %d',
@@ -558,8 +556,6 @@ class imagenet_dataset_multi_machine():
 
         option.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.DATA
 
-        
-        
         train_ds_one = (tf.data.Dataset.from_tensor_slices((self.x_train_image_mask, self.x_train_lable))
                         .shuffle(self.BATCH_SIZE * 100, seed=self.seed)
                         # .map(self.parse_images_label,  num_parallel_calls=AUTO)
@@ -584,5 +580,5 @@ class imagenet_dataset_multi_machine():
                                   input_context.input_pipeline_id)
         train_ds = train_ds.batch(dis_tributed_batch)
         train_ds = train_ds.prefetch(AUTO)
-        
+
         return train_ds
