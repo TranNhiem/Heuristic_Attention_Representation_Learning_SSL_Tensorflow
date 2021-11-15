@@ -255,7 +255,7 @@ flags.DEFINE_integer(
     'Number of epochs between checkpoints/summaries.')
 
 flags.DEFINE_integer(
-    'checkpoint_steps', 0,
+    'checkpoint_steps', 10,
     'Number of steps between checkpoints/summaries. If provided, overrides '
     'checkpoint_epochs.')
 
