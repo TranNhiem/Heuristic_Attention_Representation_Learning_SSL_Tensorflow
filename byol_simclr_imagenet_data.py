@@ -42,7 +42,7 @@ class imagenet_dataset_single_machine():
         for image_path in x_train:
             # label = tf.strings.split(image_path, os.path.sep)[5]
             # all_train_class.append(label.numpy())
-            label = image_path.split("/")[7]
+            label = image_path.split("/")[5]
             all_train_class.append(label)
 
         number_class = set(all_train_class)
@@ -61,7 +61,7 @@ class imagenet_dataset_single_machine():
         # For Validation
         all_val_class = []
         for image_path in x_val:
-            label = image_path.split("/")[7]
+            label = image_path.split("/")[5]
             all_val_class.append(label)
 
         numeric_val_cls = []
