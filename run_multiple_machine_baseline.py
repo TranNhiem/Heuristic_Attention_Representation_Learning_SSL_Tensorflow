@@ -4,7 +4,7 @@ from absl import app
 import tensorflow as tf
 from learning_rate_optimizer import WarmUpAndCosineDecay
 import os
-from self_supervised_losses import nt_xent_symetrize_loss_simcrl
+from self_supervised_losses import nt_xent_symetrize_loss_simcrl, nt_xent_asymetrize_loss_v2
 from byol_simclr_imagenet_data import imagenet_dataset_multi_machine
 import metrics
 import model as all_model
@@ -19,7 +19,6 @@ from wandb.keras import WandbCallback
 from multiprocessing import util
 
 FLAGS = flags.FLAGS
-
 
 # ***********************************************************
 # Multi-GPU distributed Training Communication Method
@@ -224,6 +223,12 @@ flags.DEFINE_enum(
         'contrastive', 'contrastive_supervised', ],
     'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
 
+flags.DEFINE_enum(
+    'loss_options' , 'loss_v0', 
+    ['loss_v0', 'loss_v1'], 
+    "Option for chossing loss version [V0]--> Original simclr loss [V1] --> Custom build design loss"
+)
+
 
 # *****************************************************
 # Fine Tuning configure
@@ -269,7 +274,7 @@ flags.DEFINE_integer(
     'Number of epochs between checkpoints/summaries.')
 
 flags.DEFINE_integer(
-    'checkpoint_steps', 0,
+    'checkpoint_steps', 10,
     'Number of steps between checkpoints/summaries. If provided, overrides '
     'checkpoint_epochs.')
 
@@ -728,7 +733,28 @@ def main(argv):
 
             steps_per_loop = checkpoint_steps
 
+
             # Scale loss  --> Aggregating all Gradients
+            def distributed_loss(x1, x2):
+                if FLAGS.loss_options =="loss_v0": 
+                    # each GPU loss per_replica batch loss
+                    per_example_loss, logits_ab, labels = nt_xent_symetrize_loss_simcrl(
+                        x1, x2, LARGE_NUM=FLAGS.LARGE_NUM, hidden_norm=FLAGS.hidden_norm, temperature=FLAGS.temperature)
+                    
+                elif FLAGS.loss_options =="loss_v1": 
+                    # each GPU loss per_replica batch loss
+                    x_1_2= tf.concat([x1, x2], axis=0)
+                    per_example_loss, logits_ab, labels = nt_xent_asymetrize_loss_v2(
+                        x_1_2,  temperature=FLAGS.temperature)
+                    
+                else: 
+                    raise ValueError("Loss version is not implement yet")
+
+                # total sum loss //Global batch_size
+                loss = tf.reduce_sum(per_example_loss) * \
+                    (1./train_global_batch_size)
+                return loss, logits_ab, labels
+
 
             @tf.function
             def train_step(ds_one, ds_two):
@@ -747,14 +773,10 @@ def main(argv):
                     loss = None
                     if proj_head_output_1 is not None:
 
-                        per_batch_loss, logit_ab, lables = nt_xent_symetrize_loss_simcrl(proj_head_output_1, proj_head_output_2,
-                                                                                         FLAGS.LARGE_NUM, FLAGS.hidden_norm, FLAGS.temperature)
-                        scale_con_loss = tf.reduce_sum(
-                            per_batch_loss) * (1. / train_global_batch_size)
-
+                        scale_con_loss, logit_ab, lables = distributed_loss(proj_head_output_1, proj_head_output_2)
+                                                                                             
                         # Reduce loss Precision to 16 Bits
-                        scale_con_loss = optimizer.get_scaled_loss(
-                            scale_con_loss)
+                        scale_con_loss = optimizer.get_scaled_loss(scale_con_loss)
                         # Output to Update Contrastive
                         if loss is None:
                             loss = scale_con_loss
@@ -805,7 +827,6 @@ def main(argv):
                         weight_decay_loss)
                     weight_decay_metric.update_state(weight_decay_loss_scale)
                     loss += weight_decay_loss_scale
-
                     # Contrast loss + Supervised loss + Regularize loss
                     total_loss_metric.update_state(loss)
 
