@@ -184,7 +184,6 @@ def nt_xent_asymetrize_loss_v2(z,  temperature):
 
     return total_loss, similarity, labels
 
-
 def nt_xent_symetrize_loss_simcrl(hidden1, hidden2, LARGE_NUM,
                                   hidden_norm=True,
                                   temperature=1.0,
@@ -271,7 +270,6 @@ def nt_xent_symetrize_loss_object_level_whole_image_contrast(v1_object, v2_objec
     
     return total_loss, whole_image_logits, object_level_logits, lables_image, lables_object_level
 
-
 def binary_mask_nt_xent_object_backgroud_sum_loss(v1_object, v2_object, v1_background, v2_background,
                                                   LARGE_NUM=1e-9, alpha=0.8, temperature=1):
     '''
@@ -356,7 +354,6 @@ def binary_mask_nt_xent_object_backgroud_sum_loss(v1_object, v2_object, v1_backg
 
     return total_loss, logits_o_ab, logits_b_ab, labels
 
-
 def binary_mask_nt_xent_object_backgroud_sum_loss_v1(object_f, background_f, alpha=0.8, temperature=1):
     # For Object
     z = object_f
@@ -400,7 +397,6 @@ def binary_mask_nt_xent_object_backgroud_sum_loss_v1(object_f, background_f, alp
         alpha*losses_object + (1-alpha)*losses_object)/2
 
     return total_loss, Ob_similarity, back_similarity, labels
-
 
 def binary_mask_nt_xent_only_Object_loss(v1_object, v2_object, LARGE_NUM, temperature=1):
     '''
@@ -446,12 +442,11 @@ def binary_mask_nt_xent_only_Object_loss(v1_object, v2_object, LARGE_NUM, temper
 
 
 ######################################################################################
-'''NONE CONTRASTIVE LOSS'''
+'''NON-CONTRASTIVE LOSS'''
 ####################################################################################
 
 '''BYOL SYMETRIZE LOSS'''
 # Symetric LOSS
-
 
 def byol_symetrize_loss(p, z):
     p = tf.math.l2_normalize(p, axis=1)  # (2*bs, 128)
@@ -464,7 +459,6 @@ def byol_symetrize_loss(p, z):
 '''Loss 2 SimSiam Model'''
 # Asymetric LOSS
 
-
 def simsam_loss(p, z):
     # The authors of SimSiam emphasize the impact of
     # the `stop_gradient` operator in the paper as it
@@ -475,7 +469,6 @@ def simsam_loss(p, z):
     # Negative cosine similarity (minimizing this is
     # equivalent to maximizing the similarity).
     return -tf.reduce_mean(tf.reduce_sum((p * z), axis=1))
-
 
 def simsam_loss_non_stop_Gr(p, z):
     # The authors of SimSiam emphasize the impact of
