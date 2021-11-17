@@ -183,6 +183,7 @@ def nt_xent_asymetrize_loss_v2(z,  temperature):
 
     return total_loss, similarity, labels
 
+
 def nt_xent_symetrize_loss_simcrl(hidden1, hidden2, LARGE_NUM,
                                   hidden_norm=True,
                                   temperature=1.0,
@@ -493,9 +494,14 @@ def binary_mask_nt_xent_only_Object_loss(v1_object, v2_object, LARGE_NUM, temper
 def byol_symetrize_loss(p, z):
     p = tf.math.l2_normalize(p, axis=1)  # (2*bs, 128)
     z = tf.math.l2_normalize(z, axis=1)  # (2*bs, 128)
-
+    ## Calculate contrastive Loss 
+    batch_size = tf.shape(p)[0]
+    labels = tf.one_hot(tf.range(batch_size), batch_size * 2)
+    logits_ab = tf.matmul(p, z,transpose_b=True) / temperature
+    # Measure similarity
     similarities = tf.reduce_sum(tf.multiply(p, z), axis=1)
-    return 2 - 2 * tf.reduce_mean(similarities)
+    loss=2 - 2 * tf.reduce_mean(similarities)
+    return loss, logit_ab, labels
 
 
 '''Loss 2 SimSiam Model'''

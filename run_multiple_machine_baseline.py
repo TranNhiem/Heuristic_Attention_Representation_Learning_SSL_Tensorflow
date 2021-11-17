@@ -86,7 +86,6 @@ flags.DEFINE_integer(
     'single_machine_val_batch_size', 200,
     'Validaion_Batch_size.')
 
-
 flags.DEFINE_integer(
     'train_epochs', 200,
     'Number of epochs to train for.')

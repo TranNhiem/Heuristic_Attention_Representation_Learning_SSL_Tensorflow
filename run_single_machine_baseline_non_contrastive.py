@@ -11,7 +11,7 @@ import tensorflow as tf
 from learning_rate_optimizer import WarmUpAndCosineDecay
 import metrics
 from byol_simclr_imagenet_data import imagenet_dataset_single_machine
-from self_supervised_losses import nt_xent_symetrize_loss_simcrl, nt_xent_asymetrize_loss_v2
+from self_supervised_losses import byol_symetrize_loss
 import model as all_model
 import objective as obj_lib
 from imutils import paths
@@ -158,7 +158,11 @@ flags.DEFINE_enum(
     'How the head projection is done.')
 
 flags.DEFINE_integer(
-    'proj_out_dim', 128,
+    'proj_out_dim', 4096,
+    'Number of head projection dimension.')
+
+flags.DEFINE_integer(
+    'prediction_out_dim', 256,
     'Number of head projection dimension.')
 
 flags.DEFINE_integer(
@@ -198,12 +202,6 @@ flags.DEFINE_enum(
     'aggregate_loss', 'contrastive', [
         'contrastive', 'contrastive_supervised', ],
     'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
-
-flags.DEFINE_enum(
-    'loss_options' , 'loss_v0', 
-    ['loss_v0', 'loss_v1'], 
-    "Option for chossing loss version [V0]--> Original simclr loss [V1] --> Custom build design loss"
-)
 
 
 # Fine Tuning configure
@@ -548,7 +546,8 @@ def main(argv):
 
     # Configure the Encoder Architecture.
     with strategy.scope():
-        model = all_model.Model(num_classes)
+        online_model = all_model.Model(num_classes)
+        target_model= all_model.Model(num_classes)
 
     # Configure Wandb Training
     # Weight&Bias Tracking Experiment
@@ -556,7 +555,7 @@ def main(argv):
 
         "Model_Arch": "ResNet50",
         "Training mode": "SSL",
-        "DataAugmentation_types": "SimCLR_Inception_style_Croping",
+        "DataAugmentation_types": "SimCLR_Random_Global_Croping",
         "Dataset": "ImageNet1k",
 
         "IMG_SIZE": FLAGS.image_size,
@@ -616,11 +615,11 @@ def main(argv):
             if FLAGS.train_mode == 'pretrain':
                 # for contrastive metrics
                 contrast_loss_metric = tf.keras.metrics.Mean(
-                    'train/contrast_loss')
+                    'train/non_contrast_loss')
                 contrast_acc_metric = tf.keras.metrics.Mean(
-                    "train/contrast_acc")
+                    "train/non_contrast_acc")
                 contrast_entropy_metric = tf.keras.metrics.Mean(
-                    'train/contrast_entropy')
+                    'train/non_contrast_entropy')
                 all_metrics.extend(
                     [contrast_loss_metric, contrast_acc_metric, contrast_entropy_metric])
 
@@ -642,20 +641,10 @@ def main(argv):
 
             # Scale loss  --> Aggregating all Gradients
             def distributed_loss(x1, x2):
-                if FLAGS.loss_options =="loss_v0": 
-                    # each GPU loss per_replica batch loss
-                    per_example_loss, logits_ab, labels = nt_xent_symetrize_loss_simcrl(
-                        x1, x2, LARGE_NUM=FLAGS.LARGE_NUM, hidden_norm=FLAGS.hidden_norm, temperature=FLAGS.temperature)
-                    
-                elif FLAGS.loss_options =="loss_v1": 
-                    # each GPU loss per_replica batch loss
-                    x_1_2= tf.concat([x1, x2], axis=0)
-                    per_example_loss, logits_ab, labels = nt_xent_asymetrize_loss_v2(
-                        x_1_2,  temperature=FLAGS.temperature)
-                    
-                else: 
-                    raise ValueError("Loss version is not implement yet")
-
+                
+                # each GPU loss per_replica batch loss
+                per_example_loss, logits_ab, labels = byol_symetrize_loss(x1, x2,  temperature=FLAGS.temperature)
+                
                 # total sum loss //Global batch_size
                 loss = tf.reduce_sum(per_example_loss) * \
                     (1./train_global_batch)
@@ -714,7 +703,6 @@ def main(argv):
 
                         '''Attention'''
                         # Noted Consideration Aggregate (Supervised + Contrastive Loss) --> Update the Model Gradient
-                    
                         if loss is None:
                             loss = scale_sup_loss
                         else:
