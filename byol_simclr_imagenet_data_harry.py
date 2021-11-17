@@ -54,7 +54,7 @@ class imagenet_dataset_single_machine():
         # Path for loading all Images
         # For training
 
-        self.label, self.class_name = self.get_label("/content/imagenet_1k_tiny/image_net_1k_lable.txt")
+        self.label, self.class_name = self.get_label("image_net_1k_lable.txt")
         numeric_train_cls = []
         for image_path in self.x_train:
             label = image_path.split("/")[-2]
@@ -293,6 +293,9 @@ class imagenet_dataset_single_machine():
         train_ds = self.strategy.experimental_distribute_dataset(train_ds)
 
         return train_ds
+
+    def get_data_size(self):
+        return len(self.x_train) , len(self.x_val)
 
 
 class imagenet_dataset_multi_machine():
