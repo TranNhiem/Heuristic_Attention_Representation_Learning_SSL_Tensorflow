@@ -175,7 +175,7 @@ flags.DEFINE_boolean(
     'L2 Normalization Vector representation.')
 
 # -------------------------------------------------------------------
-# Configure Model Training -- Evaluation -- FineTuning --
+# Configure Model Training -- Loss Function Implementation --- Evaluation -- FineTuning --
 # -------------------------------------------------------------------
 
 # Configure Model Training [BaseLine Model]
@@ -196,20 +196,36 @@ flags.DEFINE_enum(
         'contrastive', 'contrastive_supervised', ],
     'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
 
-# Configure Model Training [Contrastive Binary Model]
+# Configure Model Training [Contrastive Binary Loss]
+
 flags.DEFINE_float(
-    'alpha', 0.8,
-    'Alpha value is configuration the weighted of Object and Background in Model Total Loss'
+    'alpha', 0.8,# Alpha Weighted loss (Objec & Background) [binary_mask_nt_xent_object_backgroud_sum_loss]
+    'Alpha value is configuration the weighted of Object and Background in Model Total Loss.'
+)
+
+flags.DEFINE_float(
+    'weighted_loss', 0.7,#  Weighted loss is the scaling term between  [weighted_loss]*Binary & [1-weighted_loss]*original contrastive loss)
+    'weighted_loss value is configuration the weighted of original and Binary contrastive loss.'
 )
 
 flags.DEFINE_enum(
-    'contrast_binary_loss', 'sum_contrast_obj_back', ["sum_contrast_obj_back",
-                                                      "only_object",
-                                                      "original_contrast_back_object"],
+    'contrast_binary_loss', 'sum_contrast_obj_back', 
+    # 4 Options Loss for training.
+        [
+        "sum_contrast_obj_back",# two version binary_mask_nt_xent_object_backgroud_sum_loss, binary_mask_nt_xent_object_backgroud_sum_loss_v1
+        "only_object",#binary_mask_nt_xent_only_Object_loss
+        "original_contrast_add_backgroud_object", # Concatenate (Object + Background feature together)
+        "Original_loss_add_contrast_level_object", #nt_xent_symetrize_loss_object_level_whole_image_contrast
+        ],
     # sum_contrast_obj_back is Sum-up contrastive loss from backgroud and Object with scaling alpha
     #
     'Contrast binary Framework consider three different LOSSES')
 
+flags.DEFINE_enum(
+    'loss_options' , 'loss_v0', 
+    ['loss_v0', 'loss_v1'], 
+    "Option for chossing loss version [V0]--> Original simclr loss [V1] --> Custom build design loss"
+)
 
 # Fine Tuning configure
 
@@ -669,13 +685,80 @@ def main(argv):
             # Scale loss  --> Aggregating all Gradients
             def distributed_Binary_contrast_loss(x1, x2, v1, v2):
                 # each GPU loss per_replica batch loss
-                per_example_loss, logits_o_ab, logits_b_ab, labels = binary_mask_nt_xent_object_backgroud_sum_loss(
-                    x1, x2, v1, v2, LARGE_NUM=FLAGS.LARGE_NUM, alpha=FLAGS.alpha, temperature=FLAGS.temperature)
+                if FLAGS.contrast_binary_loss == 'sum_contrast_obj_back': 
+
+                    #Optional [binary_mask_nt_xent_object_backgroud_sum_loss, binary_mask_nt_xent_object_backgroud_sum_loss_v1]
+                    if FLAGS.loss_options='loss_v0':
+                        per_example_loss, logits_o_ab, labels = binary_mask_nt_xent_object_backgroud_sum_loss(
+                            x1, x2, v1, v2, LARGE_NUM=FLAGS.LARGE_NUM, alpha=FLAGS.alpha, temperature=FLAGS.temperature)
+                    
+                    elif FLAGS.loss_options='loss_v1':
+                        O_b_1= tf.concat([x1, v1], axis=0)
+                        O_b_2= tf.concat([x2, v2], axis=0)
+                        per_example_loss, logits_o_ab,  labels = binary_mask_nt_xent_object_backgroud_sum_loss_v1(
+                            O_b_1,O_b_2,  alpha=FLAGS.alpha, temperature=FLAGS.temperature)
+                    else: 
+                        raise ValueError("Loss version not implement yet")
+                   
+                elif  FLAGS.contrast_binary_loss =='original_contrast_add_backgroud_object': 
+
+                    #Optional [nt_xent_symetrize_loss_simcrl, nt_xent_asymetrize_loss_v2]
+                    
+                    if FLAGS.loss_options='loss_v0':
+                        O_b_1 = tf.concat([x1, v1], axis=0)
+                        O_b_2= tf.concat([x2, v2], axis=0)
+                        per_example_loss, logits_OB_ab,  labels = nt_xent_symetrize_loss_simcrl(
+                            O_b_1, O_b_2,  LARGE_NUM=FLAGS.LARGE_NUM, temperature=FLAGS.temperature)
+                    
+                    elif FLAGS.loss_options='loss_v1':
+                        O_b_1 = tf.concat([x1, v1], axis=0)
+                        O_b_2= tf.concat([x2, v2], axis=0)
+                        all_ob_1_2= tf.concat([O_b_1, O_b_2], axis=0)
+                        per_example_loss, logits_OB_ab, labels = nt_xent_asymetrize_loss_v2( all_ob_1_2,   temperature=FLAGS.temperature)
+                    else: 
+                        raise ValueError("Loss version not implement yet")
+                
+                elif  FLAGS.contrast_binary_loss =='only_object': 
+                    
+                    #Optional [nt_xent_symetrize_loss_simcrl, nt_xent_asymetrize_loss_v2]
+                    if FLAGS.loss_options='loss_v0':
+                        
+                        per_example_loss, logits_o_ab,  labels = nt_xent_symetrize_loss_simcrl(
+                            x_1, x_2,  LARGE_NUM=FLAGS.LARGE_NUM, temperature=FLAGS.temperature)
+                    
+                    elif FLAGS.loss_options='loss_v1':
+                        O_1_2 = tf.concat([x1, x2], axis=0)
+                        per_example_loss, logits_o_ab, labels = nt_xent_asymetrize_loss_v2( O_1_2,   temperature=FLAGS.temperature)
+                    else: 
+                        raise ValueError("Loss version not implement yet")
+
+                else: 
+                    raise ValueError("Binary Contrastive Loss is Invalid")
+                
                 # total sum loss //Global batch_size
                 loss = tf.reduce_sum(per_example_loss) * \
                     (1./train_global_batch)
 
-                return loss, logits_o_ab, logits_b_ab, labels
+                return loss, logits_o_ab, labels
+            
+            def distributed_Orginal_add_Binary_contrast_loss(x1, x2, v1, v2, img_1, img_2):
+                 #Optional [binary_mask_nt_xent_object_backgroud_sum_loss, binary_mask_nt_xent_object_backgroud_sum_loss_v1]
+                if FLAGS.loss_options='loss_v0':
+                    per_example_loss, logits_o_ab, labels = nt_xent_symetrize_loss_object_level_whole_image_contrast(
+                        x1, x2, v1, v2, img_1, img_2 LARGE_NUM=FLAGS.LARGE_NUM, weight_loss=FLAGS.weighted_loss, temperature=FLAGS.temperature)
+                
+                elif FLAGS.loss_options='loss_v1':
+                   
+                    per_example_loss, logits_o_ab, labels = nt_xent_symetrize_loss_object_level_whole_image_contrast_v1(
+                       x1, x2, v1, v2,img_1, img_2,  weight_loss=FLAGS.weighted_loss, temperature=FLAGS.temperature)
+                else: 
+                        raise ValueError("Loss version not implement yet")
+
+                # total sum loss //Global batch_size
+                loss = tf.reduce_sum(per_example_loss) * \
+                    (1./train_global_batch)
+
+                return loss, logits_o_ab, labels
 
             @tf.function
             def train_step(ds_one, ds_two):
@@ -693,9 +776,15 @@ def main(argv):
                     # Compute Contrastive Train Loss -->
                     loss = None
                     if obj_1 is not None:
-                        # Compute Contrastive Loss model
-                        loss, logits_o_ab, logit_b_ab, labels = distributed_Binary_contrast_loss(
-                            obj_1, obj_2,  backg_1, backg_2)
+                        
+                        if FLAGS.contrast_binary_loss == 'Original_loss_add_contrast_level_object': 
+                            loss, logits_o_ab, labels = distributed_Orginal_add_Binary_contrast_loss(obj_1, obj_2,  backg_1, backg_2, 
+                                                                                                    proj_head_output_1, proj_head_output_2)
+
+                        else:
+                            # Compute Contrastive Loss model
+                            loss, logits_o_ab, labels = distributed_Binary_contrast_loss(
+                                obj_1, obj_2,  backg_1, backg_2)
 
                         # Output to Update Contrastive
                         logits_con = logits_o_ab

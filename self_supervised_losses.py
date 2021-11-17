@@ -147,7 +147,6 @@ def nt_xent_asymetrize_loss_v1(p, z, temperature):  # negative_mask
 # Nt-Xent ---> N_Pair loss with Temperature scale
 # Nt-Xent Loss (Remember in this case Concatenate Two Tensor Together)
 
-
 def nt_xent_asymetrize_loss_v2(z,  temperature):
     '''The issue of design this loss two image is in one array
     when we multiply them that will lead two two same things mul together???
@@ -268,7 +267,49 @@ def nt_xent_symetrize_loss_object_level_whole_image_contrast(v1_object, v2_objec
                                                                     hidden_norm= hidden_norm, temperature=temperature)
     total_loss= (weight_loss * object_loss + (1-weight_loss)*image_loss)/2
     
-    return total_loss, whole_image_logits, object_level_logits, lables_image, lables_object_level
+    return total_loss, object_level_logits,  lables_object_level #whole_image_logits, lables_image
+
+def nt_xent_symetrize_loss_object_level_whole_image_contrast_v1(v1_object, v2_object, v1_background, v2_background,
+                                                                image_rep1, image_rep2, 
+                                                                 , weight_loss=0.8,  temperature=1): 
+    """Compute loss for model.
+
+    Args:
+        Object Level Representation: 
+        + v1_object, v2_object, v1_background, v2_background,
+        Image Level Representation: 
+        + image_rep1, image_rep2,
+        
+        hidden: hidden vector (`Tensor`) of shape (bsz, dim).
+        hidden_norm: whether or not to use normalization on the hidden vector.
+        temperature: a `floating` number for temperature scaling.
+
+    Returns:
+        A  Sumup of the loss scalar (Whole Image Represenation).
+        The logits for contrastive prediction task.
+        The labels for contrastive prediction task.
+    """
+
+    #********* ----------------------- ***********
+    # Contrastive Loss for Whole Image Representation
+    #********* ----------------------- ***********
+    image_rep_1_2= tf.concat([image_rep1, image_rep2], axis=0)
+    image_loss, whole_image_logits, lables_image= nt_xent_asymetrize_loss_v2 (image_rep_1_2,
+                                                               temperature=temperature)
+
+
+    #********* ----------------------- ***********
+    # Contrastive Loss for Whole Image Representation
+    #********* ----------------------- ***********
+    
+    object_rep_1= tf.concat([v1_object,v1_background ], axis=0)
+    object_rep_2= tf.concat([v2_object,v2_background ], axis=0)
+    object_rep_1_2= tf.concat([object_rep_1, object_rep_2], axis=0)
+    object_loss, object_level_logits, lables_object_level= nt_xent_asymetrize_loss_v2 (object_rep_1_2,
+                                                                     temperature=temperature)
+    total_loss= (weight_loss * object_loss + (1-weight_loss)*image_loss)/2
+    
+    return total_loss, object_level_logits,  lables_object_level#,whole_image_logits ,lables_image,
 
 def binary_mask_nt_xent_object_backgroud_sum_loss(v1_object, v2_object, v1_background, v2_background,
                                                   LARGE_NUM=1e-9, alpha=0.8, temperature=1):
@@ -352,7 +393,7 @@ def binary_mask_nt_xent_object_backgroud_sum_loss(v1_object, v2_object, v1_backg
 
     total_loss = (alpha*loss_object + (1-alpha)*loss_background) / 2.0
 
-    return total_loss, logits_o_ab, logits_b_ab, labels
+    return total_loss, logits_o_ab,  labels #logits_b_ab,
 
 def binary_mask_nt_xent_object_backgroud_sum_loss_v1(object_f, background_f, alpha=0.8, temperature=1):
     # For Object
@@ -393,10 +434,11 @@ def binary_mask_nt_xent_object_backgroud_sum_loss_v1(object_f, background_f, alp
     denominators_back = tf.reduce_sum(
         tf.multiply(negative_mask, back_similarity), axis=1)
     losses_back = -tf.math.log(numerator_back/denominators_back)
+    
     total_loss = tf.reduce_mean(
         alpha*losses_object + (1-alpha)*losses_object)/2
 
-    return total_loss, Ob_similarity, back_similarity, labels
+    return total_loss, Ob_similarity,labels # back_similarity, 
 
 def binary_mask_nt_xent_only_Object_loss(v1_object, v2_object, LARGE_NUM, temperature=1):
     '''
