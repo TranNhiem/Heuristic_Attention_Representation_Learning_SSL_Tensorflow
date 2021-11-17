@@ -537,7 +537,6 @@ def perform_evaluation(model, val_ds, val_steps, ckpt, strategy):
 
     return result
 
-
 def main(argv):
 
     if len(argv) > 1:
@@ -776,7 +775,7 @@ def main(argv):
                     # Compute Contrastive Train Loss -->
                     loss = None
                     if obj_1 is not None:
-                        
+
                         if FLAGS.contrast_binary_loss == 'Original_loss_add_contrast_level_object': 
                             loss, logits_o_ab, labels = distributed_Orginal_add_Binary_contrast_loss(obj_1, obj_2,  backg_1, backg_2, 
                                                                                                     proj_head_output_1, proj_head_output_2)
