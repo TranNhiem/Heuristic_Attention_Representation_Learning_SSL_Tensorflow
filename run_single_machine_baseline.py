@@ -11,7 +11,7 @@ import tensorflow as tf
 from learning_rate_optimizer import WarmUpAndCosineDecay
 import metrics
 from byol_simclr_imagenet_data import imagenet_dataset_single_machine
-from self_supervised_losses import nt_xent_symetrize_loss_simcrl
+from self_supervised_losses import nt_xent_symetrize_loss_simcrl, nt_xent_asymetrize_loss_v2
 import model as all_model
 import objective as obj_lib
 from imutils import paths
@@ -29,8 +29,10 @@ if gpus:
         print(e)
 
 FLAGS = flags.FLAGS
-
+#------------------------------------------
 # General Define
+#------------------------------------------
+
 flags.DEFINE_integer(
     'IMG_height', 224,
     'image height.')
@@ -49,11 +51,11 @@ flags.DEFINE_integer(
 
 flags.DEFINE_integer(
     'SEED', 26,
-    'random seed.')
+    'random seed use for shuffle data Generate two same image ds_one & ds_two')
 
 flags.DEFINE_integer(
     'SEED_data_split', 100,
-    'random seed for spliting data.')
+    'random seed for spliting data the same for all the run with the same validation dataset.')
 
 flags.DEFINE_integer(
     'train_batch_size', 100,
@@ -63,13 +65,13 @@ flags.DEFINE_integer(
     'val_batch_size', 100,
     'Validaion_Batch_size.')
 
-
 flags.DEFINE_integer(
     'train_epochs', 100,
     'Number of epochs to train for.')
 
-
+#------------------------------------------
 # Define for Linear Evaluation
+#------------------------------------------
 flags.DEFINE_enum(
     'linear_evaluate', 'standard', ['standard', 'randaug', 'cropping_randaug'],
     'How to scale the learning rate as a function of batch size.')
@@ -77,7 +79,7 @@ flags.DEFINE_enum(
 flags.DEFINE_integer(
     'eval_steps', 0,
     'Number of steps to eval for. If not provided, evals over entire dataset.')
-
+# Configure RandAugment for validation dataset augmentation transform
 
 flags.DEFINE_float(
     'randaug_transform', 1,
@@ -87,8 +89,9 @@ flags.DEFINE_float(
     'randaug_magnitude', 7,
     'Number of augmentation transformations.')
 
-
-# Define for Learning Rate Optimizer
+#----------------------------------------------------------
+# Define for Learning Rate Optimizer + Training Strategy
+#----------------------------------------------------------
 
 # Learning Rate Scheudle
 
@@ -118,9 +121,9 @@ flags.DEFINE_float(
 
 flags.DEFINE_float('weight_decay', 1e-6, 'Amount of weight decay to use.')
 
-
+#----------------------------------------------------------------------
 # Configure for Encoder - Projection Head, Linear Evaluation Architecture
-
+#----------------------------------------------------------------------
 
 # Encoder Configure
 
@@ -175,9 +178,11 @@ flags.DEFINE_boolean(
     'hidden_norm', True,
     'L2 Normalization Vector representation.')
 
-
+#-----------------------------------------
 # Configure Model Training
+#-----------------------------------------
 
+# Self-Supervised training and Supervised training mode
 flags.DEFINE_enum(
     'mode', 'train', ['train', 'eval', 'train_then_eval'],
     'Whether to perform training or evaluation.')
@@ -194,6 +199,13 @@ flags.DEFINE_enum(
         'contrastive', 'contrastive_supervised', ],
     'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
 
+flags.DEFINE_enum(
+    'loss_options' , 'loss_v0', 
+    ['loss_v0', 'loss_v1'], 
+    "Option for chossing loss version [V0]--> Original simclr loss [V1] --> Custom build design loss"
+)
+
+
 # Fine Tuning configure
 
 flags.DEFINE_bool(
@@ -206,9 +218,12 @@ flags.DEFINE_integer(
     'everything. 0 means fine-tuning after stem block. 4 means fine-tuning '
     'just the linear head.')
 
-
+#-----------------------------------------
 # Configure Saving and Restore Model
+#-----------------------------------------
+
 # Saving Model
+
 flags.DEFINE_string(
     'model_dir', "./model_ckpt/simclrResNet/",
     'Model directory for training.')
@@ -235,11 +250,13 @@ flags.DEFINE_integer(
     'Number of epochs between checkpoints/summaries.')
 
 flags.DEFINE_integer(
-    'checkpoint_steps', 0,
+    'checkpoint_steps', 10,
     'Number of steps between checkpoints/summaries. If provided, overrides '
     'checkpoint_epochs.')
 
+#-------------------------------------------------------------
 # Helper function to save and resore model.
+#-------------------------------------------------------------
 
 def get_salient_tensors_dict(include_projection_head):
     """Returns a dictionary of tensors."""
@@ -495,7 +512,6 @@ def perform_evaluation(model, val_ds, val_steps, ckpt, strategy):
 
 def main(argv):
     if len(argv) > 1:
-
         raise app.UsageError('Too many command-line arguments.')
 
     # Preparing dataset
@@ -627,9 +643,20 @@ def main(argv):
 
             # Scale loss  --> Aggregating all Gradients
             def distributed_loss(x1, x2):
-                # each GPU loss per_replica batch loss
-                per_example_loss, logits_ab, labels = nt_xent_symetrize_loss_simcrl(
-                    x1, x2, LARGE_NUM=FLAGS.LARGE_NUM, hidden_norm=FLAGS.hidden_norm, temperature=FLAGS.temperature)
+                if FLAGS.loss_options =="loss_v0": 
+                    # each GPU loss per_replica batch loss
+                    per_example_loss, logits_ab, labels = nt_xent_symetrize_loss_simcrl(
+                        x1, x2, LARGE_NUM=FLAGS.LARGE_NUM, hidden_norm=FLAGS.hidden_norm, temperature=FLAGS.temperature)
+                    
+                elif FLAGS.loss_options =="loss_v1": 
+                    # each GPU loss per_replica batch loss
+                    x_1_2= tf.concat([x1, x2], axis=0)
+                    per_example_loss, logits_ab, labels = nt_xent_asymetrize_loss_v2(
+                        x_1_2,  temperature=FLAGS.temperature)
+                    
+                else: 
+                    raise ValueError("Loss version is not implement yet")
+
                 # total sum loss //Global batch_size
                 loss = tf.reduce_sum(per_example_loss) * \
                     (1./train_global_batch)

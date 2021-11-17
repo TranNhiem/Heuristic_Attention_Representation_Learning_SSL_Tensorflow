@@ -11,7 +11,7 @@ import tensorflow as tf
 from learning_rate_optimizer import WarmUpAndCosineDecay
 import metrics
 from byol_simclr_imagenet_data import imagenet_dataset_single_machine
-from self_supervised_losses import binary_mask_nt_xent_object_backgroud_sum_loss
+from self_supervised_losses import * #binary_mask_nt_xent_object_backgroud_sum_loss
 from Model_resnet_harry import SSL_train_model_Model
 from model import build_optimizer, add_weight_decay
 import objective as obj_lib
