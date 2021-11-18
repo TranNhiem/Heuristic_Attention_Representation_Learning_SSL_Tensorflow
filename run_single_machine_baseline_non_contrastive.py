@@ -771,14 +771,14 @@ def main(argv):
                     total_loss += distributed_train_step(ds_one, ds_two)
                     num_batches +=1
 
-                    ## Update weight of Target Encoder Every Steps
+                    ## Update weight of Target Encoder Every Step
                     beta=0.99
                     target_encoder_weights= target_model.get_weights()
                     online_encoder_weights= online_model.get_weights()
 
                     for i in range(len(online_encoder_weights)): 
                         target_encoder_weights[i]= beta* target_encoder_weights[i] + (1-beta)* online_encoder_weights[i]
-                    f_target.set_weights(target_encoder_weights)
+                    target_model.set_weights(target_encoder_weights)
 
 
                     if (global_step.numpy()+ 1) % checkpoint_steps==0:
