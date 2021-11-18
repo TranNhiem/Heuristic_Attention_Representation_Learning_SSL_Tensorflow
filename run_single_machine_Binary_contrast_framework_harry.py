@@ -15,8 +15,8 @@ from self_supervised_losses import binary_mask_nt_xent_object_backgroud_sum_loss
 from Model_resnet_harry import SSL_train_model_Model
 from model import build_optimizer, add_weight_decay
 import objective as obj_lib
-from imutils import paths
-from wandb.keras import WandbCallback
+# from imutils import paths
+# from wandb.keras import WandbCallback
 
 # Setting GPU
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -48,7 +48,7 @@ flags.DEFINE_float(
     'LARGE_NUM', 1e-9,
     'The Large_num for mutliply with logit')
 flags.DEFINE_integer(
-    'num_classes', 999,
+    'num_classes', 1000,
     'Number of class in dataset.'
 )
 flags.DEFINE_integer(
@@ -60,16 +60,29 @@ flags.DEFINE_integer(
     'random seed for spliting data.')
 
 flags.DEFINE_integer(
-    'train_batch_size', 25,
+    'train_batch_size', 100,
     'Train batch_size .')
 
 flags.DEFINE_integer(
-    'val_batch_size', 25,
+    'val_batch_size', 100,
     'Validaion_Batch_size.')
 
 flags.DEFINE_integer(
     'train_epochs', 500,
     'Number of epochs to train for.')
+
+flags.DEFINE_string(
+    'train_path', "/home/harry/Documents/imagenet_1k_tiny/Image/train",
+    'Train dataset path.')
+
+flags.DEFINE_string(
+    'val_path', "/home/harry/Documents/imagenet_1k_tiny/Image/val",
+    'Validaion dataset path.')
+
+flags.DEFINE_string(
+    'mask_path', "train_binary_mask_by_USS",
+    'Mask path.')
+
 # ---------------------------------------------------
 # Define for Linear Evaluation
 # ---------------------------------------------------
@@ -525,32 +538,22 @@ def perform_evaluation(model, val_ds, val_steps, ckpt, strategy):
 def main(argv):
 
     if len(argv) > 1:
-
         raise app.UsageError('Too many command-line arguments.')
-
-    # Preparing dataset
-    # Imagenet path prepare localy
-    #imagenet_path = "/data/SSL_dataset/ImageNet/1K/"
-    # imagenet_path = "/data/rick109582607/Desktop/TinyML/self_supervised/1K/"
-    # dataset = list(paths.list_images(imagenet_path))
-    # print(len(dataset))
-    # random.Random(FLAGS.SEED_data_split).shuffle(dataset)
-    # x_val = dataset[0:50000]
-    # x_train = dataset[50000:]
 
     strategy = tf.distribute.MirroredStrategy()
     train_global_batch = FLAGS.train_batch_size * strategy.num_replicas_in_sync
     val_global_batch = FLAGS.val_batch_size * strategy.num_replicas_in_sync
 
     train_dataset = imagenet_dataset_single_machine(img_size=FLAGS.image_size, train_batch=train_global_batch,  val_batch=val_global_batch,
-                                                    strategy=strategy, train_path=None, val_path=None, mask_path=None, bi_mask=True)
+                                                    strategy=strategy, train_path="/home/harry/Documents/imagenet_1k_tiny/Image/train",
+                                                    val_path="/home/harry/Documents/imagenet_1k_tiny/Image/val",
+                                                    mask_path="train_binary_mask_by_USS", bi_mask=True)
 
     train_ds = train_dataset.simclr_random_global_crop_image_mask()
 
     val_ds = train_dataset.supervised_validation()
 
-    num_train_examples = len(train_ds)
-    num_eval_examples = len(val_ds)
+    num_train_examples,num_eval_examples = train_dataset.get_data_size()
 
     train_steps = FLAGS.eval_steps or int(
         num_train_examples * FLAGS.train_epochs // train_global_batch)
