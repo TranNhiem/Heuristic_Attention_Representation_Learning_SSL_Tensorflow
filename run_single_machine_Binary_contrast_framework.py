@@ -16,7 +16,6 @@ from Model_resnet_harry import SSL_train_model_Model
 from model import build_optimizer, add_weight_decay
 import objective as obj_lib
 from imutils import paths
-from wandb.keras import WandbCallback
 
 # Setting GPU
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -687,11 +686,11 @@ def main(argv):
                 if FLAGS.contrast_binary_loss == 'sum_contrast_obj_back': 
 
                     #Optional [binary_mask_nt_xent_object_backgroud_sum_loss, binary_mask_nt_xent_object_backgroud_sum_loss_v1]
-                    if FLAGS.loss_options='loss_v0':
+                    if FLAGS.loss_options=='loss_v0':
                         per_example_loss, logits_o_ab, labels = binary_mask_nt_xent_object_backgroud_sum_loss(
                             x1, x2, v1, v2, LARGE_NUM=FLAGS.LARGE_NUM, alpha=FLAGS.alpha, temperature=FLAGS.temperature)
                     
-                    elif FLAGS.loss_options='loss_v1':
+                    elif FLAGS.loss_options=='loss_v1':
                         O_b_1= tf.concat([x1, v1], axis=0)
                         O_b_2= tf.concat([x2, v2], axis=0)
                         per_example_loss, logits_o_ab,  labels = binary_mask_nt_xent_object_backgroud_sum_loss_v1(
@@ -703,13 +702,13 @@ def main(argv):
 
                     #Optional [nt_xent_symetrize_loss_simcrl, nt_xent_asymetrize_loss_v2]
                     
-                    if FLAGS.loss_options='loss_v0':
+                    if FLAGS.loss_options=='loss_v0':
                         O_b_1 = tf.concat([x1, v1], axis=0)
                         O_b_2= tf.concat([x2, v2], axis=0)
                         per_example_loss, logits_OB_ab,  labels = nt_xent_symetrize_loss_simcrl(
                             O_b_1, O_b_2,  LARGE_NUM=FLAGS.LARGE_NUM, temperature=FLAGS.temperature)
                     
-                    elif FLAGS.loss_options='loss_v1':
+                    elif FLAGS.loss_options=='loss_v1':
                         O_b_1 = tf.concat([x1, v1], axis=0)
                         O_b_2= tf.concat([x2, v2], axis=0)
                         all_ob_1_2= tf.concat([O_b_1, O_b_2], axis=0)
@@ -720,12 +719,12 @@ def main(argv):
                 elif  FLAGS.contrast_binary_loss =='only_object': 
                     
                     #Optional [nt_xent_symetrize_loss_simcrl, nt_xent_asymetrize_loss_v2]
-                    if FLAGS.loss_options='loss_v0':
+                    if FLAGS.loss_options=='loss_v0':
                         
                         per_example_loss, logits_o_ab,  labels = nt_xent_symetrize_loss_simcrl(
-                            x_1, x_2,  LARGE_NUM=FLAGS.LARGE_NUM, temperature=FLAGS.temperature)
+                            x1, x2,  LARGE_NUM=FLAGS.LARGE_NUM, temperature=FLAGS.temperature)
                     
-                    elif FLAGS.loss_options='loss_v1':
+                    elif FLAGS.loss_options=='loss_v1':
                         O_1_2 = tf.concat([x1, x2], axis=0)
                         per_example_loss, logits_o_ab, labels = nt_xent_asymetrize_loss_v2( O_1_2,   temperature=FLAGS.temperature)
                     else: 
@@ -742,11 +741,11 @@ def main(argv):
             
             def distributed_Orginal_add_Binary_contrast_loss(x1, x2, v1, v2, img_1, img_2):
                  #Optional [binary_mask_nt_xent_object_backgroud_sum_loss, binary_mask_nt_xent_object_backgroud_sum_loss_v1]
-                if FLAGS.loss_options='loss_v0':
+                if FLAGS.loss_options=='loss_v0':
                     per_example_loss, logits_o_ab, labels = nt_xent_symetrize_loss_object_level_whole_image_contrast(
-                        x1, x2, v1, v2, img_1, img_2 LARGE_NUM=FLAGS.LARGE_NUM, weight_loss=FLAGS.weighted_loss, temperature=FLAGS.temperature)
+                        x1, x2, v1, v2, img_1, img_2, LARGE_NUM=FLAGS.LARGE_NUM, weight_loss=FLAGS.weighted_loss, temperature=FLAGS.temperature)
                 
-                elif FLAGS.loss_options='loss_v1':
+                elif FLAGS.loss_options=='loss_v1':
                    
                     per_example_loss, logits_o_ab, labels = nt_xent_symetrize_loss_object_level_whole_image_contrast_v1(
                        x1, x2, v1, v2,img_1, img_2,  weight_loss=FLAGS.weighted_loss, temperature=FLAGS.temperature)

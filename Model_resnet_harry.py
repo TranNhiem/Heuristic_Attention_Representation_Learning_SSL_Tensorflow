@@ -954,9 +954,6 @@ class SSL_train_model_Model(tf.keras.models.Model):
             mask = inputs[1]
             inputs = inputs[0]
 
-            # print(mask.shape)
-            # print(inputs.shape)
-
         if training and FLAGS.train_mode == 'pretrain':
             if FLAGS.fine_tune_after_block > -1:
                 raise ValueError('Does not support layer freezing during pretraining,'
@@ -977,16 +974,10 @@ class SSL_train_model_Model(tf.keras.models.Model):
         if FLAGS.train_mode == 'pretrain':
             # object and background indexer
             obj, back = self.indexer([feature_map_upsample, mask])
-            # print("this object feature", obj.shape)
-            # print("this is backg feature", back.shape)
-            # output_flattent_tesor = self.flatten(obj)
-            # print("this output_flattent_tesor", output_flattent_tesor.shape)
             obj, _ = self.projection_head(self.flatten(obj), training=training)
             back, _ = self.projection_head(
                 self.flatten(back), training=training)
 
-            # print("this object feature_project_head", obj.shape)
-            # print("this is backg feature_project_head", back.shape)
         projection_head_outputs, supervised_head_inputs = self.projection_head(
             self.flatten(feature_map_upsample), training=training)
 
