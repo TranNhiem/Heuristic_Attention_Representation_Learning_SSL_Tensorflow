@@ -23,7 +23,7 @@ if gpus:
 
     try:
         for gpu in gpus:
-            tf.config.experimental.set_memory_growth(gpu, True)
+                tf.config.experimental.set_memory_growth(gpu, True)
         tf.config.experimental.set_visible_devices(gpus[0:8], 'GPU')
         logical_gpus = tf.config.experimental.list_logical_devices('GPU')
         print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPU")
@@ -597,7 +597,7 @@ def main(argv):
         # can choose different min_interval
         for ckpt in tf.train.checkpoints_iterator(FLAGS.model_dir, min_interval_secs=15):
             result = perform_evaluation(
-                online_model, val_ds, eval_steps, ckpt, strategy)
+                model, val_ds, eval_steps, ckpt, strategy)
             # global_step from ckpt
             if result['global_step'] >= train_steps:
                 logging.info('Evaluation complete. Existing-->')

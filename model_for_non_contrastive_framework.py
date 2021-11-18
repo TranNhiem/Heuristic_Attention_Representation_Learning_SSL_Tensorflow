@@ -455,7 +455,7 @@ class target_model(tf.keras.models.Model):
             width_multiplier=FLAGS.width_multiplier,
             cifar_stem=FLAGS.image_size <= 32)
         # Projcetion head
-        self._projection_head = projection_head()
+        self._projection_head = ProjectionHead()
    
         # Supervised classficiation head
         if FLAGS.train_mode == 'finetune' or FLAGS.lineareval_while_pretraining:
