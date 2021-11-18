@@ -673,7 +673,7 @@ def main(argv):
                 images_one, lable_one = ds_one
                 images_two, lable_two = ds_two
 
-                with tf.GradientTape() as tape:
+                with tf.GradientTape(persistent=True) as tape:
       
                     # Online 
                     proj_head_output_1, supervised_head_output_1 = online_model(
@@ -750,7 +750,7 @@ def main(argv):
                 ## Update Prediction Head model
                 grads = tape.gradient(loss, prediction_model.trainable_variables)
                 optimizer.apply_gradients(zip(grads, prediction_model.trainable_variables))
-
+                del tape
                 return loss
 
             @tf.function
