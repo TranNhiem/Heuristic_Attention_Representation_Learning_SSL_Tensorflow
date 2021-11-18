@@ -808,7 +808,7 @@ def main(argv):
                     metric.reset_states()
                 # Saving Entire Model
                 if epoch == 50:
-                    save_ = './model_ckpt/resnet_byol/encoder_resnet50_mlp' + \
+                    save_ = './model_ckpt/resnet_byol/baseline_encoder_resnet50_mlp' + \
                         str(epoch) + ".h5"
                     online_model.save_weights(save_)
 
