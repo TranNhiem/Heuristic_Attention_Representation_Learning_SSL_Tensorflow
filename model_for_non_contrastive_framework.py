@@ -242,7 +242,7 @@ class ProjectionHead(tf.keras.layers.Layer):
                                                              training))
         
         elif FLAGS.proj_head_mode == 'nonlinear':
-            for j in range(num_proj_layers):
+            for j in range(FLAGS.num_proj_layers):
                 hiddens = self.linear_layers[j](hiddens_list[-1], training)
                 if j != FLAGS.num_proj_layers - 1:
                     # for the middle layers, use bias and relu for the output.
