@@ -672,13 +672,13 @@ def main(argv):
             # Scale loss  --> Aggregating all Gradients
             def distributed_Binary_contrast_loss(x1, x2, v1, v2):
                 # each GPU loss per_replica batch loss
-                per_example_loss, logits_o_ab, logits_b_ab, labels = binary_mask_nt_xent_object_backgroud_sum_loss(
+                per_example_loss, logits_o_ab, labels = binary_mask_nt_xent_object_backgroud_sum_loss(
                     x1, x2, v1, v2, LARGE_NUM=FLAGS.LARGE_NUM, alpha=FLAGS.alpha, temperature=FLAGS.temperature)
                 # total sum loss //Global batch_size
                 loss = tf.reduce_sum(per_example_loss) * \
                     (1./train_global_batch)
 
-                return loss, logits_o_ab, logits_b_ab, labels
+                return loss, logits_o_ab, labels
 
             @tf.function
             def train_step(ds_one, ds_two):
@@ -697,7 +697,7 @@ def main(argv):
                     loss = None
                     if obj_1 is not None:
                         # Compute Contrastive Loss model
-                        loss, logits_o_ab, logit_b_ab, labels = distributed_Binary_contrast_loss(
+                        loss, logits_o_ab, labels = distributed_Binary_contrast_loss(
                             obj_1, obj_2,  backg_1, backg_2)
 
                         # Output to Update Contrastive
@@ -810,6 +810,8 @@ def main(argv):
 
                 # Saving Entire Model
                 if epoch == 50:
+                    if not os.path.exists("./model_ckpt/resnet_simclr/"):
+                        os.makedirs("./model_ckpt/resnet_simclr/")
                     save_ = './model_ckpt/resnet_simclr/encoder_resnet50_mlp' + \
                         str(epoch) + ".h5"
                     model.save_weights(save_)

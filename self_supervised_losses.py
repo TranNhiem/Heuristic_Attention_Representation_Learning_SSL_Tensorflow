@@ -271,8 +271,7 @@ def nt_xent_symetrize_loss_object_level_whole_image_contrast(v1_object, v2_objec
     return total_loss, object_level_logits,  lables_object_level #whole_image_logits, lables_image
 
 def nt_xent_symetrize_loss_object_level_whole_image_contrast_v1(v1_object, v2_object, v1_background, v2_background,
-                                                                image_rep1, image_rep2, 
-                                                                 , weight_loss=0.8,  temperature=1): 
+                                                                image_rep1, image_rep2, weight_loss=0.8,  temperature=1):
     """Compute loss for model.
 
     Args:
