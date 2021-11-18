@@ -19,6 +19,8 @@ from wandb.keras import WandbCallback
 
 # Setting GPU
 gpus = tf.config.experimental.list_physical_devices('GPU')
+
+tf.config.experimental.set_memory_growth(physical_devices[0], True)
 if gpus:
 
     try:
@@ -706,11 +708,11 @@ def main(argv):
                             sup_loss = obj_lib.add_supervised_loss(labels=supervise_lable, logits=outputs)
                             
                             #scale_sup_loss = tf.nn.compute_average_loss(sup_loss, global_batch_size=train_global_batch)
-                            scale_sup_loss   tf.reduce_sum(sup_loss) * (1./train_global_batch)
+                            scale_sup_loss =  tf.reduce_sum(sup_loss) * (1./train_global_batch)
                             # Update Supervised Metrics
                             metrics.update_finetune_metrics_train(supervised_loss_metric,
                                                                   supervised_acc_metric, scale_sup_loss,
-                                                                  l, outputs)
+                                                                  supervise_lable, outputs)
 
                         '''Attention'''
                         # Noted Consideration Aggregate (Supervised + Contrastive Loss) --> Update the Model Gradient
