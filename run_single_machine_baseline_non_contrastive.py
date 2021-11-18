@@ -12,7 +12,7 @@ from learning_rate_optimizer import WarmUpAndCosineDecay
 import metrics
 from byol_simclr_imagenet_data import imagenet_dataset_single_machine
 from self_supervised_losses import byol_symetrize_loss
-import model as all_model
+import model_for_non_contrastive_framework as all_model
 import objective as obj_lib
 from imutils import paths
 from wandb.keras import WandbCallback
@@ -22,6 +22,8 @@ gpus = tf.config.experimental.list_physical_devices('GPU')
 if gpus:
 
     try:
+        for gpu in gpus:
+                tf.config.experimental.set_memory_growth(gpu, True)
         tf.config.experimental.set_visible_devices(gpus[0:8], 'GPU')
         logical_gpus = tf.config.experimental.list_logical_devices('GPU')
         print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPU")
@@ -157,13 +159,27 @@ flags.DEFINE_enum(
     'proj_head_mode', 'nonlinear', ['none', 'linear', 'nonlinear'],
     'How the head projection is done.')
 
+# Projection & Prediction head  (Consideration the project out dim smaller than Represenation)
+
 flags.DEFINE_integer(
-    'proj_out_dim', 4096,
+    'proj_out_dim', 256,
     'Number of head projection dimension.')
 
 flags.DEFINE_integer(
     'prediction_out_dim', 256,
     'Number of head projection dimension.')
+
+flags.DEFINE_boolean(
+    'reduce_linear_dimention', False,# Consider use it when Project head layers > 2
+    'Reduce the parameter of Projection in middel layers.')
+
+flags.DEFINE_integer(
+    'up_scale', 4096,## scaling the Encoder output 2048 --> 4096
+    'Upscale the Dense Unit of Non-Contrastive Framework')
+
+flags.DEFINE_boolean(
+    'non_contrastive', False,# Consider use it when Project head layers > 2
+    'Using for upscaling the first layers of MLP == upscale value')
 
 flags.DEFINE_integer(
     'num_proj_layers', 3,
@@ -175,7 +191,7 @@ flags.DEFINE_integer(
     '0 means no projection head, and -1 means the final layer.')
 
 flags.DEFINE_float(
-    'temperature', 0.1,
+    'temperature', 0.5,
     'Temperature parameter for contrastive loss.')
 
 flags.DEFINE_boolean(
@@ -546,8 +562,9 @@ def main(argv):
 
     # Configure the Encoder Architecture.
     with strategy.scope():
-        online_model = all_model.Model(num_classes)
-        target_model= all_model.Model(num_classes)
+        online_model = all_model.online_model(num_classes)
+        prediction_model= all_model.prediction_head_model()
+        target_model= all_model.target_model(num_classes)
 
     # Configure Wandb Training
     # Weight&Bias Tracking Experiment
@@ -637,7 +654,7 @@ def main(argv):
             # Check and restore Ckpt if it available
             # Restore checkpoint if available.
             checkpoint_manager = try_restore_from_checkpoint(
-                model, optimizer.iterations, optimizer)
+                online_model, optimizer.iterations, optimizer)
 
             # Scale loss  --> Aggregating all Gradients
             def distributed_loss(x1, x2):
@@ -656,12 +673,15 @@ def main(argv):
                 images_one, lable_one = ds_one
                 images_two, lable_two = ds_two
 
-                with tf.GradientTape() as tape:
+                with tf.GradientTape(persistent=True) as tape:
       
-
-                    proj_head_output_1, supervised_head_output_1 = model(
+                    # Online 
+                    proj_head_output_1, supervised_head_output_1 = online_model(
                         images_one, training=True)
-                    proj_head_output_2, supervised_head_output_2 = model(
+                    proj_head_output_1=prediction_model(proj_head_output_1, training=True)
+                    
+                    # Target 
+                    proj_head_output_2, supervised_head_output_2 = target_model(
                         images_two, training=True)
 
                     # Compute Contrastive Train Loss -->
@@ -682,8 +702,9 @@ def main(argv):
                                                               loss, logits_ab,
                                                               labels)
 
-
                     # Compute the Supervised train Loss
+                    '''Consider Sperate Supervised Loss'''
+                    #supervised_loss=None
                     if supervised_head_output_1 is not None:
 
                         if FLAGS.train_mode == 'pretrain' and FLAGS.lineareval_while_pretraining:
@@ -694,12 +715,12 @@ def main(argv):
                             # Calculte the cross_entropy loss with Labels
                             sup_loss = obj_lib.add_supervised_loss(labels=supervise_lable, logits=outputs)
                             
-                            scale_sup_loss = tf.nn.compute_average_loss(sup_loss, global_batch_size=train_global_batch)
-
+                            #scale_sup_loss = tf.nn.compute_average_loss(sup_loss, global_batch_size=train_global_batch)
+                            scale_sup_loss  = tf.reduce_sum(sup_loss) * (1./train_global_batch)
                             # Update Supervised Metrics
                             metrics.update_finetune_metrics_train(supervised_loss_metric,
                                                                   supervised_acc_metric, scale_sup_loss,
-                                                                  l, outputs)
+                                                                  supervise_lable, outputs)
 
                         '''Attention'''
                         # Noted Consideration Aggregate (Supervised + Contrastive Loss) --> Update the Model Gradient
@@ -709,7 +730,7 @@ def main(argv):
                             loss += scale_sup_loss
 
                     weight_decay_loss = all_model.add_weight_decay(
-                        model, adjust_per_optimizer=True)
+                        online_model, adjust_per_optimizer=True)
 
                     weight_decay_loss_scale = tf.nn.scale_regularization_loss(weight_decay_loss)
                     weight_decay_metric.update_state(weight_decay_loss_scale)
@@ -718,12 +739,18 @@ def main(argv):
                     total_loss_metric.update_state(loss)
 
                     logging.info('Trainable variables:')
-                    for var in model.trainable_variables:
+                    for var in online_model.trainable_variables:
                         logging.info(var.name)
                     
-                    grads = tape.gradient(loss, model.trainable_variables)
-                    optimizer.apply_gradients(zip(grads, model.trainable_variables))
-
+                
+                ## Update Encoder and Projection head weight 
+                grads = tape.gradient(loss, online_model.trainable_variables)
+                optimizer.apply_gradients(zip(grads, online_model.trainable_variables))
+                
+                ## Update Prediction Head model
+                grads = tape.gradient(loss, prediction_model.trainable_variables)
+                optimizer.apply_gradients(zip(grads, prediction_model.trainable_variables))
+                del tape
                 return loss
 
             @tf.function
@@ -737,12 +764,23 @@ def main(argv):
             for epoch in range(FLAGS.train_epochs):
 
                 total_loss = 0.0
-   
+                num_batches=0
 
                 for _, (ds_one, ds_two) in enumerate(train_ds):
 
                     total_loss += distributed_train_step(ds_one, ds_two)
-                    
+                    num_batches +=1
+
+                    ## Update weight of Target Encoder Every Steps
+                    beta=0.99
+                    target_encoder_weights= target_model.get_weights()
+                    online_encoder_weights= online_model.get_weights()
+
+                    for i in range(len(online_encoder_weights)): 
+                        target_encoder_weights[i]= beta* target_encoder_weights[i] + (1-beta)* online_encoder_weights[i]
+                    f_target.set_weights(target_encoder_weights)
+
+
                     if (global_step.numpy()+ 1) % checkpoint_steps==0:
                         
                         with summary_writer.as_default():
@@ -756,6 +794,7 @@ def main(argv):
                                             global_step)
                             summary_writer.flush()
 
+                epoch_loss = total_loss/num_batches
                 # Wandb Configure for Visualize the Model Training
                 wandb.log({
                     "epochs": epoch+1,
@@ -763,17 +802,22 @@ def main(argv):
                     "train_contrast_acc": contrast_acc_metric.result(),
                     "train_contrast_acc_entropy": contrast_entropy_metric.result(),
                     "train/weight_decay": weight_decay_metric.result(),
-                    "train/total_loss": total_loss,
+                    "train/total_loss": epoch_loss,
                     "train/supervised_loss":    supervised_loss_metric.result(),
                     "train/supervised_acc": supervised_acc_metric.result()
                 })
                 for metric in all_metrics:
                     metric.reset_states()
+                # Saving Entire Model
+                if epoch == 50:
+                    save_ = './model_ckpt/resnet_byol/baseline_encoder_resnet50_mlp' + \
+                        str(epoch) + ".h5"
+                    online_model.save_weights(save_)
 
             logging.info('Training Complete ...')
 
         if FLAGS.mode == 'train_then_eval':
-            perform_evaluation(model, val_ds, eval_steps,
+            perform_evaluation(online_model, val_ds, eval_steps,
                                checkpoint_manager.latest_checkpoint, strategy)
 
 

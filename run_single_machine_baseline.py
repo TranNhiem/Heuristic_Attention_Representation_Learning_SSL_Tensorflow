@@ -19,6 +19,8 @@ from wandb.keras import WandbCallback
 
 # Setting GPU
 gpus = tf.config.experimental.list_physical_devices('GPU')
+
+tf.config.experimental.set_memory_growth(physical_devices[0], True)
 if gpus:
 
     try:
@@ -705,12 +707,12 @@ def main(argv):
                             # Calculte the cross_entropy loss with Labels
                             sup_loss = obj_lib.add_supervised_loss(labels=supervise_lable, logits=outputs)
                             
-                            scale_sup_loss = tf.nn.compute_average_loss(sup_loss, global_batch_size=train_global_batch)
-
+                            #scale_sup_loss = tf.nn.compute_average_loss(sup_loss, global_batch_size=train_global_batch)
+                            scale_sup_loss =  tf.reduce_sum(sup_loss) * (1./train_global_batch)
                             # Update Supervised Metrics
                             metrics.update_finetune_metrics_train(supervised_loss_metric,
                                                                   supervised_acc_metric, scale_sup_loss,
-                                                                  l, outputs)
+                                                                  supervise_lable, outputs)
 
                         '''Attention'''
                         # Noted Consideration Aggregate (Supervised + Contrastive Loss) --> Update the Model Gradient
@@ -750,11 +752,11 @@ def main(argv):
 
                 total_loss = 0.0
    
-
+                num_batches=0
                 for _, (ds_one, ds_two) in enumerate(train_ds):
 
                     total_loss += distributed_train_step(ds_one, ds_two)
-                    
+                    num_batches+=1
                     if (global_step.numpy()+ 1) % checkpoint_steps==0:
                         
                         with summary_writer.as_default():
@@ -767,7 +769,7 @@ def main(argv):
                             tf.summary.scalar('learning_rate', lr_schedule(tf.cast(global_step, dtype=tf.float32)),
                                             global_step)
                             summary_writer.flush()
-
+                epoch_loss= total_loss/num_batches
                 # Wandb Configure for Visualize the Model Training
                 wandb.log({
                     "epochs": epoch+1,
@@ -775,13 +777,16 @@ def main(argv):
                     "train_contrast_acc": contrast_acc_metric.result(),
                     "train_contrast_acc_entropy": contrast_entropy_metric.result(),
                     "train/weight_decay": weight_decay_metric.result(),
-                    "train/total_loss": total_loss,
+                    "train/total_loss": epoch_loss,
                     "train/supervised_loss":    supervised_loss_metric.result(),
                     "train/supervised_acc": supervised_acc_metric.result()
                 })
                 for metric in all_metrics:
                     metric.reset_states()
-
+                if epoch == 50:
+                    save_ = './model_ckpt/resnet_simclr/baseline_encoder_resnet50_mlp' + \
+                        str(epoch) + ".h5"
+                    model.save_weights(save_)
             logging.info('Training Complete ...')
 
         if FLAGS.mode == 'train_then_eval':
