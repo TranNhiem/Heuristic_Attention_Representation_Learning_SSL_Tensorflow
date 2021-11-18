@@ -750,11 +750,11 @@ def main(argv):
 
                 total_loss = 0.0
    
-
+                num_batches=0
                 for _, (ds_one, ds_two) in enumerate(train_ds):
 
                     total_loss += distributed_train_step(ds_one, ds_two)
-                    
+                    num_batches+=1
                     if (global_step.numpy()+ 1) % checkpoint_steps==0:
                         
                         with summary_writer.as_default():
@@ -767,7 +767,7 @@ def main(argv):
                             tf.summary.scalar('learning_rate', lr_schedule(tf.cast(global_step, dtype=tf.float32)),
                                             global_step)
                             summary_writer.flush()
-
+                epoch_loss= total_loss/num_batches
                 # Wandb Configure for Visualize the Model Training
                 wandb.log({
                     "epochs": epoch+1,
@@ -775,7 +775,7 @@ def main(argv):
                     "train_contrast_acc": contrast_acc_metric.result(),
                     "train_contrast_acc_entropy": contrast_entropy_metric.result(),
                     "train/weight_decay": weight_decay_metric.result(),
-                    "train/total_loss": total_loss,
+                    "train/total_loss": epoch_loss,
                     "train/supervised_loss":    supervised_loss_metric.result(),
                     "train/supervised_acc": supervised_acc_metric.result()
                 })
