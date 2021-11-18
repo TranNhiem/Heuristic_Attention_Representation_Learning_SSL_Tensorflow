@@ -652,7 +652,7 @@ def main(argv):
             # Check and restore Ckpt if it available
             # Restore checkpoint if available.
             checkpoint_manager = try_restore_from_checkpoint(
-                model, optimizer.iterations, optimizer)
+                online_model, optimizer.iterations, optimizer)
 
             # Scale loss  --> Aggregating all Gradients
             def distributed_loss(x1, x2):
@@ -815,7 +815,7 @@ def main(argv):
             logging.info('Training Complete ...')
 
         if FLAGS.mode == 'train_then_eval':
-            perform_evaluation(model, val_ds, eval_steps,
+            perform_evaluation(online_model, val_ds, eval_steps,
                                checkpoint_manager.latest_checkpoint, strategy)
 
 
