@@ -778,8 +778,6 @@ def main(argv):
                         target_encoder_weights[i]= beta* target_encoder_weights[i] + (1-beta)* online_encoder_weights[i]
                     f_target.set_weights(target_encoder_weights)
 
-    
-
 
                     if (global_step.numpy()+ 1) % checkpoint_steps==0:
                         
@@ -808,6 +806,11 @@ def main(argv):
                 })
                 for metric in all_metrics:
                     metric.reset_states()
+                # Saving Entire Model
+                if epoch == 50:
+                    save_ = './model_ckpt/resnet_byol/encoder_resnet50_mlp' + \
+                        str(epoch) + ".h5"
+                    online_model.save_weights(save_)
 
             logging.info('Training Complete ...')
 
