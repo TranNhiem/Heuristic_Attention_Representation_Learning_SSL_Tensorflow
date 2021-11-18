@@ -597,7 +597,7 @@ def main(argv):
         # can choose different min_interval
         for ckpt in tf.train.checkpoints_iterator(FLAGS.model_dir, min_interval_secs=15):
             result = perform_evaluation(
-                model, val_ds, eval_steps, ckpt, strategy)
+                online_model, val_ds, eval_steps, ckpt, strategy)
             # global_step from ckpt
             if result['global_step'] >= train_steps:
                 logging.info('Evaluation complete. Existing-->')
