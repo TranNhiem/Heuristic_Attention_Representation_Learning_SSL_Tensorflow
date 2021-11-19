@@ -15,7 +15,6 @@ from self_supervised_losses import nt_xent_symetrize_loss_simcrl, nt_xent_asymet
 import model as all_model
 import objective as obj_lib
 from imutils import paths
-from wandb.keras import WandbCallback
 
 # Setting GPU
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -54,6 +53,11 @@ flags.DEFINE_integer(
     'image size.')
 
 flags.DEFINE_integer(
+    'num_classes', 1000,
+    'Number of class in dataset.'
+)
+
+flags.DEFINE_integer(
     'SEED', 26,
     'random seed use for shuffle data Generate two same image ds_one & ds_two')
 
@@ -62,16 +66,28 @@ flags.DEFINE_integer(
     'random seed for spliting data the same for all the run with the same validation dataset.')
 
 flags.DEFINE_integer(
-    'train_batch_size', 100,
+    'train_batch_size', 256,
     'Train batch_size .')
 
 flags.DEFINE_integer(
-    'val_batch_size', 100,
+    'val_batch_size', 256,
     'Validaion_Batch_size.')
 
 flags.DEFINE_integer(
-    'train_epochs', 100,
+    'train_epochs', 500,
     'Number of epochs to train for.')
+
+flags.DEFINE_string(
+    'train_path', "/data1/1K_New/train",
+    'Train dataset path.')
+
+flags.DEFINE_string(
+    'val_path', "/data1/1K_New/val",
+    'Validaion dataset path.')
+
+flags.DEFINE_string(
+    'mask_path', "/train_binary_mask_by_USS",
+    'Mask path.')
 
 #------------------------------------------
 # Define for Linear Evaluation
@@ -530,14 +546,15 @@ def main(argv):
     val_global_batch = FLAGS.val_batch_size * strategy.num_replicas_in_sync
 
     train_dataset = imagenet_dataset_single_machine(img_size=FLAGS.image_size, train_batch=train_global_batch,  val_batch=val_global_batch,
-                                                    strategy=strategy, img_path=None, x_val=x_val,  x_train=x_train, bi_mask=False)
+                                                    strategy=strategy, train_path=FLAGS.train_path,
+                                                    val_path=FLAGS.val_path,
+                                                    mask_path=FLAGS.mask_path, bi_mask=True)
 
-    train_ds = train_dataset.simclr_random_global_crop()
+    train_ds = train_dataset.simclr_random_global_crop_image_mask()
+
     val_ds = train_dataset.supervised_validation()
-    num_classes = 999
 
-    num_train_examples = len(x_train)
-    num_eval_examples = len(x_val)
+    num_train_examples,num_eval_examples = train_dataset.get_data_size()
 
     train_steps = FLAGS.eval_steps or int(num_train_examples * FLAGS.train_epochs // train_global_batch)
     eval_steps = FLAGS.eval_steps or int(math.ceil(num_eval_examples / val_global_batch))
@@ -552,12 +569,11 @@ def main(argv):
 
     # Configure the Encoder Architecture.
     with strategy.scope():
-        model = all_model.Model(num_classes)
+        model = all_model.Model(FLAGS.num_classes)
 
     # Configure Wandb Training
     # Weight&Bias Tracking Experiment
     configs = {
-
         "Model_Arch": "ResNet50",
         "Training mode": "SSL",
         "DataAugmentation_types": "SimCLR_Inception_style_Croping",

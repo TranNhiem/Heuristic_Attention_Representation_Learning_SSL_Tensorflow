@@ -62,11 +62,11 @@ flags.DEFINE_integer(
     'random seed for spliting data.')
 
 flags.DEFINE_integer(
-    'train_batch_size', 100,
+    'train_batch_size', 128,
     'Train batch_size .')
 
 flags.DEFINE_integer(
-    'val_batch_size', 100,
+    'val_batch_size', 128,
     'Validaion_Batch_size.')
 
 flags.DEFINE_integer(
@@ -188,6 +188,10 @@ flags.DEFINE_float(
 flags.DEFINE_boolean(
     'hidden_norm', True,
     'L2 Normalization Vector representation.')
+
+flags.DEFINE_enum(
+    'downample_mod', 'space_to_depth', ['space_to_depth', 'maxpooling'],
+    'How the head upsample is done.')
 
 # -------------------------------------------------------------------
 # Configure Model Training -- Evaluation -- FineTuning --
@@ -769,8 +773,7 @@ def main(argv):
 
             @tf.function
             def distributed_train_step(ds_one, ds_two):
-                per_replica_losses = strategy.run(
-                    train_step, args=(ds_one, ds_two))
+                per_replica_losses = strategy.run(train_step, args=(ds_one, ds_two))
                 return strategy.reduce(tf.distribute.ReduceOp.SUM, per_replica_losses, axis=None)
 
             global_step = optimizer.iterations
@@ -780,7 +783,6 @@ def main(argv):
                 total_loss = 0.0
                 num_batches=0
                 for _, (ds_one, ds_two) in enumerate(train_ds):
-
                     total_loss += distributed_train_step(ds_one, ds_two)
                     num_batches+=1
                     if (global_step.numpy() + 1) % checkpoint_steps == 0:
