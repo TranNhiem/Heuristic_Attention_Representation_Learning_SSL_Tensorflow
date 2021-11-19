@@ -207,29 +207,6 @@ class SupervisedHead(tf.keras.layers.Layer):
         return inputs
 
 
-"""# Indexer"""
-
-
-class Indexer(tf.keras.layers.Layer):
-    def __init__(self, Backbone="Resnet", **kwargs):
-        super(Indexer, self).__init__(**kwargs)
-
-    def call(self, input):
-        feature_map = input[0]
-        mask = input[1]
-        if feature_map.shape[1] != mask.shape[1] and feature_map.shape[0] != mask.shape[0]:
-            mask = tf.image.resize(
-                mask, (feature_map.shape[0], feature_map.shape[1]))
-        mask = tf.cast(mask, dtype=tf.bool)
-        mask = tf.cast(mask, dtype=feature_map.dtype)
-        obj = tf.multiply(feature_map, mask)
-        mask = tf.cast(mask, dtype=tf.bool)
-        mask = tf.logical_not(mask)
-        mask = tf.cast(mask, dtype=feature_map.dtype)
-        back = tf.multiply(feature_map, mask)
-        return obj, back
-
-
 class Model(tf.keras.models.Model):
     """Resnet model with projection or supervised layer."""
 
@@ -243,7 +220,7 @@ class Model(tf.keras.models.Model):
             cifar_stem=FLAGS.image_size <= 32)
         # Projcetion head
         self._projection_head = ProjectionHead()
-        self.indexer = Indexer()
+
         # Supervised classficiation head
         if FLAGS.train_mode == 'finetune' or FLAGS.lineareval_while_pretraining:
             self.supervised_head = SupervisedHead(num_classes)
