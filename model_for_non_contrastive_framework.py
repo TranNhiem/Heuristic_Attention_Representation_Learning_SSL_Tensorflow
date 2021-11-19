@@ -59,7 +59,7 @@ def build_optimizer_multi_machine(lr_schedule):
     optimizer = optimizers.original_optimizer(FLAGS)
     optimizer_mix_percision = mixed_precision.LossScaleOptimizer(optimizer)
 
-    return optimizer
+    return optimizer_mix_percision
 
 
 def add_weight_decay(model, adjust_per_optimizer=True):
@@ -563,6 +563,7 @@ class Binary_online_model(tf.keras.models.Model):
             return projection_head_outputs, None
 
 # Consideration take Supervised evaluate From the Target model
+
 
 class Binary_target_model(tf.keras.models.Model):
     """Resnet model with projection or supervised layer."""
