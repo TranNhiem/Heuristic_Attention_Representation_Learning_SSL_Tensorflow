@@ -559,7 +559,7 @@ def main(argv):
 
     val_ds = train_dataset.supervised_validation()
 
-    num_train_examples,num_eval_examples = train_dataset.get_data_size()
+    num_train_examples, num_eval_examples = train_dataset.get_data_size()
 
     train_steps = FLAGS.eval_steps or int(
         num_train_examples * FLAGS.train_epochs // train_global_batch)
@@ -781,23 +781,23 @@ def main(argv):
             for epoch in range(FLAGS.train_epochs):
 
                 total_loss = 0.0
-                num_batches=0
+                num_batches = 0
                 for _, (ds_one, ds_two) in enumerate(train_ds):
                     total_loss += distributed_train_step(ds_one, ds_two)
-                    num_batches+=1
-                    if (global_step.numpy() + 1) % checkpoint_steps == 0:
-                        # Log and write in Condition Steps per Epoch
-                        with summary_writer.as_default():
-                            cur_step = global_step.numpy()
-                            checkpoint_manager.save(cur_step)
-                            logging.info('Completed: %d / %d steps',
-                                         cur_step, train_steps)
-                            metrics.log_and_write_metrics_to_summary(
-                                all_metrics, cur_step)
-                            tf.summary.scalar('learning_rate', lr_schedule(
-                                tf.cast(global_step, dtype=tf.float32)), global_step)
-                            summary_writer.flush()
-                epoch_loss= total_loss/num_batches
+                    num_batches += 1
+                    # if (global_step.numpy() + 1) % checkpoint_steps == 0:
+                    # Log and write in Condition Steps per Epoch
+                    with summary_writer.as_default():
+                        cur_step = global_step.numpy()
+                        checkpoint_manager.save(cur_step)
+                        logging.info('Completed: %d / %d steps',
+                                     cur_step, train_steps)
+                        metrics.log_and_write_metrics_to_summary(
+                            all_metrics, cur_step)
+                        tf.summary.scalar('learning_rate', lr_schedule(
+                            tf.cast(global_step, dtype=tf.float32)), global_step)
+                        summary_writer.flush()
+                epoch_loss = total_loss/num_batches
                 # Wandb Configure for Visualize the Model Training -- Log every Epochs
                 wandb.log({
                     "epochs": epoch+1,
