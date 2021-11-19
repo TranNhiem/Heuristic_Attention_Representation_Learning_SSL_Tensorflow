@@ -105,7 +105,6 @@ class BatchNormRelu(tf.keras.layers.Layer):  # pylint: disable=missing-docstring
             inputs = tf.nn.relu(inputs)
         return inputs
 
-
 class DropBlock(tf.keras.layers.Layer):  # pylint: disable=missing-docstring
 
     def __init__(self,
@@ -185,7 +184,6 @@ class DropBlock(tf.keras.layers.Layer):  # pylint: disable=missing-docstring
             block_pattern, net.dtype)
         return net
 
-
 class FixedPadding(tf.keras.layers.Layer):  # pylint: disable=missing-docstring
 
     def __init__(self, kernel_size, data_format='channels_last', **kwargs):
@@ -207,7 +205,6 @@ class FixedPadding(tf.keras.layers.Layer):  # pylint: disable=missing-docstring
                 inputs, [[0, 0], [pad_beg, pad_end], [pad_beg, pad_end], [0, 0]])
 
         return padded_inputs
-
 
 class Conv2dFixedPadding(tf.keras.layers.Layer):  # pylint: disable=missing-docstring
 
@@ -237,13 +234,10 @@ class Conv2dFixedPadding(tf.keras.layers.Layer):  # pylint: disable=missing-docs
             inputs = self.fixed_padding(inputs, training=training)
         return self.conv2d(inputs, training=training)
 
-
 class IdentityLayer(tf.keras.layers.Layer):
 
     def call(self, inputs, training):
         return tf.identity(inputs)
-
-
 class SK_Conv2D(tf.keras.layers.Layer):  # pylint: disable=invalid-name
     """Selective kernel convolutional layer (https://arxiv.org/abs/1903.06586)."""
 
@@ -310,7 +304,6 @@ class SK_Conv2D(tf.keras.layers.Layer):  # pylint: disable=invalid-name
 
         return tf.reduce_sum(inputs * mixing, axis=0)
 
-
 class SE_Layer(tf.keras.layers.Layer):  # pylint: disable=invalid-name
     """Squeeze and Excitation layer (https://arxiv.org/abs/1709.01507)."""
 
@@ -344,7 +337,6 @@ class SE_Layer(tf.keras.layers.Layer):  # pylint: disable=invalid-name
         se_tensor = tf.reduce_mean(inputs, spatial_dims, keepdims=True)
         se_tensor = self.se_expand(tf.nn.relu(self.se_reduce(se_tensor)))
         return tf.sigmoid(se_tensor) * inputs
-
 
 class ResidualBlock(tf.keras.layers.Layer):  # pylint: disable=missing-docstring
 
@@ -417,7 +409,6 @@ class ResidualBlock(tf.keras.layers.Layer):  # pylint: disable=missing-docstring
             inputs = self.se_layer(inputs, training=training)
 
         return tf.nn.relu(inputs + shortcut)
-
 
 class BottleneckBlock(tf.keras.layers.Layer):
     """BottleneckBlock."""
@@ -524,7 +515,6 @@ class BottleneckBlock(tf.keras.layers.Layer):
 
         return tf.nn.relu(inputs + shortcut)
 
-
 class BlockGroup(tf.keras.layers.Layer):  # pylint: disable=missing-docstring
 
     def __init__(self,
@@ -562,7 +552,6 @@ class BlockGroup(tf.keras.layers.Layer):  # pylint: disable=missing-docstring
         for layer in self.layers:
             inputs = layer(inputs, training=training)
         return tf.identity(inputs, self._name)
-
 
 class Resnet(tf.keras.models.Model):  # pylint: disable=missing-docstring
     #Larer = tf.keras.layers.Layer
@@ -787,9 +776,7 @@ def resnet(resnet_depth,
         dropblock_size=dropblock_size,
         data_format=data_format)
 
-
 """# MLP"""
-
 
 class LinearLayer(tf.keras.layers.Layer):
 
@@ -827,7 +814,6 @@ class LinearLayer(tf.keras.layers.Layer):
         if self.use_bn:
             inputs = self.bn_relu(inputs, training=training)
         return inputs
-
 
 class ProjectionHead(tf.keras.layers.Layer):
 
@@ -889,7 +875,6 @@ class ProjectionHead(tf.keras.layers.Layer):
         proj_head_output = tf.identity(hiddens_list[-1], 'proj_head_output')
         return proj_head_output, hiddens_list[FLAGS.ft_proj_selector]
 
-
 class SupervisedHead(tf.keras.layers.Layer):
 
     def __init__(self, num_classes, name='head_supervised', **kwargs):
@@ -903,7 +888,6 @@ class SupervisedHead(tf.keras.layers.Layer):
 
 
 """# Indexer"""
-
 
 class Indexer(tf.keras.layers.Layer):
     def __init__(self, Backbone="Resnet", **kwargs):

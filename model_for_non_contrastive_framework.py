@@ -62,7 +62,6 @@ def build_optimizer_multi_machine(lr_schedule):
     return optimizer
 
 
-
 def add_weight_decay(model, adjust_per_optimizer=True):
     """Compute weight decay from flags."""
     if adjust_per_optimizer and 'lars' in FLAGS.optimizer:
@@ -90,13 +89,13 @@ def add_weight_decay(model, adjust_per_optimizer=True):
     return loss
 
 
-## Linear Layers tf.keras.layer.Dense
+# Linear Layers tf.keras.layer.Dense
 class modify_LinearLayer(tf.keras.layers.Layer):
 
     def __init__(self,
                  num_classes,
-                 up_scale= 4096,
-                 non_contrastive=False, 
+                 up_scale=4096,
+                 non_contrastive=False,
                  use_bias=True,
                  use_bn=False,
                  name='linear_layer',
@@ -105,11 +104,11 @@ class modify_LinearLayer(tf.keras.layers.Layer):
         # However, it is still used for batch norm.
         super(modify_LinearLayer, self).__init__(**kwargs)
         self.num_classes = num_classes
-        self.up_scale=up_scale
+        self.up_scale = up_scale
         self.use_bias = use_bias
         self.use_bn = use_bn
         self._name = name
-        self.non_contrastive=non_contrastive
+        self.non_contrastive = non_contrastive
         if self.use_bn:
             self.bn_relu = resnet.BatchNormRelu(relu=False, center=use_bias)
             #self.bn_relu= tf.keras.layers.BatchNormalization()
@@ -126,7 +125,7 @@ class modify_LinearLayer(tf.keras.layers.Layer):
             self.up_scale,
             kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.01),
             use_bias=self.use_bias and not self.use_bn, )
-        
+
         self.dense = tf.keras.layers.Dense(
             num_classes,
             kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.01),
@@ -136,24 +135,26 @@ class modify_LinearLayer(tf.keras.layers.Layer):
 
     def call(self, inputs, training):
         assert inputs.shape.ndims == 2, inputs.shape
-        if self.non_contrastive: 
-          inputs= self.dense_upscale(inputs)
-          #print(inputs.shape)
-          #inputs = self.dense(inputs)
-          if self.use_bn:
-              inputs = self.bn_relu(inputs, training=training)
-        else: 
-          inputs = self.dense(inputs)
-          #print(inputs.shape)
-          if self.use_bn:
-              inputs = self.bn_relu(inputs, training=training)
+        if self.non_contrastive:
+            inputs = self.dense_upscale(inputs)
+            # print(inputs.shape)
+            #inputs = self.dense(inputs)
+            if self.use_bn:
+                inputs = self.bn_relu(inputs, training=training)
+        else:
+            inputs = self.dense(inputs)
+            # print(inputs.shape)
+            if self.use_bn:
+                inputs = self.bn_relu(inputs, training=training)
         return inputs
 
-## Projection Head add  Batchnorm layer
+# Projection Head add  Batchnorm layer
+
+
 class ProjectionHead(tf.keras.layers.Layer):
 
     def __init__(self, **kwargs):
-        out_dim =FLAGS.proj_out_dim
+        out_dim = FLAGS.proj_out_dim
         self.linear_layers = []
         if FLAGS.proj_head_mode == 'none':
             pass  # directly use the output hiddens as hiddens
@@ -163,69 +164,69 @@ class ProjectionHead(tf.keras.layers.Layer):
                     num_classes=out_dim,  use_bias=False, use_bn=True, name='l_0')
             ]
         elif FLAGS.proj_head_mode == 'nonlinear':
-            if FLAGS.num_proj_layers > 2 : 
-              for j in range(FLAGS.num_proj_layers):
-                if j==0: 
-                   self.linear_layers.append(
-                        modify_LinearLayer(
-                            num_classes=lambda input_shape: int(
-                                input_shape[-1]),
-                            up_scale=FLAGS.up_scale, non_contrastive=FLAGS.non_contrastive,
-                            use_bias=True,
-                            use_bn=True,
-                            name='nl_%d' % j))
-
-                elif j != FLAGS.num_proj_layers - 1:
-                    # for the middle layers, use bias and relu for the output.
-                    if FLAGS.reduce_linear_dimention: 
-                        self.linear_layers.append(
-                            LinearLayer(
-                                num_classes=lambda input_shape: int(
-                                    input_shape[-1]/2),
-                                up_scale=FLAGS.up_scale, non_contrastive=False,
-                                use_bias=True,
-                                use_bn=True,
-                                name='nl_%d' % j))
-                    else: 
+            if FLAGS.num_proj_layers > 2:
+                for j in range(FLAGS.num_proj_layers):
+                    if j == 0:
                         self.linear_layers.append(
                             modify_LinearLayer(
                                 num_classes=lambda input_shape: int(
                                     input_shape[-1]),
-                                up_scale=FLAGS.up_scale, non_contrastive=False,
+                                up_scale=FLAGS.up_scale, non_contrastive=FLAGS.non_contrastive,
                                 use_bias=True,
                                 use_bn=True,
                                 name='nl_%d' % j))
 
-                else:
-                    # for the final layer, neither bias nor relu is used.
-                    self.linear_layers.append(
-                        modify_LinearLayer(
-                            num_classes=FLAGS.proj_out_dim,
-                            use_bias=False,
-                            use_bn=True,
-                            name='nl_%d' % j))
+                    elif j != FLAGS.num_proj_layers - 1:
+                        # for the middle layers, use bias and relu for the output.
+                        if FLAGS.reduce_linear_dimention:
+                            self.linear_layers.append(
+                                modify_LinearLayer(
+                                    num_classes=lambda input_shape: int(
+                                        input_shape[-1]/2),
+                                    up_scale=FLAGS.up_scale, non_contrastive=False,
+                                    use_bias=True,
+                                    use_bn=True,
+                                    name='nl_%d' % j))
+                        else:
+                            self.linear_layers.append(
+                                modify_LinearLayer(
+                                    num_classes=lambda input_shape: int(
+                                        input_shape[-1]),
+                                    up_scale=FLAGS.up_scale, non_contrastive=False,
+                                    use_bias=True,
+                                    use_bn=True,
+                                    name='nl_%d' % j))
 
-            else: 
+                    else:
+                        # for the final layer, neither bias nor relu is used.
+                        self.linear_layers.append(
+                            modify_LinearLayer(
+                                num_classes=FLAGS.proj_out_dim,
+                                use_bias=False,
+                                use_bn=True,
+                                name='nl_%d' % j))
+
+            else:
                 for j in range(FLAGS.num_proj_layers):
-                  if j != FLAGS.num_proj_layers - 1:
-                      # for the middle layers, use bias and relu for the output.
-                      self.linear_layers.append(
-                          modify_LinearLayer(
-                              num_classes=lambda input_shape: int(
-                                  input_shape[-1]),
-                              up_scale=FLAGS.up_scale, non_contrastive=FLAGS.non_contrastive,
-                              use_bias=True,
-                              use_bn=True,
-                              name='nl_%d' % j))
-                  else:
-                      # for the final layer, neither bias nor relu is used.
-                      self.linear_layers.append(
-                          modify_LinearLayer(
-                              num_classes=FLAGS.proj_out_dim,
-                              up_scale=FLAGS.up_scale, non_contrastive=False,
-                              use_bias=False,
-                              use_bn=True,
-                              name='nl_%d' % j))
+                    if j != FLAGS.num_proj_layers - 1:
+                        # for the middle layers, use bias and relu for the output.
+                        self.linear_layers.append(
+                            modify_LinearLayer(
+                                num_classes=lambda input_shape: int(
+                                    input_shape[-1]),
+                                up_scale=FLAGS.up_scale, non_contrastive=FLAGS.non_contrastive,
+                                use_bias=True,
+                                use_bn=True,
+                                name='nl_%d' % j))
+                    else:
+                        # for the final layer, neither bias nor relu is used.
+                        self.linear_layers.append(
+                            modify_LinearLayer(
+                                num_classes=FLAGS.proj_out_dim,
+                                up_scale=FLAGS.up_scale, non_contrastive=False,
+                                use_bias=False,
+                                use_bn=True,
+                                name='nl_%d' % j))
         else:
             raise ValueError('Unknown head projection mode {}'.format(
                 FLAGS.proj_head_mode))
@@ -240,7 +241,7 @@ class ProjectionHead(tf.keras.layers.Layer):
             assert len(self.linear_layers) == 1, len(self.linear_layers)
             return hiddens_list.append(self.linear_layers[0](hiddens_list[-1],
                                                              training))
-        
+
         elif FLAGS.proj_head_mode == 'nonlinear':
             for j in range(FLAGS.num_proj_layers):
                 hiddens = self.linear_layers[j](hiddens_list[-1], training)
@@ -258,6 +259,7 @@ class ProjectionHead(tf.keras.layers.Layer):
         proj_head_output = tf.identity(hiddens_list[-1], 'proj_head_output')
         return proj_head_output, hiddens_list[FLAGS.ft_proj_selector]
 
+
 class SupervisedHead(tf.keras.layers.Layer):
 
     def __init__(self, num_classes, name='head_supervised', **kwargs):
@@ -269,11 +271,13 @@ class SupervisedHead(tf.keras.layers.Layer):
         inputs = tf.identity(inputs, name='logits_sup')
         return inputs
 
-## Projection Head add  Batchnorm layer
+# Projection Head add  Batchnorm layer
+
+
 class PredictionHead(tf.keras.layers.Layer):
 
     def __init__(self, **kwargs):
-        out_dim =FLAGS.prediction_out_dim
+        out_dim = FLAGS.prediction_out_dim
         self.linear_layers = []
         if FLAGS.proj_head_mode == 'none':
             pass  # directly use the output hiddens as hiddens
@@ -283,69 +287,69 @@ class PredictionHead(tf.keras.layers.Layer):
                     num_classes=out_dim,  use_bias=False, use_bn=True, name='l_0')
             ]
         elif FLAGS.proj_head_mode == 'nonlinear':
-            if FLAGS.num_proj_layers > 2 : 
-              for j in range(FLAGS.num_proj_layers):
-                if j==0: 
-                   self.linear_layers.append(
-                        modify_LinearLayer(
-                            num_classes=lambda input_shape: int(
-                                input_shape[-1]),
-                            up_scale=FLAGS.up_scale, non_contrastive=FLAGS.non_contrastive,
-                            use_bias=True,
-                            use_bn=True,
-                            name='nl_%d' % j))
-
-                elif j != FLAGS.num_proj_layers - 1:
-                    # for the middle layers, use bias and relu for the output.
-                    if FLAGS.reduce_linear_dimention: 
-                        self.linear_layers.append(
-                            LinearLayer(
-                                num_classes=lambda input_shape: int(
-                                    input_shape[-1]/2),
-                                up_scale=FLAGS.up_scale, non_contrastive=False,
-                                use_bias=True,
-                                use_bn=True,
-                                name='nl_%d' % j))
-                    else: 
+            if FLAGS.num_proj_layers > 2:
+                for j in range(FLAGS.num_proj_layers):
+                    if j == 0:
                         self.linear_layers.append(
                             modify_LinearLayer(
                                 num_classes=lambda input_shape: int(
                                     input_shape[-1]),
-                                up_scale=FLAGS.up_scale, non_contrastive=False,
+                                up_scale=FLAGS.up_scale, non_contrastive=FLAGS.non_contrastive,
                                 use_bias=True,
                                 use_bn=True,
                                 name='nl_%d' % j))
 
-                else:
-                    # for the final layer, neither bias nor relu is used.
-                    self.linear_layers.append(
-                        modify_LinearLayer(
-                            num_classes=FLAGS.proj_out_dim,
-                            use_bias=False,
-                            use_bn=True,
-                            name='nl_%d' % j))
+                    elif j != FLAGS.num_proj_layers - 1:
+                        # for the middle layers, use bias and relu for the output.
+                        if FLAGS.reduce_linear_dimention:
+                            self.linear_layers.append(
+                                modify_LinearLayer(
+                                    num_classes=lambda input_shape: int(
+                                        input_shape[-1]/2),
+                                    up_scale=FLAGS.up_scale, non_contrastive=False,
+                                    use_bias=True,
+                                    use_bn=True,
+                                    name='nl_%d' % j))
+                        else:
+                            self.linear_layers.append(
+                                modify_LinearLayer(
+                                    num_classes=lambda input_shape: int(
+                                        input_shape[-1]),
+                                    up_scale=FLAGS.up_scale, non_contrastive=False,
+                                    use_bias=True,
+                                    use_bn=True,
+                                    name='nl_%d' % j))
 
-            else: 
+                    else:
+                        # for the final layer, neither bias nor relu is used.
+                        self.linear_layers.append(
+                            modify_LinearLayer(
+                                num_classes=FLAGS.proj_out_dim,
+                                use_bias=False,
+                                use_bn=True,
+                                name='nl_%d' % j))
+
+            else:
                 for j in range(FLAGS.num_proj_layers):
-                  if j != FLAGS.num_proj_layers - 1:
-                      # for the middle layers, use bias and relu for the output.
-                      self.linear_layers.append(
-                          modify_LinearLayer(
-                              num_classes=lambda input_shape: int(
-                                  input_shape[-1]),
-                              up_scale=FLAGS.up_scale, non_contrastive=FLAGS.non_contrastive,
-                              use_bias=True,
-                              use_bn=True,
-                              name='nl_%d' % j))
-                  else:
-                      # for the final layer, neither bias nor relu is used.
-                      self.linear_layers.append(
-                          modify_LinearLayer(
-                              num_classes=FLAGS.proj_out_dim,
-                              up_scale=FLAGS.up_scale, non_contrastive=False,
-                              use_bias=False,
-                              use_bn=True,
-                              name='nl_%d' % j))
+                    if j != FLAGS.num_proj_layers - 1:
+                        # for the middle layers, use bias and relu for the output.
+                        self.linear_layers.append(
+                            modify_LinearLayer(
+                                num_classes=lambda input_shape: int(
+                                    input_shape[-1]),
+                                up_scale=FLAGS.up_scale, non_contrastive=FLAGS.non_contrastive,
+                                use_bias=True,
+                                use_bn=True,
+                                name='nl_%d' % j))
+                    else:
+                        # for the final layer, neither bias nor relu is used.
+                        self.linear_layers.append(
+                            modify_LinearLayer(
+                                num_classes=FLAGS.proj_out_dim,
+                                up_scale=FLAGS.up_scale, non_contrastive=False,
+                                use_bias=False,
+                                use_bn=True,
+                                name='nl_%d' % j))
         else:
             raise ValueError('Unknown head projection mode {}'.format(
                 FLAGS.proj_head_mode))
@@ -360,7 +364,7 @@ class PredictionHead(tf.keras.layers.Layer):
             assert len(self.linear_layers) == 1, len(self.linear_layers)
             return hiddens_list.append(self.linear_layers[0](hiddens_list[-1],
                                                              training))
-        
+
         elif FLAGS.proj_head_mode == 'nonlinear':
             for j in range(FLAGS.num_proj_layers):
                 hiddens = self.linear_layers[j](hiddens_list[-1], training)
@@ -378,9 +382,10 @@ class PredictionHead(tf.keras.layers.Layer):
         proj_head_output = tf.identity(hiddens_list[-1], 'proj_head_output')
         return proj_head_output
 
-class prediction_head_model(tf.keras.models.Model): 
+
+class prediction_head_model(tf.keras.models.Model):
     def __init__(self, **kwargs):
-    
+
         super(prediction_head_model, self).__init__(**kwargs)
         # prediction head
         self._prediction_head = PredictionHead()
@@ -388,6 +393,7 @@ class prediction_head_model(tf.keras.models.Model):
     def __call__(self, inputs, training):
         prediction_head_outputs = self._prediction_head(inputs, training)
         return prediction_head_outputs
+
 
 class online_model(tf.keras.models.Model):
     """Resnet model with projection or supervised layer."""
@@ -402,7 +408,7 @@ class online_model(tf.keras.models.Model):
             cifar_stem=FLAGS.image_size <= 32)
         # Projcetion head
         self._projection_head = ProjectionHead()
-             
+
         # Supervised classficiation head
         if FLAGS.train_mode == 'finetune' or FLAGS.lineareval_while_pretraining:
             self.supervised_head = SupervisedHead(num_classes)
@@ -423,8 +429,9 @@ class online_model(tf.keras.models.Model):
         # # Base network forward pass.
         hiddens = self.resnet_model(features, training=training)
         # Add heads.
-        projection_head_outputs, supervised_head_inputs, = self._projection_head(hiddens, training)
-       
+        projection_head_outputs, supervised_head_inputs, = self._projection_head(
+            hiddens, training)
+
         if FLAGS.train_mode == 'finetune':
             supervised_head_outputs = self.supervised_head(supervised_head_inputs,
                                                            training)
@@ -442,7 +449,9 @@ class online_model(tf.keras.models.Model):
         else:
             return projection_head_outputs, None
 
-#Consideration take Supervised evaluate From the Target model
+# Consideration take Supervised evaluate From the Target model
+
+
 class target_model(tf.keras.models.Model):
     """Resnet model with projection or supervised layer."""
 
@@ -456,7 +465,7 @@ class target_model(tf.keras.models.Model):
             cifar_stem=FLAGS.image_size <= 32)
         # Projcetion head
         self._projection_head = ProjectionHead()
-   
+
         # Supervised classficiation head
         if FLAGS.train_mode == 'finetune' or FLAGS.lineareval_while_pretraining:
             self.supervised_head = SupervisedHead(num_classes)
@@ -474,12 +483,122 @@ class target_model(tf.keras.models.Model):
             raise ValueError('The input channels dimension must be statically known '
                              f'(got input shape {inputs.shape})')
 
+        # # Base network forward pass.
+        hiddens = self.resnet_model(features, training=training)
 
+        # Add heads.
+        projection_head_outputs, supervised_head_inputs = self._projection_head(
+            hiddens, training)
+
+        if FLAGS.train_mode == 'finetune':
+            supervised_head_outputs = self.supervised_head(supervised_head_inputs,
+                                                           training)
+            return None, supervised_head_outputs
+
+        elif FLAGS.train_mode == 'pretrain' and FLAGS.lineareval_while_pretraining:
+            # When performing pretraining and linear evaluation together we do not
+            # want information from linear eval flowing back into pretraining network
+            # so we put a stop_gradient.
+            supervised_head_outputs = self.supervised_head(
+                tf.stop_gradient(supervised_head_inputs), training)
+
+            return projection_head_outputs, supervised_head_outputs
+
+        else:
+            return projection_head_outputs, None
+
+
+class Binary_online_model(tf.keras.models.Model):
+    """Resnet model with projection or supervised layer."""
+
+    def __init__(self, num_classes, **kwargs):
+
+        super(online_model, self).__init__(**kwargs)
+        # Encoder
+        self.resnet_model = resnet.resnet(
+            resnet_depth=FLAGS.resnet_depth,
+            width_multiplier=FLAGS.width_multiplier,
+            cifar_stem=FLAGS.image_size <= 32)
+        # Projcetion head
+        self._projection_head = ProjectionHead()
+
+        # Supervised classficiation head
+        if FLAGS.train_mode == 'finetune' or FLAGS.lineareval_while_pretraining:
+            self.supervised_head = SupervisedHead(num_classes)
+
+    def __call__(self, inputs, training):
+
+        features = inputs
+
+        if training and FLAGS.train_mode == 'pretrain':
+            if FLAGS.fine_tune_after_block > -1:
+                raise ValueError('Does not support layer freezing during pretraining,'
+                                 'should set fine_tune_after_block<=-1 for safety.')
+
+        if inputs.shape[3] is None:
+            raise ValueError('The input channels dimension must be statically known '
+                             f'(got input shape {inputs.shape})')
+
+        # # Base network forward pass.
+        hiddens = self.resnet_model(features, training=training)
+        # Add heads.
+        projection_head_outputs, supervised_head_inputs, = self._projection_head(
+            hiddens, training)
+
+        if FLAGS.train_mode == 'finetune':
+            supervised_head_outputs = self.supervised_head(supervised_head_inputs,
+                                                           training)
+            return None, supervised_head_outputs
+
+        elif FLAGS.train_mode == 'pretrain' and FLAGS.lineareval_while_pretraining:
+            # When performing pretraining and linear evaluation together we do not
+            # want information from linear eval flowing back into pretraining network
+            # so we put a stop_gradient.
+            supervised_head_outputs = self.supervised_head(
+                tf.stop_gradient(supervised_head_inputs), training)
+
+            return projection_head_outputs, supervised_head_outputs
+
+        else:
+            return projection_head_outputs, None
+
+# Consideration take Supervised evaluate From the Target model
+
+class Binary_target_model(tf.keras.models.Model):
+    """Resnet model with projection or supervised layer."""
+
+    def __init__(self, num_classes, **kwargs):
+
+        super(target_model, self).__init__(**kwargs)
+        # Encoder
+        self.resnet_model = resnet.resnet(
+            resnet_depth=FLAGS.resnet_depth,
+            width_multiplier=FLAGS.width_multiplier,
+            cifar_stem=FLAGS.image_size <= 32)
+        # Projcetion head
+        self._projection_head = ProjectionHead()
+
+        # Supervised classficiation head
+        if FLAGS.train_mode == 'finetune' or FLAGS.lineareval_while_pretraining:
+            self.supervised_head = SupervisedHead(num_classes)
+
+    def __call__(self, inputs, training):
+
+        features = inputs
+
+        if training and FLAGS.train_mode == 'pretrain':
+            if FLAGS.fine_tune_after_block > -1:
+                raise ValueError('Does not support layer freezing during pretraining,'
+                                 'should set fine_tune_after_block<=-1 for safety.')
+
+        if inputs.shape[3] is None:
+            raise ValueError('The input channels dimension must be statically known '
+                             f'(got input shape {inputs.shape})')
 
         # # Base network forward pass.
         hiddens = self.resnet_model(features, training=training)
 
-        # Add heads. 
+        # Add heads.
         projection_head_outputs, supervised_head_inputs = self._projection_head(
             hiddens, training)
 
