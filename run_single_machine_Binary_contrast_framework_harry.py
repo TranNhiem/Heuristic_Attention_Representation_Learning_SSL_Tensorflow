@@ -72,15 +72,15 @@ flags.DEFINE_integer(
     'Number of epochs to train for.')
 
 flags.DEFINE_string(
-    'train_path', "/home/harry/Documents/imagenet_1k_tiny/Image/train",
+    'train_path', "/data1/1K_New/train",
     'Train dataset path.')
 
 flags.DEFINE_string(
-    'val_path', "/home/harry/Documents/imagenet_1k_tiny/Image/val",
+    'val_path', "/data1/1K_New/val",
     'Validaion dataset path.')
 
 flags.DEFINE_string(
-    'mask_path', "train_binary_mask_by_USS",
+    'mask_path', "/train_binary_mask_by_USS",
     'Mask path.')
 
 # ---------------------------------------------------
@@ -545,9 +545,9 @@ def main(argv):
     val_global_batch = FLAGS.val_batch_size * strategy.num_replicas_in_sync
 
     train_dataset = imagenet_dataset_single_machine(img_size=FLAGS.image_size, train_batch=train_global_batch,  val_batch=val_global_batch,
-                                                    strategy=strategy, train_path="/home/harry/Documents/imagenet_1k_tiny/Image/train",
-                                                    val_path="/home/harry/Documents/imagenet_1k_tiny/Image/val",
-                                                    mask_path="train_binary_mask_by_USS", bi_mask=True)
+                                                    strategy=strategy, train_path=FLAGS.train_path,
+                                                    val_path=FLAGS.val_path,
+                                                    mask_path=FLAGS.mask_path, bi_mask=True)
 
     train_ds = train_dataset.simclr_random_global_crop_image_mask()
 
