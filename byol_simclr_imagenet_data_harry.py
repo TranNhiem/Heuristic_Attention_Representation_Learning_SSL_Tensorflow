@@ -78,9 +78,6 @@ class imagenet_dataset_single_machine():
         # Path for loading all Images
         # For training
 
-
-        print(self.x_train)
-
         self.x_train_lable = tf.one_hot(numeric_train_cls, depth=len(self.class_name))
         self.x_val_lable = tf.one_hot(numeric_val_cls, depth=len(self.class_name))
 

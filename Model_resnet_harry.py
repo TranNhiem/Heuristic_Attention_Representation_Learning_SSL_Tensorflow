@@ -911,7 +911,7 @@ class Indexer(tf.keras.layers.Layer):
 
 """# Train Model"""
 
-
+"""Use the maxpooling to do the down sample"""
 class SSL_train_model_Model(tf.keras.models.Model):
 
     def __init__(self, Backbone="Resnet", num_classes=1000, **kwargs):
@@ -956,23 +956,34 @@ class SSL_train_model_Model(tf.keras.models.Model):
         # Pixel shuffle
         feature_map_upsample = tf.nn.depth_to_space(
             feature_map, inputs.shape[1]/feature_map.shape[1])  # PixelShuffle
-
-
         #print("feature_map_upsample", feature_map_upsample.shape)
 
         # Add heads
-        if FLAGS.train_mode == 'pretrain':
-            # object and background indexer
-            obj, back = self.indexer([feature_map_upsample, mask])
-            obj, _ = self.projection_head(self.flatten(self.maxpooling(obj)), training=training)
-            back, _ = self.projection_head(self.flatten(self.maxpooling(back)), training=training)
+        if FLAGS.downample_mod == 'maxpooling':
+            #using the maxpooling to do th downsample
+            if FLAGS.train_mode == 'pretrain':
+                # object and background indexer
+                obj, back = self.indexer([feature_map_upsample, mask])
+                obj, _ = self.projection_head(self.flatten(self.maxpooling(obj)), training=training)
+                back, _ = self.projection_head(self.flatten(self.maxpooling(back)), training=training)
 
-        projection_head_outputs, supervised_head_inputs = self.projection_head(self.flatten(
-            self.maxpooling(feature_map_upsample)), training=training)
+            projection_head_outputs, supervised_head_inputs = self.projection_head(self.flatten(
+                self.maxpooling(feature_map_upsample)), training=training)
+        else:
+            if FLAGS.train_mode == 'pretrain':
+                # using the space_to_depth to do th downsample
+                # object and background indexer
+
+                obj, back = self.indexer([feature_map_upsample, mask])
+                obj = self.globalaveragepooling(tf.nn.space_to_depth(obj,  obj.shape[1]/feature_map.shape[1] ))
+                back = self.globalaveragepooling(tf.nn.space_to_depth(back,  back.shape[1]/feature_map.shape[1] ))
+                obj, _ = self.projection_head(obj, training=training)
+                back, _ = self.projection_head(back, training=training)
+
+            projection_head_outputs, supervised_head_inputs = self.projection_head(self.globalaveragepooling(feature_map), training=training)
 
         if FLAGS.train_mode == 'finetune':
-            supervised_head_outputs = self.supervised_head(
-                supervised_head_inputs, training)
+            supervised_head_outputs = self.supervised_head(supervised_head_inputs, training)
             return None, None, None, supervised_head_outputs
 
         elif FLAGS.train_mode == 'pretrain' and FLAGS.lineareval_while_pretraining:
@@ -989,7 +1000,6 @@ class SSL_train_model_Model(tf.keras.models.Model):
 
         return obj, back, feature_map_upsample
         # return feature_map_upsample
-
 
 if __name__ == "__main__":
     model = SSL_train_model_Model()
