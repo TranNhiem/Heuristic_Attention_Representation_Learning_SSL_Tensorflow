@@ -670,8 +670,7 @@ def main(argv):
                 images_two, lable_two = ds_two
 
                 with tf.GradientTape() as tape:
-      
-
+    
                     proj_head_output_1, supervised_head_output_1 = model(
                         images_one, training=True)
                     proj_head_output_2, supervised_head_output_2 = model(
@@ -682,20 +681,16 @@ def main(argv):
                     if proj_head_output_1 is not None:
                         # Compute Contrastive Loss model
                         loss, logits_ab, labels = distributed_loss( proj_head_output_1, proj_head_output_2)
-
                         if loss is None:
                             loss = loss
                         else:
                             loss += loss
-
                         # Update Self-Supervised Metrics
                         metrics.update_pretrain_metrics_train(contrast_loss_metric,
                                                               contrast_acc_metric,
                                                               contrast_entropy_metric,
                                                               loss, logits_ab,
                                                               labels)
-
-
                     # Compute the Supervised train Loss
                     if supervised_head_output_1 is not None:
 

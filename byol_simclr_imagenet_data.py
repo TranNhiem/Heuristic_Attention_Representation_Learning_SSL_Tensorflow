@@ -9,7 +9,6 @@ import random
 AUTO = tf.data.experimental.AUTOTUNE
 FLAGS = flags.FLAGS
 
-
 class imagenet_dataset_single_machine():
 
     def __init__(self, img_size, train_batch, val_batch, strategy, img_path=None, x_val=None, x_train=None, bi_mask=False):
@@ -269,7 +268,6 @@ class imagenet_dataset_single_machine():
         train_ds = self.strategy.experimental_distribute_dataset(train_ds)
 
         return train_ds
-
 
 class imagenet_dataset_multi_machine():
 
