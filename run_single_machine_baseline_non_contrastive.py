@@ -31,9 +31,9 @@ if gpus:
         print(e)
 
 FLAGS = flags.FLAGS
-#------------------------------------------
+# ------------------------------------------
 # General Define
-#------------------------------------------
+# ------------------------------------------
 
 flags.DEFINE_integer(
     'IMG_height', 224,
@@ -71,9 +71,9 @@ flags.DEFINE_integer(
     'train_epochs', 100,
     'Number of epochs to train for.')
 
-#------------------------------------------
+# ------------------------------------------
 # Define for Linear Evaluation
-#------------------------------------------
+# ------------------------------------------
 flags.DEFINE_enum(
     'linear_evaluate', 'standard', ['standard', 'randaug', 'cropping_randaug'],
     'How to scale the learning rate as a function of batch size.')
@@ -91,9 +91,9 @@ flags.DEFINE_float(
     'randaug_magnitude', 7,
     'Number of augmentation transformations.')
 
-#----------------------------------------------------------
+# ----------------------------------------------------------
 # Define for Learning Rate Optimizer + Training Strategy
-#----------------------------------------------------------
+# ----------------------------------------------------------
 
 # Learning Rate Scheudle
 
@@ -123,9 +123,9 @@ flags.DEFINE_float(
 
 flags.DEFINE_float('weight_decay', 1e-6, 'Amount of weight decay to use.')
 
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # Configure for Encoder - Projection Head, Linear Evaluation Architecture
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 
 # Encoder Configure
 
@@ -170,15 +170,15 @@ flags.DEFINE_integer(
     'Number of head projection dimension.')
 
 flags.DEFINE_boolean(
-    'reduce_linear_dimention', False,# Consider use it when Project head layers > 2
+    'reduce_linear_dimention', False,  # Consider use it when Project head layers > 2
     'Reduce the parameter of Projection in middel layers.')
 
 flags.DEFINE_integer(
-    'up_scale', 4096,## scaling the Encoder output 2048 --> 4096
+    'up_scale', 4096,  # scaling the Encoder output 2048 --> 4096
     'Upscale the Dense Unit of Non-Contrastive Framework')
 
 flags.DEFINE_boolean(
-    'non_contrastive', False,# Consider use it when Project head layers > 2
+    'non_contrastive', False,  # Consider use it when Project head layers > 2
     'Using for upscaling the first layers of MLP == upscale value')
 
 flags.DEFINE_integer(
@@ -198,9 +198,9 @@ flags.DEFINE_boolean(
     'hidden_norm', True,
     'L2 Normalization Vector representation.')
 
-#-----------------------------------------
+# -----------------------------------------
 # Configure Model Training
-#-----------------------------------------
+# -----------------------------------------
 
 # Self-Supervised training and Supervised training mode
 flags.DEFINE_enum(
@@ -232,9 +232,9 @@ flags.DEFINE_integer(
     'everything. 0 means fine-tuning after stem block. 4 means fine-tuning '
     'just the linear head.')
 
-#-----------------------------------------
+# -----------------------------------------
 # Configure Saving and Restore Model
-#-----------------------------------------
+# -----------------------------------------
 
 # Saving Model
 
@@ -268,9 +268,10 @@ flags.DEFINE_integer(
     'Number of steps between checkpoints/summaries. If provided, overrides '
     'checkpoint_epochs.')
 
-#-------------------------------------------------------------
+# -------------------------------------------------------------
 # Helper function to save and resore model.
-#-------------------------------------------------------------
+# -------------------------------------------------------------
+
 
 def get_salient_tensors_dict(include_projection_head):
     """Returns a dictionary of tensors."""
@@ -295,6 +296,7 @@ def get_salient_tensors_dict(include_projection_head):
         result['proj_head_output'] = graph.get_tensor_by_name(
             'projection_head/proj_head_output:0')
     return result
+
 
 def build_saved_model(model, include_projection_head=True):
     """Returns a tf.Module for saving to SavedModel."""
@@ -322,6 +324,7 @@ def build_saved_model(model, include_projection_head=True):
 
 # configure Json format saving file
 
+
 def json_serializable(val):
     #
     try:
@@ -330,6 +333,7 @@ def json_serializable(val):
 
     except TypeError:
         return False
+
 
 def save(model, global_step):
     """Export as SavedModel for finetuning and inference."""
@@ -353,6 +357,7 @@ def save(model, global_step):
             tf.io.gfile.rmtree(os.path.join(export_dir, str(step_to_delete)))
 
 # Restore the checkpoint forom the file
+
 
 def try_restore_from_checkpoint(model, global_step, optimizer):
     """Restores the latest ckpt if it exists, otherwise check FLAGS.checkpoint."""
@@ -389,6 +394,7 @@ def try_restore_from_checkpoint(model, global_step, optimizer):
 
     return checkpoint_manager
 
+
 def _restore_latest_or_from_pretrain(checkpoint_manager):
     """Restores the latest ckpt if training already.
     Or restores from FLAGS.checkpoint if in finetune mode.
@@ -423,6 +429,8 @@ def _restore_latest_or_from_pretrain(checkpoint_manager):
             x.assign(tf.zeros_like(x))
 
 # Perform Testing Step Here
+
+
 def perform_evaluation(model, val_ds, val_steps, ckpt, strategy):
     """Perform evaluation.--> Only Inference to measure the pretrain model representation"""
 
@@ -549,11 +557,14 @@ def main(argv):
     num_train_examples = len(x_train)
     num_eval_examples = len(x_val)
 
-    train_steps = FLAGS.eval_steps or int(num_train_examples * FLAGS.train_epochs // train_global_batch)
-    eval_steps = FLAGS.eval_steps or int(math.ceil(num_eval_examples / val_global_batch))
+    train_steps = FLAGS.eval_steps or int(
+        num_train_examples * FLAGS.train_epochs // train_global_batch)
+    eval_steps = FLAGS.eval_steps or int(
+        math.ceil(num_eval_examples / val_global_batch))
 
     epoch_steps = int(round(num_train_examples / train_global_batch))
-    checkpoint_steps = (FLAGS.checkpoint_steps or ( FLAGS.checkpoint_epochs * epoch_steps))
+    checkpoint_steps = (FLAGS.checkpoint_steps or (
+        FLAGS.checkpoint_epochs * epoch_steps))
 
     logging.info('# train examples: %d', num_train_examples)
     logging.info('# train_steps: %d', train_steps)
@@ -563,8 +574,8 @@ def main(argv):
     # Configure the Encoder Architecture.
     with strategy.scope():
         online_model = all_model.online_model(num_classes)
-        prediction_model= all_model.prediction_head_model()
-        target_model= all_model.target_model(num_classes)
+        prediction_model = all_model.prediction_head_model()
+        target_model = all_model.target_model(num_classes)
 
     # Configure Wandb Training
     # Weight&Bias Tracking Experiment
@@ -658,10 +669,11 @@ def main(argv):
 
             # Scale loss  --> Aggregating all Gradients
             def distributed_loss(x1, x2):
-                
+
                 # each GPU loss per_replica batch loss
-                per_example_loss, logits_ab, labels = byol_symetrize_loss(x1, x2,  temperature=FLAGS.temperature)
-                
+                per_example_loss, logits_ab, labels = byol_symetrize_loss(
+                    x1, x2,  temperature=FLAGS.temperature)
+
                 # total sum loss //Global batch_size
                 loss = tf.reduce_sum(per_example_loss) * \
                     (1./train_global_batch)
@@ -674,13 +686,14 @@ def main(argv):
                 images_two, lable_two = ds_two
 
                 with tf.GradientTape(persistent=True) as tape:
-      
-                    # Online 
+
+                    # Online
                     proj_head_output_1, supervised_head_output_1 = online_model(
                         images_one, training=True)
-                    proj_head_output_1=prediction_model(proj_head_output_1, training=True)
-                    
-                    # Target 
+                    proj_head_output_1 = prediction_model(
+                        proj_head_output_1, training=True)
+
+                    # Target
                     proj_head_output_2, supervised_head_output_2 = target_model(
                         images_two, training=True)
 
@@ -688,7 +701,8 @@ def main(argv):
                     loss = None
                     if proj_head_output_1 is not None:
                         # Compute Contrastive Loss model
-                        loss, logits_ab, labels = distributed_loss( proj_head_output_1, proj_head_output_2)
+                        loss, logits_ab, labels = distributed_loss(
+                            proj_head_output_1, proj_head_output_2)
 
                         if loss is None:
                             loss = loss
@@ -704,19 +718,23 @@ def main(argv):
 
                     # Compute the Supervised train Loss
                     '''Consider Sperate Supervised Loss'''
-                    #supervised_loss=None
+                    # supervised_loss=None
                     if supervised_head_output_1 is not None:
 
                         if FLAGS.train_mode == 'pretrain' and FLAGS.lineareval_while_pretraining:
-                            
-                            outputs = tf.concat([supervised_head_output_1, supervised_head_output_2], 0)
-                            supervise_lable = tf.concat([lable_one, lable_two], 0)
+
+                            outputs = tf.concat(
+                                [supervised_head_output_1, supervised_head_output_2], 0)
+                            supervise_lable = tf.concat(
+                                [lable_one, lable_two], 0)
 
                             # Calculte the cross_entropy loss with Labels
-                            sup_loss = obj_lib.add_supervised_loss(labels=supervise_lable, logits=outputs)
-                            
+                            sup_loss = obj_lib.add_supervised_loss(
+                                labels=supervise_lable, logits=outputs)
+
                             #scale_sup_loss = tf.nn.compute_average_loss(sup_loss, global_batch_size=train_global_batch)
-                            scale_sup_loss  = tf.reduce_sum(sup_loss) * (1./train_global_batch)
+                            scale_sup_loss = tf.reduce_sum(
+                                sup_loss) * (1./train_global_batch)
                             # Update Supervised Metrics
                             metrics.update_finetune_metrics_train(supervised_loss_metric,
                                                                   supervised_acc_metric, scale_sup_loss,
@@ -732,24 +750,27 @@ def main(argv):
                     weight_decay_loss = all_model.add_weight_decay(
                         online_model, adjust_per_optimizer=True)
 
-                    weight_decay_loss_scale = tf.nn.scale_regularization_loss(weight_decay_loss)
+                    weight_decay_loss_scale = tf.nn.scale_regularization_loss(
+                        weight_decay_loss)
                     weight_decay_metric.update_state(weight_decay_loss_scale)
-                    
+
                     loss += weight_decay_loss_scale
                     total_loss_metric.update_state(loss)
 
                     logging.info('Trainable variables:')
                     for var in online_model.trainable_variables:
                         logging.info(var.name)
-                    
-                
-                ## Update Encoder and Projection head weight 
+
+                # Update Encoder and Projection head weight
                 grads = tape.gradient(loss, online_model.trainable_variables)
-                optimizer.apply_gradients(zip(grads, online_model.trainable_variables))
-                
-                ## Update Prediction Head model
-                grads = tape.gradient(loss, prediction_model.trainable_variables)
-                optimizer.apply_gradients(zip(grads, prediction_model.trainable_variables))
+                optimizer.apply_gradients(
+                    zip(grads, online_model.trainable_variables))
+
+                # Update Prediction Head model
+                grads = tape.gradient(
+                    loss, prediction_model.trainable_variables)
+                optimizer.apply_gradients(
+                    zip(grads, prediction_model.trainable_variables))
                 del tape
                 return loss
 
@@ -764,35 +785,35 @@ def main(argv):
             for epoch in range(FLAGS.train_epochs):
 
                 total_loss = 0.0
-                num_batches=0
+                num_batches = 0
 
                 for _, (ds_one, ds_two) in enumerate(train_ds):
 
                     total_loss += distributed_train_step(ds_one, ds_two)
-                    num_batches +=1
+                    num_batches += 1
 
-                    ## Update weight of Target Encoder Every Step
-                    beta=0.99
-                    target_encoder_weights= target_model.get_weights()
-                    online_encoder_weights= online_model.get_weights()
+                    # Update weight of Target Encoder Every Step
+                    beta = 0.99
+                    target_encoder_weights = target_model.get_weights()
+                    online_encoder_weights = online_model.get_weights()
 
-                    for i in range(len(online_encoder_weights)): 
-                        target_encoder_weights[i]= beta* target_encoder_weights[i] + (1-beta)* online_encoder_weights[i]
+                    for i in range(len(online_encoder_weights)):
+                        target_encoder_weights[i] = beta * target_encoder_weights[i] + (
+                            1-beta) * online_encoder_weights[i]
                     target_model.set_weights(target_encoder_weights)
 
+                    # if (global_step.numpy()+ 1) % checkpoint_steps==0:
 
-                    if (global_step.numpy()+ 1) % checkpoint_steps==0:
-                        
-                        with summary_writer.as_default():
-                            cur_step = global_step.numpy()
-                            checkpoint_manager.save(cur_step)
-                            logging.info('Completed: %d / %d steps',
-                                        cur_step, train_steps)
-                            metrics.log_and_write_metrics_to_summary(
-                                all_metrics, cur_step)
-                            tf.summary.scalar('learning_rate', lr_schedule(tf.cast(global_step, dtype=tf.float32)),
-                                            global_step)
-                            summary_writer.flush()
+                    with summary_writer.as_default():
+                        cur_step = global_step.numpy()
+                        checkpoint_manager.save(cur_step)
+                        logging.info('Completed: %d / %d steps',
+                                     cur_step, train_steps)
+                        metrics.log_and_write_metrics_to_summary(
+                            all_metrics, cur_step)
+                        tf.summary.scalar('learning_rate', lr_schedule(tf.cast(global_step, dtype=tf.float32)),
+                                          global_step)
+                        summary_writer.flush()
 
                 epoch_loss = total_loss/num_batches
                 # Wandb Configure for Visualize the Model Training
