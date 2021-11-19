@@ -33,6 +33,11 @@ class imagenet_dataset_single_machine():
         self.seed = FLAGS.SEED
         self.bi_mask = []
 
+        self.label, self.class_name = self.get_label("image_net_1k_lable.txt")
+        numeric_train_cls = []
+        numeric_val_cls = []
+        print(train_path,val_path)
+
         if train_path is None and val_path is None:
             raise ValueError(f'The train_path and val_path is None, please cheeek')
         elif val_path is None:
@@ -41,11 +46,30 @@ class imagenet_dataset_single_machine():
             random.Random(FLAGS.SEED_data_split).shuffle(dataset)
             self.x_val = dataset[0:int(dataset_len * 0.2)]
             self.x_train = dataset[len(self.x_val) + 1:]
+            for image_path in self.x_train:
+                label = image_path.split("/")[-2]
+                numeric_train_cls.append(self.label[label])
+            for image_path in self.x_val:
+                label = image_path.split("/")[-2]
+                numeric_val_cls.append(self.label[label])
+
         else:
             self.x_train = list(paths.list_images(train_path))
             self.x_val = list(paths.list_images(val_path))
             random.Random(FLAGS.SEED_data_split).shuffle(self.x_train)
             random.Random(FLAGS.SEED_data_split).shuffle(self.x_val)
+
+            for image_path in self.x_train:
+                label = image_path.split("/")[-2]
+                numeric_train_cls.append(self.label[label])
+
+            val_label = self.get_val_label("ILSVRC2012_validation_ground_truth.txt")
+            numeric_val_cls = []
+            for image_path in self.x_val:
+                label = image_path.split("/")[-1]
+                label = image_path.split("_")[-1]
+                label = int(label.split(".")[0])
+                numeric_val_cls.append(val_label[label-1])
 
         if bi_mask:
             for p in self.x_train:
@@ -54,16 +78,8 @@ class imagenet_dataset_single_machine():
         # Path for loading all Images
         # For training
 
-        self.label, self.class_name = self.get_label("image_net_1k_lable.txt")
-        numeric_train_cls = []
-        for image_path in self.x_train:
-            label = image_path.split("/")[-2]
-            numeric_train_cls.append(self.label[label])
 
-        numeric_val_cls = []
-        for image_path in self.x_val:
-            label = image_path.split("/")[-2]
-            numeric_val_cls.append(self.label[label])
+        print(self.x_train)
 
         self.x_train_lable = tf.one_hot(numeric_train_cls, depth=len(self.class_name))
         self.x_val_lable = tf.one_hot(numeric_val_cls, depth=len(self.class_name))
@@ -94,6 +110,14 @@ class imagenet_dataset_single_machine():
         label = dict(zip(class_ID, class_number))
         class_name = dict(zip(class_ID, class_name))
         return label, class_name
+
+    def get_val_label(self, label_txt_path=None):
+        class_number = []
+        with open(label_txt_path) as file:
+            for line in file.readlines():
+                class_number.append(int(line[:-1]))
+                # n02119789 1 kit_fox
+        return class_number
 
     @classmethod
     def parse_images(self, image_path):

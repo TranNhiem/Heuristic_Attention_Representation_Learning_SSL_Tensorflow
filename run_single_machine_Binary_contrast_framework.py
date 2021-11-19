@@ -10,7 +10,7 @@ from absl import app
 import tensorflow as tf
 from learning_rate_optimizer import WarmUpAndCosineDecay
 import metrics
-from byol_simclr_imagenet_data import imagenet_dataset_single_machine
+from byol_simclr_imagenet_data_harry import imagenet_dataset_single_machine
 from self_supervised_losses import * #binary_mask_nt_xent_object_backgroud_sum_loss
 from Model_resnet_harry import SSL_train_model_Model
 from model import build_optimizer, add_weight_decay
@@ -69,6 +69,19 @@ flags.DEFINE_integer(
 flags.DEFINE_integer(
     'train_epochs', 500,
     'Number of epochs to train for.')
+
+flags.DEFINE_string(
+    'train_path', "/data1/1KNew/ILSVRC2012_img_train",
+    'Train dataset path.')
+
+flags.DEFINE_string(
+    'val_path', "/data1/1KNew/ILSVRC2012_img_val",
+    'Validaion dataset path.')
+
+flags.DEFINE_string(
+    'mask_path', "train_binary_mask_by_USS",
+    'Mask path.')
+
 # ---------------------------------------------------
 # Define for Linear Evaluation
 # ---------------------------------------------------
@@ -545,26 +558,39 @@ def main(argv):
     # Preparing dataset
     # Imagenet path prepare localy
     #imagenet_path = "/data/SSL_dataset/ImageNet/1K/"
-    imagenet_path = "/data/rick109582607/Desktop/TinyML/self_supervised/1K/"
-    dataset = list(paths.list_images(imagenet_path))
-    print(len(dataset))
-    random.Random(FLAGS.SEED_data_split).shuffle(dataset)
-    x_val = dataset[0:50000]
-    x_train = dataset[50000:]
-
+    # imagenet_path = "/data/rick109582607/Desktop/TinyML/self_supervised/1K/"
+    # dataset = list(paths.list_images(imagenet_path))
+    # print(len(dataset))
+    # random.Random(FLAGS.SEED_data_split).shuffle(dataset)
+    # x_val = dataset[0:50000]
+    # x_train = dataset[50000:]
+    #
     strategy = tf.distribute.MirroredStrategy()
     train_global_batch = FLAGS.train_batch_size * strategy.num_replicas_in_sync
     val_global_batch = FLAGS.val_batch_size * strategy.num_replicas_in_sync
+    #
+    # train_dataset = imagenet_dataset_single_machine(img_size=FLAGS.image_size, train_batch=train_global_batch,  val_batch=val_global_batch,
+    #                                                 strategy=strategy, img_path=None, x_val=x_val,  x_train=x_train, bi_mask=True)
+    #
+    # train_ds = train_dataset.simclr_random_global_crop_image_mask()
+    #
+    # val_ds = train_dataset.supervised_validation()
+    #
+    # num_train_examples = len(x_train)
+    # num_eval_examples = len(x_val)
 
     train_dataset = imagenet_dataset_single_machine(img_size=FLAGS.image_size, train_batch=train_global_batch,  val_batch=val_global_batch,
-                                                    strategy=strategy, img_path=None, x_val=x_val,  x_train=x_train, bi_mask=True)
+                                                    strategy=strategy, train_path="/home/harry/Documents/imagenet_1k_tiny/Image/train",
+                                                    val_path="/home/harry/Documents/imagenet_1k_tiny/Image/val",
+                                                    mask_path="train_binary_mask_by_USS", bi_mask=True)
 
     train_ds = train_dataset.simclr_random_global_crop_image_mask()
 
     val_ds = train_dataset.supervised_validation()
 
-    num_train_examples = len(x_train)
-    num_eval_examples = len(x_val)
+    num_train_examples,num_eval_examples = train_dataset.get_data_size()
+
+
 
     train_steps = FLAGS.eval_steps or int(
         num_train_examples * FLAGS.train_epochs // train_global_batch)

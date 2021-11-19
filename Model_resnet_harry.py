@@ -941,7 +941,11 @@ class SSL_train_model_Model(tf.keras.models.Model):
 
         self.indexer = Indexer()
 
-        self.flatten = tf.keras.layers.GlobalAveragePooling2D()  # tf.keras.layers.Flatten()
+        self.maxpooling = tf.keras.layers.MaxPooling2D(4,4)
+
+        self.flatten =  tf.keras.layers.Flatten()
+
+        self.globalaveragepooling = tf.keras.layers.GlobalAveragePooling2D()
 
         self.projection_head = ProjectionHead()
 
@@ -964,9 +968,11 @@ class SSL_train_model_Model(tf.keras.models.Model):
 
         # Base network forward pass
         feature_map = self.encoder(inputs, training=training)
+
         # Pixel shuffle
         feature_map_upsample = tf.nn.depth_to_space(
             feature_map, inputs.shape[1]/feature_map.shape[1])  # PixelShuffle
+
 
         #print("feature_map_upsample", feature_map_upsample.shape)
 
@@ -974,12 +980,11 @@ class SSL_train_model_Model(tf.keras.models.Model):
         if FLAGS.train_mode == 'pretrain':
             # object and background indexer
             obj, back = self.indexer([feature_map_upsample, mask])
-            obj, _ = self.projection_head(self.flatten(obj), training=training)
-            back, _ = self.projection_head(
-                self.flatten(back), training=training)
+            obj, _ = self.projection_head(self.flatten(self.maxpooling(obj)), training=training)
+            back, _ = self.projection_head(self.flatten(self.maxpooling(back)), training=training)
 
-        projection_head_outputs, supervised_head_inputs = self.projection_head(
-            self.flatten(feature_map_upsample), training=training)
+        projection_head_outputs, supervised_head_inputs = self.projection_head(self.flatten(
+            self.maxpooling(feature_map_upsample)), training=training)
 
         if FLAGS.train_mode == 'finetune':
             supervised_head_outputs = self.supervised_head(
