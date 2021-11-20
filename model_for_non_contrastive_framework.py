@@ -21,6 +21,7 @@ from absl import flags
 
 import lars_optimizer
 import resnet
+from Model_resnet_harry import resnet as resnet_modify
 import tensorflow as tf
 from learning_rate_optimizer import get_optimizer
 from tensorflow.keras import mixed_precision
@@ -383,6 +384,29 @@ class PredictionHead(tf.keras.layers.Layer):
         return proj_head_output
 
 
+"""# Indexer"""
+
+
+class Indexer(tf.keras.layers.Layer):
+    def __init__(self, Backbone="Resnet", **kwargs):
+        super(Indexer, self).__init__(**kwargs)
+
+    def call(self, input):
+        feature_map = input[0]
+        mask = input[1]
+        if feature_map.shape[1] != mask.shape[1] and feature_map.shape[0] != mask.shape[0]:
+            mask = tf.image.resize(
+                mask, (feature_map.shape[0], feature_map.shape[1]))
+        mask = tf.cast(mask, dtype=tf.bool)
+        mask = tf.cast(mask, dtype=feature_map.dtype)
+        obj = tf.multiply(feature_map, mask)
+        mask = tf.cast(mask, dtype=tf.bool)
+        mask = tf.logical_not(mask)
+        mask = tf.cast(mask, dtype=feature_map.dtype)
+        back = tf.multiply(feature_map, mask)
+        return obj, back
+
+
 class prediction_head_model(tf.keras.models.Model):
     def __init__(self, **kwargs):
 
@@ -511,44 +535,85 @@ class target_model(tf.keras.models.Model):
 class Binary_online_model(tf.keras.models.Model):
     """Resnet model with projection or supervised layer."""
 
-    def __init__(self, num_classes, **kwargs):
+    def __init__(self, num_classes, Backbone="Resnet", **kwargs):
 
         super(online_model, self).__init__(**kwargs)
         # Encoder
-        self.resnet_model = resnet.resnet(
-            resnet_depth=FLAGS.resnet_depth,
-            width_multiplier=FLAGS.width_multiplier,
-            cifar_stem=FLAGS.image_size <= 32)
+        if Backbone == "Resnet":
+            self.encoder = resnet_modify(resnet_depth=FLAGS.resnet_depth,
+                                         width_multiplier=FLAGS.width_multiplier)
+        else:
+            raise ValueError(f"Didn't have this {Backbone} model")
+
         # Projcetion head
         self._projection_head = ProjectionHead()
 
+        self.indexer = Indexer()
+
+        self.maxpooling = tf.keras.layers.MaxPooling2D(4, 4)
+
+        self.flatten = tf.keras.layers.Flatten()
+
+        self.globalaveragepooling = tf.keras.layers.GlobalAveragePooling2D()
         # Supervised classficiation head
         if FLAGS.train_mode == 'finetune' or FLAGS.lineareval_while_pretraining:
             self.supervised_head = SupervisedHead(num_classes)
 
-    def __call__(self, inputs, training):
+    def call(self, inputs, training):
 
-        features = inputs
+        if FLAGS.train_mode == 'pretrain':
+            mask = inputs[1]
+            inputs = inputs[0]
 
         if training and FLAGS.train_mode == 'pretrain':
             if FLAGS.fine_tune_after_block > -1:
                 raise ValueError('Does not support layer freezing during pretraining,'
                                  'should set fine_tune_after_block<=-1 for safety.')
-
         if inputs.shape[3] is None:
             raise ValueError('The input channels dimension must be statically known '
                              f'(got input shape {inputs.shape})')
 
-        # # Base network forward pass.
-        hiddens = self.resnet_model(features, training=training)
-        # Add heads.
-        projection_head_outputs, supervised_head_inputs, = self._projection_head(
-            hiddens, training)
+        # Base network forward pass
+        feature_map = self.encoder(inputs, training=training)
+
+        # Pixel shuffle
+        feature_map_upsample = tf.nn.depth_to_space(
+            feature_map, inputs.shape[1]/feature_map.shape[1])  # PixelShuffle
+        #print("feature_map_upsample", feature_map_upsample.shape)
+
+        # Add heads
+        if FLAGS.downsample_mod == 'maxpooling':
+            # using the maxpooling to do th downsample
+            if FLAGS.train_mode == 'pretrain':
+                # object and background indexer
+                obj, back = self.indexer([feature_map_upsample, mask])
+                obj, _ = self.projection_head(self.flatten(
+                    self.maxpooling(obj)), training=training)
+                back, _ = self.projection_head(self.flatten(
+                    self.maxpooling(back)), training=training)
+
+            projection_head_outputs, supervised_head_inputs = self.projection_head(self.flatten(
+                self.maxpooling(feature_map_upsample)), training=training)
+        else:
+            if FLAGS.train_mode == 'pretrain':
+                # using the space_to_depth to do th downsample
+                # object and background indexer
+
+                obj, back = self.indexer([feature_map_upsample, mask])
+                obj = self.globalaveragepooling(tf.nn.space_to_depth(
+                    obj,  obj.shape[1]/feature_map.shape[1]))
+                back = self.globalaveragepooling(tf.nn.space_to_depth(
+                    back,  back.shape[1]/feature_map.shape[1]))
+                obj, _ = self.projection_head(obj, training=training)
+                back, _ = self.projection_head(back, training=training)
+
+            projection_head_outputs, supervised_head_inputs = self.projection_head(
+                self.globalaveragepooling(feature_map), training=training)
 
         if FLAGS.train_mode == 'finetune':
-            supervised_head_outputs = self.supervised_head(supervised_head_inputs,
-                                                           training)
-            return None, supervised_head_outputs
+            supervised_head_outputs = self.supervised_head(
+                supervised_head_inputs, training)
+            return None, None, None, supervised_head_outputs
 
         elif FLAGS.train_mode == 'pretrain' and FLAGS.lineareval_while_pretraining:
             # When performing pretraining and linear evaluation together we do not
@@ -557,10 +622,13 @@ class Binary_online_model(tf.keras.models.Model):
             supervised_head_outputs = self.supervised_head(
                 tf.stop_gradient(supervised_head_inputs), training)
 
-            return projection_head_outputs, supervised_head_outputs
+            return obj, back, projection_head_outputs, supervised_head_outputs
 
         else:
-            return projection_head_outputs, None
+            return obj, back, projection_head_outputs, None
+
+        return obj, back, feature_map_upsample
+        # return feature_map_upsample
 
 # Consideration take Supervised evaluate From the Target model
 
@@ -568,45 +636,85 @@ class Binary_online_model(tf.keras.models.Model):
 class Binary_target_model(tf.keras.models.Model):
     """Resnet model with projection or supervised layer."""
 
-    def __init__(self, num_classes, **kwargs):
+    def __init__(self, num_classes, Backbone="Resnet", **kwargs):
 
-        super(target_model, self).__init__(**kwargs)
+        super(online_model, self).__init__(**kwargs)
         # Encoder
-        self.resnet_model = resnet.resnet(
-            resnet_depth=FLAGS.resnet_depth,
-            width_multiplier=FLAGS.width_multiplier,
-            cifar_stem=FLAGS.image_size <= 32)
+        if Backbone == "Resnet":
+            self.encoder = resnet_modify(resnet_depth=FLAGS.resnet_depth,
+                                         width_multiplier=FLAGS.width_multiplier)
+        else:
+            raise ValueError(f"Didn't have this {Backbone} model")
+
         # Projcetion head
         self._projection_head = ProjectionHead()
 
+        self.indexer = Indexer()
+
+        self.maxpooling = tf.keras.layers.MaxPooling2D(4, 4)
+
+        self.flatten = tf.keras.layers.Flatten()
+
+        self.globalaveragepooling = tf.keras.layers.GlobalAveragePooling2D()
         # Supervised classficiation head
         if FLAGS.train_mode == 'finetune' or FLAGS.lineareval_while_pretraining:
             self.supervised_head = SupervisedHead(num_classes)
 
-    def __call__(self, inputs, training):
+    def call(self, inputs, training):
 
-        features = inputs
+        if FLAGS.train_mode == 'pretrain':
+            mask = inputs[1]
+            inputs = inputs[0]
 
         if training and FLAGS.train_mode == 'pretrain':
             if FLAGS.fine_tune_after_block > -1:
                 raise ValueError('Does not support layer freezing during pretraining,'
                                  'should set fine_tune_after_block<=-1 for safety.')
-
         if inputs.shape[3] is None:
             raise ValueError('The input channels dimension must be statically known '
                              f'(got input shape {inputs.shape})')
 
-        # # Base network forward pass.
-        hiddens = self.resnet_model(features, training=training)
+        # Base network forward pass
+        feature_map = self.encoder(inputs, training=training)
 
-        # Add heads.
-        projection_head_outputs, supervised_head_inputs = self._projection_head(
-            hiddens, training)
+        # Pixel shuffle
+        feature_map_upsample = tf.nn.depth_to_space(
+            feature_map, inputs.shape[1]/feature_map.shape[1])  # PixelShuffle
+        #print("feature_map_upsample", feature_map_upsample.shape)
+
+        # Add heads
+        if FLAGS.downsample_mod == 'maxpooling':
+            # using the maxpooling to do th downsample
+            if FLAGS.train_mode == 'pretrain':
+                # object and background indexer
+                obj, back = self.indexer([feature_map_upsample, mask])
+                obj, _ = self.projection_head(self.flatten(
+                    self.maxpooling(obj)), training=training)
+                back, _ = self.projection_head(self.flatten(
+                    self.maxpooling(back)), training=training)
+
+            projection_head_outputs, supervised_head_inputs = self.projection_head(self.flatten(
+                self.maxpooling(feature_map_upsample)), training=training)
+        else:
+            if FLAGS.train_mode == 'pretrain':
+                # using the space_to_depth to do th downsample
+                # object and background indexer
+
+                obj, back = self.indexer([feature_map_upsample, mask])
+                obj = self.globalaveragepooling(tf.nn.space_to_depth(
+                    obj,  obj.shape[1]/feature_map.shape[1]))
+                back = self.globalaveragepooling(tf.nn.space_to_depth(
+                    back,  back.shape[1]/feature_map.shape[1]))
+                obj, _ = self.projection_head(obj, training=training)
+                back, _ = self.projection_head(back, training=training)
+
+            projection_head_outputs, supervised_head_inputs = self.projection_head(
+                self.globalaveragepooling(feature_map), training=training)
 
         if FLAGS.train_mode == 'finetune':
-            supervised_head_outputs = self.supervised_head(supervised_head_inputs,
-                                                           training)
-            return None, supervised_head_outputs
+            supervised_head_outputs = self.supervised_head(
+                supervised_head_inputs, training)
+            return None, None, None, supervised_head_outputs
 
         elif FLAGS.train_mode == 'pretrain' and FLAGS.lineareval_while_pretraining:
             # When performing pretraining and linear evaluation together we do not
@@ -615,7 +723,10 @@ class Binary_target_model(tf.keras.models.Model):
             supervised_head_outputs = self.supervised_head(
                 tf.stop_gradient(supervised_head_inputs), training)
 
-            return projection_head_outputs, supervised_head_outputs
+            return obj, back, projection_head_outputs, supervised_head_outputs
 
         else:
-            return projection_head_outputs, None
+            return obj, back, projection_head_outputs, None
+
+        return obj, back, feature_map_upsample
+        # return feature_map_upsample

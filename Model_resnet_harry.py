@@ -998,6 +998,7 @@ class SSL_train_model_Model(tf.keras.models.Model):
         else:
             return obj, back, projection_head_outputs, None
 
+        
         return obj, back, feature_map_upsample
         # return feature_map_upsample
 
