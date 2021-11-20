@@ -9,15 +9,16 @@ import random
 AUTO = tf.data.experimental.AUTOTUNE
 FLAGS = flags.FLAGS
 
+
 class imagenet_dataset_single_machine():
 
     def __init__(self, img_size, train_batch, val_batch, strategy, img_path=None, x_val=None, x_train=None, bi_mask=False):
         '''
-        args: 
-        IMG_SIZE: Image training size 
+        args:
+        IMG_SIZE: Image training size
         BATCH_SIZE: Distributed Batch_size for training multi-GPUs
 
-        image_path: Directory to train data 
+        image_path: Directory to train data
         val_path:   Directory to validation or testing data
 
         '''
@@ -157,7 +158,7 @@ class imagenet_dataset_single_machine():
                         .batch(self.BATCH_SIZE)
                         .prefetch(AUTO)
                         )
-        #train_ds_one= self.strategy.experimental_distribute_dataset(train_ds_one)
+        # train_ds_one= self.strategy.experimental_distribute_dataset(train_ds_one)
 
         train_ds_two = (tf.data.Dataset.from_tensor_slices((self.x_train, self.x_train_lable))
                         .shuffle(self.BATCH_SIZE * 100, seed=self.seed)
@@ -170,7 +171,7 @@ class imagenet_dataset_single_machine():
                         .batch(self.BATCH_SIZE)
                         .prefetch(AUTO)
                         )
-        #train_ds_one= self.strategy.experimental_distribute_dataset(train_ds_two)
+        # train_ds_one= self.strategy.experimental_distribute_dataset(train_ds_two)
 
         train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
         train_ds = self.strategy.experimental_distribute_dataset(train_ds)
@@ -231,7 +232,7 @@ class imagenet_dataset_single_machine():
                         .batch(self.BATCH_SIZE)
                         .prefetch(AUTO)
                         )
-        #train_ds_one= self.strategy.experimental_distribute_dataset(train_ds_two)
+        # train_ds_one= self.strategy.experimental_distribute_dataset(train_ds_two)
 
         train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
         # train_ds=train_ds.batch(self.BATCH_SIZE)
@@ -262,22 +263,23 @@ class imagenet_dataset_single_machine():
                         .batch(self.BATCH_SIZE)
                         .prefetch(AUTO)
                         )
-        #train_ds_one= self.strategy.experimental_distribute_dataset(train_ds_two)
+        # train_ds_one= self.strategy.experimental_distribute_dataset(train_ds_two)
 
         train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
         train_ds = self.strategy.experimental_distribute_dataset(train_ds)
 
         return train_ds
 
+
 class imagenet_dataset_multi_machine():
 
     def __init__(self, img_size, train_batch, val_batch,  img_path=None, x_val=None, x_train=None, bi_mask=False):
         '''
-        args: 
-        IMG_SIZE: Image training size 
+        args:
+        IMG_SIZE: Image training size
         BATCH_SIZE: Distributed Batch_size for training multi-GPUs
 
-        image_path: Directory to train data 
+        image_path: Directory to train data
         val_path:   Directory to validation or testing data
 
         '''
@@ -356,7 +358,7 @@ class imagenet_dataset_multi_machine():
         # Loading and reading Image
         img = tf.io.read_file(image_path)
         img = tf.io.decode_jpeg(img, channels=3)
-        #img=tf.image.convert_image_dtype(img, tf.float32)
+        # img=tf.image.convert_image_dtype(img, tf.float32)
 
         return img
 
@@ -444,7 +446,14 @@ class imagenet_dataset_multi_machine():
                         )
 
         train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
-        train_ds.with_options(option)
+
+        if FLAGS.with_option:
+            logging.info("You implement data loader with option")
+            train_ds.with_options(option)
+        else:
+            logging.info("You implement data loader Without option")
+            train_ds = train_ds
+
         train_ds = train_ds.shard(input_context.num_input_pipelines,
                                   input_context.input_pipeline_id)
 
@@ -494,7 +503,13 @@ class imagenet_dataset_multi_machine():
                         )
 
         train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
-        train_ds.with_options(option)
+        if FLAGS.with_option:
+            logging.info("You implement data loader with option")
+            train_ds.with_options(option)
+        else:
+            logging.info("You implement data loader Without option")
+            train_ds = train_ds
+
         train_ds = train_ds.shard(input_context.num_input_pipelines,
                                   input_context.input_pipeline_id)
         train_ds = train_ds.batch(dis_tributed_batch)
@@ -533,7 +548,13 @@ class imagenet_dataset_multi_machine():
                         )
 
         train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
-        train_ds.with_options(option)
+        if FLAGS.with_option:
+            logging.info("You implement data loader with option")
+            train_ds.with_options(option)
+        else:
+            logging.info("You implement data loader Without option")
+            train_ds = train_ds
+
         train_ds = train_ds.shard(input_context.num_input_pipelines,
                                   input_context.input_pipeline_id)
         train_ds = train_ds.batch(dis_tributed_batch)
@@ -573,7 +594,13 @@ class imagenet_dataset_multi_machine():
                         )
 
         train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
-        train_ds.with_options(option)
+        if FLAGS.with_option:
+            logging.info("You implement data loader with option")
+            train_ds.with_options(option)
+        else:
+            logging.info("You implement data loader Without option")
+            train_ds = train_ds
+
         train_ds = train_ds.shard(input_context.num_input_pipelines,
                                   input_context.input_pipeline_id)
         train_ds = train_ds.batch(dis_tributed_batch)

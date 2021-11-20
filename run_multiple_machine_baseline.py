@@ -37,7 +37,7 @@ flags.DEFINE_enum(
     'communication_method to aggreate gradient for multiple machines.')
 
 flags.DEFINE_enum(
-    'distributed_optimization', 'mix_precision_overlab_patches', [
+    'distributed_optimization', 'mix_precision_16_Fp', [
         'mix_precision_16_Fp', 'mix_precision_overlab_patches'],
     'optimization for parallel training increasing throughput.')
 
@@ -45,6 +45,10 @@ flags.DEFINE_integer(
     'num_workers', 2,
     'Number of machine use for training.')
 
+
+flags.DEFINE_boolean(
+    'with_option', False,  # set it to false --> Will change in future update
+    'Configure loading data for multi_machine with configure Option.')
 
 # *****************************************************
 # General Define
@@ -223,8 +227,8 @@ flags.DEFINE_enum(
     'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
 
 flags.DEFINE_enum(
-    'loss_options' , 'loss_v0', 
-    ['loss_v0', 'loss_v1'], 
+    'loss_options', 'loss_v0',
+    ['loss_v0', 'loss_v1'],
     "Option for chossing loss version [V0]--> Original simclr loss [V1] --> Custom build design loss"
 )
 
@@ -732,28 +736,27 @@ def main(argv):
 
             steps_per_loop = checkpoint_steps
 
-
             # Scale loss  --> Aggregating all Gradients
+
             def distributed_loss(x1, x2):
-                if FLAGS.loss_options =="loss_v0": 
+                if FLAGS.loss_options == "loss_v0":
                     # each GPU loss per_replica batch loss
                     per_example_loss, logits_ab, labels = nt_xent_symetrize_loss_simcrl(
                         x1, x2, LARGE_NUM=FLAGS.LARGE_NUM, hidden_norm=FLAGS.hidden_norm, temperature=FLAGS.temperature)
-                    
-                elif FLAGS.loss_options =="loss_v1": 
+
+                elif FLAGS.loss_options == "loss_v1":
                     # each GPU loss per_replica batch loss
-                    x_1_2= tf.concat([x1, x2], axis=0)
+                    x_1_2 = tf.concat([x1, x2], axis=0)
                     per_example_loss, logits_ab, labels = nt_xent_asymetrize_loss_v2(
                         x_1_2,  temperature=FLAGS.temperature)
-                    
-                else: 
+
+                else:
                     raise ValueError("Loss version is not implement yet")
 
                 # total sum loss //Global batch_size
                 loss = tf.reduce_sum(per_example_loss) * \
                     (1./train_global_batch_size)
                 return loss, logits_ab, labels
-
 
             @tf.function
             def train_step(ds_one, ds_two):
@@ -772,10 +775,12 @@ def main(argv):
                     loss = None
                     if proj_head_output_1 is not None:
 
-                        scale_con_loss, logit_ab, lables = distributed_loss(proj_head_output_1, proj_head_output_2)
-                                                                                             
+                        scale_con_loss, logit_ab, lables = distributed_loss(
+                            proj_head_output_1, proj_head_output_2)
+
                         # Reduce loss Precision to 16 Bits
-                        scale_con_loss = optimizer.get_scaled_loss(scale_con_loss)
+                        scale_con_loss = optimizer.get_scaled_loss(
+                            scale_con_loss)
                         # Output to Update Contrastive
                         if loss is None:
                             loss = scale_con_loss
@@ -848,7 +853,8 @@ def main(argv):
                             zip(gradients, model.trainable_variables))
 
                     elif FLAGS.distributed_optimization == "mix_precision_overlab_patches":
-                        logging.info("You implement mix_precion_overlab_patches")
+                        logging.info(
+                            "You implement mix_precion_overlab_patches")
                         # Reduce loss Precision to 16 Bits
                         scaled_loss = optimizer.get_scaled_loss(loss)
                         scaled_gradients = tape.gradient(
@@ -881,12 +887,12 @@ def main(argv):
             global_step = optimizer.iterations
             for epoch in range(FLAGS.train_epochs):
                 total_loss = 0.0
-                num_batches=0
+                num_batches = 0
                 for _, (ds_one, ds_two) in enumerate(train_multi_worker_dataset):
 
                     total_loss += distributed_train_step(ds_one, ds_two)
-                    num_batches+=1
-                    #if (global_step.numpy() + 1) % checkpoint_steps == 0:
+                    num_batches += 1
+                    # if (global_step.numpy() + 1) % checkpoint_steps == 0:
 
                     with summary_writer.as_default():
                         cur_step = global_step.numpy()
@@ -898,13 +904,13 @@ def main(argv):
                             tf.io.gfile.rmtree(write_checkpoint_dir)
 
                         logging.info('Completed: %d / %d steps',
-                                        cur_step, train_steps)
+                                     cur_step, train_steps)
                         metrics.log_and_write_metrics_to_summary(
                             all_metrics, cur_step)
                         tf.summary.scalar('learning_rate', lr_schedule(tf.cast(global_step, dtype=tf.float32)),
-                                            global_step)
+                                          global_step)
                         summary_writer.flush()
-                epoch_loss= total_loss/num_classes
+                epoch_loss = total_loss/num_classes
                 # Wandb Configure for Visualize the Model Training
                 wandb.log({
                     "epochs": epoch+1,
