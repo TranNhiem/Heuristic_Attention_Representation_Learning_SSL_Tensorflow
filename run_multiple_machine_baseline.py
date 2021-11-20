@@ -837,6 +837,7 @@ def main(argv):
                     # Mix-Percision Gradient Flow 16 and 32 (bits) and Overlab Gradient Backprobagation
                     # ------------------------------------------
                     if FLAGS.distributed_optimization == "mix_percision_16_Fp":
+                        logging.info("you implement mix_percision_16_Fp")
                         # Reduce loss Precision to 16 Bits
                         scaled_loss = optimizer.get_scaled_loss(loss)
                         scaled_gradients = tape.gradient(
@@ -847,6 +848,7 @@ def main(argv):
                             zip(gradients, model.trainable_variables))
 
                     elif FLAGS.distributed_optimization == "mix_precion_overlab_patches":
+                        logging.info("You implement mix_precion_overlab_patches")
                         # Reduce loss Precision to 16 Bits
                         scaled_loss = optimizer.get_scaled_loss(loss)
                         scaled_gradients = tape.gradient(
@@ -884,24 +886,24 @@ def main(argv):
 
                     total_loss += distributed_train_step(ds_one, ds_two)
                     num_batches+=1
-                    if (global_step.numpy() + 1) % checkpoint_steps == 0:
+                    #if (global_step.numpy() + 1) % checkpoint_steps == 0:
 
-                        with summary_writer.as_default():
-                            cur_step = global_step.numpy()
+                    with summary_writer.as_default():
+                        cur_step = global_step.numpy()
 
-                            # Checkpoint steps is here
-                            checkpoint_manager.save(cur_step)
-                            # Removing the checkpoint if it is not Chief Worker
-                            if not chief_worker(task_type, task_id):
-                                tf.io.gfile.rmtree(write_checkpoint_dir)
+                        # Checkpoint steps is here
+                        checkpoint_manager.save(cur_step)
+                        # Removing the checkpoint if it is not Chief Worker
+                        if not chief_worker(task_type, task_id):
+                            tf.io.gfile.rmtree(write_checkpoint_dir)
 
-                            logging.info('Completed: %d / %d steps',
-                                         cur_step, train_steps)
-                            metrics.log_and_write_metrics_to_summary(
-                                all_metrics, cur_step)
-                            tf.summary.scalar('learning_rate', lr_schedule(tf.cast(global_step, dtype=tf.float32)),
-                                              global_step)
-                            summary_writer.flush()
+                        logging.info('Completed: %d / %d steps',
+                                        cur_step, train_steps)
+                        metrics.log_and_write_metrics_to_summary(
+                            all_metrics, cur_step)
+                        tf.summary.scalar('learning_rate', lr_schedule(tf.cast(global_step, dtype=tf.float32)),
+                                            global_step)
+                        summary_writer.flush()
                 epoch_loss= total_loss/num_classes
                 # Wandb Configure for Visualize the Model Training
                 wandb.log({
