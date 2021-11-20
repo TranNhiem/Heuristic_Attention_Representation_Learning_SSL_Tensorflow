@@ -534,8 +534,7 @@ def symetrize_l2_loss_object_level_whole_image(o_1, o_2, b_1, b_2, img_1, img_2,
     # Contrastive Loss for Whole Image Representation
     # ********* ----------------------- ***********
 
-    image_loss, whole_image_logits, lables_image = byol_symetrize_loss(img_1, img_2,
-                                                                       temperature=temperature)
+    image_loss, whole_image_logits, lables_image = byol_symetrize_loss(img_1, img_2,temperature=temperature)
 
     # ********* ----------------------- ***********
     # Contrastive Loss for Whole Image Representation
@@ -553,7 +552,7 @@ def symetrize_l2_loss_object_level_whole_image(o_1, o_2, b_1, b_2, img_1, img_2,
 
 def sum_symetrize_l2_loss_object_backg(o_1, o_2, b_1, b_2, alpha, temperature): 
 
-   '''
+    '''
     Noted this Design 
 
     1. The contrasting 
