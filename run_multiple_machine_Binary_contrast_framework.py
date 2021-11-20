@@ -266,10 +266,9 @@ flags.DEFINE_enum(
     'Contrast binary Framework consider three different LOSSES')
 
 
-
 flags.DEFINE_enum(
-    'loss_options' , 'loss_v0', 
-    ['loss_v0', 'loss_v1'], 
+    'loss_options', 'loss_v0',
+    ['loss_v0', 'loss_v1'],
     "Option for chossing loss version [V0]--> Original simclr loss [V1] --> Custom build design loss"
 )
 
@@ -488,7 +487,7 @@ def perform_evaluation(model, val_ds, val_steps, ckpt, strategy):
             label_top_1_accuracy, label_top_5_accuracy, outputs, labels)
 
         # Single machine loss
-        reg_loss = all_model.add_weight_decay(model, adjust_per_optimizer=True)
+        reg_loss = add_weight_decay(model, adjust_per_optimizer=True)
         regularization_loss.update_state(reg_loss)
 
     with strategy.scope():
@@ -676,7 +675,6 @@ def main(argv):
     with strategy.scope():
         model = SSL_train_model_Model(num_classes=FLAGS.num_classes)
 
-
     # Configure Wandb Training
     # Weight&Bias Tracking Experiment
     configs = {
@@ -778,9 +776,8 @@ def main(argv):
 
             steps_per_loop = checkpoint_steps
 
-
-
             # Scale loss  --> Aggregating all Gradients
+
             def distributed_Binary_contrast_loss(x1, x2, v1, v2):
                 # each GPU loss per_replica batch loss
                 if FLAGS.contrast_binary_loss == 'sum_contrast_obj_back':
@@ -837,7 +834,7 @@ def main(argv):
 
                 # total sum loss //Global batch_size
                 loss = tf.reduce_sum(per_example_loss) * \
-                    (1./train_global_batch)
+                    (1./train_global_batch_size)
 
                 return loss, logits_o_ab, labels
 
@@ -856,13 +853,13 @@ def main(argv):
 
                 # total sum loss //Global batch_size
                 loss = tf.reduce_sum(per_example_loss) * \
-                    (1./train_global_batch)
+                    (1./train_global_batch_size)
 
                 return loss, logits_o_ab, labels
 
             @tf.function
             def train_step(ds_one, ds_two):
-                 # Get the data from
+                # Get the data from
                 images_mask_one, lable_1, = ds_one  # lable_one
                 images_mask_two, lable_2,  = ds_two  # lable_two
 
@@ -876,7 +873,7 @@ def main(argv):
                     # Compute Contrastive Train Loss -->
                     loss = None
                     if obj_1 is not None:
-    
+
                         if FLAGS.contrast_binary_loss == 'Original_loss_add_contrast_level_object':
                             loss, logits_o_ab, labels = distributed_Orginal_add_Binary_contrast_loss(obj_1, obj_2,  backg_1, backg_2,
                                                                                                      proj_head_output_1, proj_head_output_2)
@@ -885,7 +882,7 @@ def main(argv):
                             # Compute Contrastive Loss model
                             loss, logits_o_ab, labels = distributed_Binary_contrast_loss(
                                 obj_1, obj_2,  backg_1, backg_2)
-                                                             
+
                         # Reduce loss Precision to 16 Bits
                         scale_con_loss = optimizer.get_scaled_loss(loss)
                         # Output to Update Contrastive
@@ -898,8 +895,8 @@ def main(argv):
                         metrics.update_pretrain_metrics_train(contrast_loss_metric,
                                                               contrast_acc_metric,
                                                               contrast_entropy_metric,
-                                                              scale_con_loss, logit_ab,
-                                                              lables)
+                                                              scale_con_loss, logits_o_ab,
+                                                              labels)
 
                     # Compute the Supervised train Loss
                     if supervised_head_output_1 is not None:
@@ -908,7 +905,7 @@ def main(argv):
                             outputs = tf.concat(
                                 [supervised_head_output_1, supervised_head_output_2], 0)
                             supervised_lable = tf.concat(
-                                [lable_one, lable_two], 0)
+                                [lable_1, lable_2], 0)
 
                             # Calculte the cross_entropy loss with Labels
                             sup_loss = obj_lib.add_supervised_loss(
@@ -932,7 +929,7 @@ def main(argv):
                             loss += scale_sup_loss
 
                     # Consideration Remove L2 Regularization Loss
-                    weight_decay_loss = all_model.add_weight_decay(
+                    weight_decay_loss = add_weight_decay(
                         model, adjust_per_optimizer=True)
                     weight_decay_loss_scale = tf.nn.scale_regularization_loss(
                         weight_decay_loss)
@@ -960,7 +957,8 @@ def main(argv):
                             zip(gradients, model.trainable_variables))
 
                     elif FLAGS.distributed_optimization == "mix_precision_overlab_patches":
-                        logging.info("You implement mix_precion_overlab_patches")
+                        logging.info(
+                            "You implement mix_precion_overlab_patches")
                         # Reduce loss Precision to 16 Bits
                         scaled_loss = optimizer.get_scaled_loss(loss)
                         scaled_gradients = tape.gradient(
@@ -993,12 +991,12 @@ def main(argv):
             global_step = optimizer.iterations
             for epoch in range(FLAGS.train_epochs):
                 total_loss = 0.0
-                num_batches=0
+                num_batches = 0
                 for _, (ds_one, ds_two) in enumerate(train_multi_worker_dataset):
 
                     total_loss += distributed_train_step(ds_one, ds_two)
-                    num_batches+=1
-                    #if (global_step.numpy() + 1) % checkpoint_steps == 0:
+                    num_batches += 1
+                    # if (global_step.numpy() + 1) % checkpoint_steps == 0:
 
                     with summary_writer.as_default():
                         cur_step = global_step.numpy()
@@ -1010,15 +1008,15 @@ def main(argv):
                             tf.io.gfile.rmtree(write_checkpoint_dir)
 
                         logging.info('Completed: %d / %d steps',
-                                        cur_step, train_steps)
+                                     cur_step, train_steps)
                         metrics.log_and_write_metrics_to_summary(
                             all_metrics, cur_step)
                         tf.summary.scalar('learning_rate', lr_schedule(tf.cast(global_step, dtype=tf.float32)),
-                                            global_step)
+                                          global_step)
                         summary_writer.flush()
-                epoch_loss= total_loss/num_classes
+                epoch_loss = total_loss/num_classes
                 # Wandb Configure for Visualize the Model Training
-               
+
                 wandb.log({
                     "epochs": epoch+1,
                     "train_Binary_contrast_loss": contrast_loss_metric.result(),
