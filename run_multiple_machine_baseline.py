@@ -651,7 +651,7 @@ def main(argv):
         "Temperature": FLAGS.temperature,
         "Optimizer": FLAGS.optimizer,
         "SEED": FLAGS.SEED,
-        "Loss type": "NCE_Loss Temperature",
+        "Loss type": FLAGS.loss_options,
     }
 
     wandb.init(project="heuristic_attention_representation_learning",

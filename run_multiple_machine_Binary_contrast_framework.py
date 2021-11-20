@@ -49,6 +49,10 @@ flags.DEFINE_integer(
     'num_workers', 2,
     'Number of machine use for training.')
 
+flags.DEFINE_boolean(
+    'with_option', False,  # set it to false --> Will change in future update
+    'Configure loading data for multi_machine with configure Option.')
+
 
 # *****************************************************
 # General Define
@@ -680,7 +684,7 @@ def main(argv):
     configs = {
 
         "Model_Arch": "ResNet50",
-        "Training mode": "Multi_machine Binary Conttrast",
+        "Training mode": "Multi_machine Binary Contrast",
         "DataAugmentation_types": "Random_Global_style_Croping",
         "Dataset": "ImageNet1k",
 
@@ -691,7 +695,7 @@ def main(argv):
         "Temperature": FLAGS.temperature,
         "Optimizer": FLAGS.optimizer,
         "SEED": FLAGS.SEED,
-        "Loss type": "NCE_Loss Temperature",
+        "Loss type": FLAGS.contrast_binary_loss,
     }
 
     wandb.init(project="heuristic_attention_representation_learning",
