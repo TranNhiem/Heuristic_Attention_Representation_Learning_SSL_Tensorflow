@@ -37,7 +37,7 @@ flags.DEFINE_enum(
     'communication_method to aggreate gradient for multiple machines.')
 
 flags.DEFINE_enum(
-    'distributed_optimization', 'mix_precision_16_Fp', [
+    'distributed_optimization', 'mix_precision_overlab_patches', [
         'mix_precision_16_Fp', 'mix_precision_overlab_patches'],
     'optimization for parallel training increasing throughput.')
 
