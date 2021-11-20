@@ -42,7 +42,7 @@ flags.DEFINE_enum(
 
 flags.DEFINE_enum(
     'distributed_optimization', 'mix_precision_16_Fp', [
-        'mix_precision_16_Fp', 'mix_precion_overlab_patches'],
+        'mix_precision_16_Fp', 'mix_precision_overlab_patches'],
     'optimization for parallel training increasing throughput.')
 
 flags.DEFINE_integer(
@@ -948,7 +948,7 @@ def main(argv):
                     # ------------------------------------------
                     # Mix-Percision Gradient Flow 16 and 32 (bits) and Overlab Gradient Backprobagation
                     # ------------------------------------------
-                    if FLAGS.distributed_optimization == "mix_percision_16_Fp":
+                    if FLAGS.distributed_optimization == "mix_precision_16_Fp":
                         logging.info(" You implement mix_percision_16_Fp")
                         # Reduce loss Precision to 16 Bits
                         scaled_loss = optimizer.get_scaled_loss(loss)
@@ -959,7 +959,7 @@ def main(argv):
                         optimizer.apply_gradients(
                             zip(gradients, model.trainable_variables))
 
-                    elif FLAGS.distributed_optimization == "mix_precion_overlab_patches":
+                    elif FLAGS.distributed_optimization == "mix_precision_overlab_patches":
                         logging.info("You implement mix_precion_overlab_patches")
                         # Reduce loss Precision to 16 Bits
                         scaled_loss = optimizer.get_scaled_loss(loss)
