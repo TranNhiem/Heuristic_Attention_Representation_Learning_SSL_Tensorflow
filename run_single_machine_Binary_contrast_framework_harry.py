@@ -190,7 +190,7 @@ flags.DEFINE_boolean(
     'L2 Normalization Vector representation.')
 
 flags.DEFINE_enum(
-    'downample_mod', 'space_to_depth', ['space_to_depth', 'maxpooling'],
+    'downsample_mod', 'space_to_depth', ['space_to_depth', 'maxpooling'],
     'How the head upsample is done.')
 
 # -------------------------------------------------------------------

@@ -4,10 +4,14 @@ from absl import app
 import tensorflow as tf
 from learning_rate_optimizer import WarmUpAndCosineDecay
 import os
-from self_supervised_losses import nt_xent_symetrize_loss_simcrl, nt_xent_asymetrize_loss_v2
+
 from byol_simclr_imagenet_data import imagenet_dataset_multi_machine
 import metrics
-import model_for_non_contrastive_framework as all_model
+# binary_mask_nt_xent_object_backgroud_sum_loss
+from self_supervised_losses import *
+from Model_resnet_harry import SSL_train_model_Model
+from model import build_optimizer_multi_machine, add_weight_decay
+
 import objective as obj_lib
 import json
 import math
@@ -89,6 +93,20 @@ flags.DEFINE_integer(
 flags.DEFINE_integer(
     'train_epochs', 200,
     'Number of epochs to train for.')
+
+
+flags.DEFINE_string(
+    'train_path', "/data1/1KNew/ILSVRC2012_img_train",
+    'Train dataset path.')
+
+flags.DEFINE_string(
+    'val_path', "/data1/1KNew/ILSVRC2012_img_val",
+    'Validaion dataset path.')
+
+flags.DEFINE_string(
+    'mask_path', "train_binary_mask_by_USS",
+    'Mask path.')
+
 
 # *****************************************************
 # Define for Linear Evaluation
@@ -200,8 +218,13 @@ flags.DEFINE_boolean(
     'hidden_norm', True,
     'L2 Normalization Vector representation.')
 
+flags.DEFINE_enum(
+    'downsample_mod', 'space_to_depth', ['space_to_depth', 'maxpooling'],
+    'How the head upsample is done.')
+
+
 # *****************************************************
-# Configure Model Training
+# Configure Model Training -- Loss function implementation -- Evaluation -- Fine Tuning
 # *****************************************************
 
 flags.DEFINE_enum(
@@ -219,6 +242,30 @@ flags.DEFINE_enum(
     'aggregate_loss', 'contrastive', [
         'contrastive', 'contrastive_supervised', ],
     'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
+
+flags.DEFINE_float(
+    # Weighted loss is the scaling term between  [weighted_loss]*Binary & [1-weighted_loss]*original contrastive loss)
+    'weighted_loss', 0.7,
+    'weighted_loss value is configuration the weighted of original and Binary contrastive loss.'
+)
+
+flags.DEFINE_enum(
+    'contrast_binary_loss', 'sum_contrast_obj_back',
+    # 4 Options Loss for training.
+    [
+        # two version binary_mask_nt_xent_object_backgroud_sum_loss, binary_mask_nt_xent_object_backgroud_sum_loss_v1
+        "sum_contrast_obj_back",
+        "only_object",  # binary_mask_nt_xent_only_Object_loss
+        # Concatenate (Object + Background feature together)
+        "original_contrast_add_backgroud_object",
+        # nt_xent_symetrize_loss_object_level_whole_image_contrast
+        "Original_loss_add_contrast_level_object",
+    ],
+    # sum_contrast_obj_back is Sum-up contrastive loss from backgroud and Object with scaling alpha
+    #
+    'Contrast binary Framework consider three different LOSSES')
+
+
 
 flags.DEFINE_enum(
     'loss_options' , 'loss_v0', 
@@ -601,9 +648,9 @@ def main(argv):
                                                     img_path=None, x_val=x_val,  x_train=x_train, bi_mask=False)
 
     train_multi_worker_dataset = strategy.distribute_datasets_from_function(
-        lambda input_context: dataset_loader.simclr_inception_style_crop(input_context))
+        lambda input_context: dataset_loader.simclr_random_global_crop_image_mask(input_context))
 
-    val_multi_worker_dataset = strategy.distribute_datasets_from_function(
+    val_multi_worker_dataset = strategy.supervised_validation(
         lambda input_context: dataset_loader.supervised_validation(input_context))
 
     num_classes = FLAGS.num_classes
@@ -627,15 +674,16 @@ def main(argv):
 
     # Configure the Encoder Architecture.
     with strategy.scope():
-        model = all_model.Model(num_classes)
+        model = SSL_train_model_Model(num_classes=FLAGS.num_classes)
+
 
     # Configure Wandb Training
     # Weight&Bias Tracking Experiment
     configs = {
 
         "Model_Arch": "ResNet50",
-        "Training mode": "Multi_machine SSL",
-        "DataAugmentation_types": "SimCLR_Inception_style_Croping",
+        "Training mode": "Multi_machine Binary Conttrast",
+        "DataAugmentation_types": "Random_Global_style_Croping",
         "Dataset": "ImageNet1k",
 
         "IMG_SIZE": FLAGS.image_size,
@@ -683,7 +731,7 @@ def main(argv):
                 train_epochs=train_epochs, train_steps=train_steps)
 
             # Current Implement the Mixpercision optimizer
-            optimizer = all_model.build_optimizer_multi_machine(lr_schedule)
+            optimizer = build_optimizer_multi_machine(lr_schedule)
 
             # Build tracking metrics
             all_metrics = []
@@ -695,11 +743,11 @@ def main(argv):
             if FLAGS.train_mode == 'pretrain':
                 # for contrastive metrics
                 contrast_loss_metric = tf.keras.metrics.Mean(
-                    'train/contrast_loss')
+                    'train/binary_contrast_loss')
                 contrast_acc_metric = tf.keras.metrics.Mean(
-                    "train/contrast_acc")
+                    "train/binary_contrast_Obj_acc")
                 contrast_entropy_metric = tf.keras.metrics.Mean(
-                    'train/contrast_entropy')
+                    'train/binary_contrast_Obj_entropy')
                 all_metrics.extend(
                     [contrast_loss_metric, contrast_acc_metric, contrast_entropy_metric])
 
@@ -731,49 +779,115 @@ def main(argv):
             steps_per_loop = checkpoint_steps
 
 
+
             # Scale loss  --> Aggregating all Gradients
-            def distributed_loss(x1, x2):
-                if FLAGS.loss_options =="loss_v0": 
-                    # each GPU loss per_replica batch loss
-                    per_example_loss, logits_ab, labels = nt_xent_symetrize_loss_simcrl(
-                        x1, x2, LARGE_NUM=FLAGS.LARGE_NUM, hidden_norm=FLAGS.hidden_norm, temperature=FLAGS.temperature)
-                    
-                elif FLAGS.loss_options =="loss_v1": 
-                    # each GPU loss per_replica batch loss
-                    x_1_2= tf.concat([x1, x2], axis=0)
-                    per_example_loss, logits_ab, labels = nt_xent_asymetrize_loss_v2(
-                        x_1_2,  temperature=FLAGS.temperature)
-                    
-                else: 
-                    raise ValueError("Loss version is not implement yet")
+            def distributed_Binary_contrast_loss(x1, x2, v1, v2):
+                # each GPU loss per_replica batch loss
+                if FLAGS.contrast_binary_loss == 'sum_contrast_obj_back':
+
+                    #Optional [binary_mask_nt_xent_object_backgroud_sum_loss, binary_mask_nt_xent_object_backgroud_sum_loss_v1]
+                    if FLAGS.loss_options == 'loss_v0':
+                        per_example_loss, logits_o_ab, labels = binary_mask_nt_xent_object_backgroud_sum_loss(
+                            x1, x2, v1, v2, LARGE_NUM=FLAGS.LARGE_NUM, alpha=FLAGS.alpha, temperature=FLAGS.temperature)
+
+                    elif FLAGS.loss_options == 'loss_v1':
+                        O_b_1 = tf.concat([x1, v1], axis=0)
+                        O_b_2 = tf.concat([x2, v2], axis=0)
+                        per_example_loss, logits_o_ab,  labels = binary_mask_nt_xent_object_backgroud_sum_loss_v1(
+                            O_b_1, O_b_2,  alpha=FLAGS.alpha, temperature=FLAGS.temperature)
+                    else:
+                        raise ValueError("Loss version not implement yet")
+
+                elif FLAGS.contrast_binary_loss == 'original_contrast_add_backgroud_object':
+
+                    #Optional [nt_xent_symetrize_loss_simcrl, nt_xent_asymetrize_loss_v2]
+
+                    if FLAGS.loss_options == 'loss_v0':
+                        O_b_1 = tf.concat([x1, v1], axis=0)
+                        O_b_2 = tf.concat([x2, v2], axis=0)
+                        per_example_loss, logits_OB_ab,  labels = nt_xent_symetrize_loss_simcrl(
+                            O_b_1, O_b_2,  LARGE_NUM=FLAGS.LARGE_NUM, temperature=FLAGS.temperature)
+
+                    elif FLAGS.loss_options == 'loss_v1':
+                        O_b_1 = tf.concat([x1, v1], axis=0)
+                        O_b_2 = tf.concat([x2, v2], axis=0)
+                        all_ob_1_2 = tf.concat([O_b_1, O_b_2], axis=0)
+                        per_example_loss, logits_OB_ab, labels = nt_xent_asymetrize_loss_v2(
+                            all_ob_1_2,   temperature=FLAGS.temperature)
+                    else:
+                        raise ValueError("Loss version not implement yet")
+
+                elif FLAGS.contrast_binary_loss == 'only_object':
+
+                    #Optional [nt_xent_symetrize_loss_simcrl, nt_xent_asymetrize_loss_v2]
+                    if FLAGS.loss_options == 'loss_v0':
+
+                        per_example_loss, logits_o_ab,  labels = nt_xent_symetrize_loss_simcrl(
+                            x1, x2,  LARGE_NUM=FLAGS.LARGE_NUM, temperature=FLAGS.temperature)
+
+                    elif FLAGS.loss_options == 'loss_v1':
+                        O_1_2 = tf.concat([x1, x2], axis=0)
+                        per_example_loss, logits_o_ab, labels = nt_xent_asymetrize_loss_v2(
+                            O_1_2,   temperature=FLAGS.temperature)
+                    else:
+                        raise ValueError("Loss version not implement yet")
+
+                else:
+                    raise ValueError("Binary Contrastive Loss is Invalid")
 
                 # total sum loss //Global batch_size
                 loss = tf.reduce_sum(per_example_loss) * \
-                    (1./train_global_batch_size)
-                return loss, logits_ab, labels
+                    (1./train_global_batch)
 
+                return loss, logits_o_ab, labels
+
+            def distributed_Orginal_add_Binary_contrast_loss(x1, x2, v1, v2, img_1, img_2):
+                #Optional [binary_mask_nt_xent_object_backgroud_sum_loss, binary_mask_nt_xent_object_backgroud_sum_loss_v1]
+                if FLAGS.loss_options == 'loss_v0':
+                    per_example_loss, logits_o_ab, labels = nt_xent_symetrize_loss_object_level_whole_image_contrast(
+                        x1, x2, v1, v2, img_1, img_2, LARGE_NUM=FLAGS.LARGE_NUM, weight_loss=FLAGS.weighted_loss, temperature=FLAGS.temperature)
+
+                elif FLAGS.loss_options == 'loss_v1':
+
+                    per_example_loss, logits_o_ab, labels = nt_xent_symetrize_loss_object_level_whole_image_contrast_v1(
+                        x1, x2, v1, v2, img_1, img_2,  weight_loss=FLAGS.weighted_loss, temperature=FLAGS.temperature)
+                else:
+                    raise ValueError("Loss version not implement yet")
+
+                # total sum loss //Global batch_size
+                loss = tf.reduce_sum(per_example_loss) * \
+                    (1./train_global_batch)
+
+                return loss, logits_o_ab, labels
 
             @tf.function
             def train_step(ds_one, ds_two):
-                # Get the data from
-                images_one, lable_one = ds_one
-                images_two, lable_two = ds_two
+                 # Get the data from
+                images_mask_one, lable_1, = ds_one  # lable_one
+                images_mask_two, lable_2,  = ds_two  # lable_two
 
                 with tf.GradientTape() as tape:
 
-                    proj_head_output_1, supervised_head_output_1 = model(
-                        images_one, training=True)
-                    proj_head_output_2, supervised_head_output_2 = model(
-                        images_two, training=True)
+                    obj_1, backg_1,  proj_head_output_1, supervised_head_output_1 = model(
+                        [images_mask_one[0], tf.expand_dims(images_mask_one[1], axis=-1)], training=True)
+                    obj_2, backg_2, proj_head_output_2, supervised_head_output_2 = model(
+                        [images_mask_two[0], tf.expand_dims(images_mask_two[1], axis=-1)], training=True)
 
                     # Compute Contrastive Train Loss -->
                     loss = None
-                    if proj_head_output_1 is not None:
+                    if obj_1 is not None:
+    
+                        if FLAGS.contrast_binary_loss == 'Original_loss_add_contrast_level_object':
+                            loss, logits_o_ab, labels = distributed_Orginal_add_Binary_contrast_loss(obj_1, obj_2,  backg_1, backg_2,
+                                                                                                     proj_head_output_1, proj_head_output_2)
 
-                        scale_con_loss, logit_ab, lables = distributed_loss(proj_head_output_1, proj_head_output_2)
-                                                                                             
+                        else:
+                            # Compute Contrastive Loss model
+                            loss, logits_o_ab, labels = distributed_Binary_contrast_loss(
+                                obj_1, obj_2,  backg_1, backg_2)
+                                                             
                         # Reduce loss Precision to 16 Bits
-                        scale_con_loss = optimizer.get_scaled_loss(scale_con_loss)
+                        scale_con_loss = optimizer.get_scaled_loss(loss)
                         # Output to Update Contrastive
                         if loss is None:
                             loss = scale_con_loss
@@ -835,6 +949,7 @@ def main(argv):
                     # Mix-Percision Gradient Flow 16 and 32 (bits) and Overlab Gradient Backprobagation
                     # ------------------------------------------
                     if FLAGS.distributed_optimization == "mix_percision_16_Fp":
+                        logging.info(" You implement mix_percision_16_Fp")
                         # Reduce loss Precision to 16 Bits
                         scaled_loss = optimizer.get_scaled_loss(loss)
                         scaled_gradients = tape.gradient(
@@ -845,6 +960,7 @@ def main(argv):
                             zip(gradients, model.trainable_variables))
 
                     elif FLAGS.distributed_optimization == "mix_precion_overlab_patches":
+                        logging.info("You implement mix_precion_overlab_patches")
                         # Reduce loss Precision to 16 Bits
                         scaled_loss = optimizer.get_scaled_loss(loss)
                         scaled_gradients = tape.gradient(
@@ -882,31 +998,32 @@ def main(argv):
 
                     total_loss += distributed_train_step(ds_one, ds_two)
                     num_batches+=1
-                    if (global_step.numpy() + 1) % checkpoint_steps == 0:
+                    #if (global_step.numpy() + 1) % checkpoint_steps == 0:
 
-                        with summary_writer.as_default():
-                            cur_step = global_step.numpy()
+                    with summary_writer.as_default():
+                        cur_step = global_step.numpy()
 
-                            # Checkpoint steps is here
-                            checkpoint_manager.save(cur_step)
-                            # Removing the checkpoint if it is not Chief Worker
-                            if not chief_worker(task_type, task_id):
-                                tf.io.gfile.rmtree(write_checkpoint_dir)
+                        # Checkpoint steps is here
+                        checkpoint_manager.save(cur_step)
+                        # Removing the checkpoint if it is not Chief Worker
+                        if not chief_worker(task_type, task_id):
+                            tf.io.gfile.rmtree(write_checkpoint_dir)
 
-                            logging.info('Completed: %d / %d steps',
-                                         cur_step, train_steps)
-                            metrics.log_and_write_metrics_to_summary(
-                                all_metrics, cur_step)
-                            tf.summary.scalar('learning_rate', lr_schedule(tf.cast(global_step, dtype=tf.float32)),
-                                              global_step)
-                            summary_writer.flush()
+                        logging.info('Completed: %d / %d steps',
+                                        cur_step, train_steps)
+                        metrics.log_and_write_metrics_to_summary(
+                            all_metrics, cur_step)
+                        tf.summary.scalar('learning_rate', lr_schedule(tf.cast(global_step, dtype=tf.float32)),
+                                            global_step)
+                        summary_writer.flush()
                 epoch_loss= total_loss/num_classes
                 # Wandb Configure for Visualize the Model Training
+               
                 wandb.log({
                     "epochs": epoch+1,
-                    "train_contrast_loss": contrast_loss_metric.result(),
-                    "train_contrast_acc": contrast_acc_metric.result(),
-                    "train_contrast_acc_entropy": contrast_entropy_metric.result(),
+                    "train_Binary_contrast_loss": contrast_loss_metric.result(),
+                    "train_Binary_contrast_acc": contrast_acc_metric.result(),
+                    "train_Binary_contrast_acc_entropy": contrast_entropy_metric.result(),
                     "train/weight_decay": weight_decay_metric.result(),
                     "train/total_loss": epoch_loss,
                     "train/supervised_loss":    supervised_loss_metric.result(),

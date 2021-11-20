@@ -959,7 +959,7 @@ class SSL_train_model_Model(tf.keras.models.Model):
         #print("feature_map_upsample", feature_map_upsample.shape)
 
         # Add heads
-        if FLAGS.downample_mod == 'maxpooling':
+        if FLAGS.downsample_mod == 'maxpooling':
             #using the maxpooling to do th downsample
             if FLAGS.train_mode == 'pretrain':
                 # object and background indexer
