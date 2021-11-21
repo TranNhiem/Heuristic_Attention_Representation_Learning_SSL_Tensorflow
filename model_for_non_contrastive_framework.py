@@ -23,7 +23,7 @@ import lars_optimizer
 import resnet
 from Model_resnet_harry import resnet as resnet_modify
 import tensorflow as tf
-from learning_rate_optimizer import get_optimizer, optimizer_weight_decay
+from learning_rate_optimizer import get_optimizer
 from tensorflow.keras import mixed_precision
 
 FLAGS = flags.FLAGS
@@ -39,8 +39,8 @@ def build_optimizer(lr_schedule):
     '''
 
     Optimizer_type = FLAGS.optimizer
-    optimizers = optimizer_weight_decay(lr_schedule, Optimizer_type)
-    optimizer = optimizers.original_optimizer(FLAGS)
+    optimizers = get_optimizer(lr_schedule, Optimizer_type)
+    optimizer = optimizers.optimizer_weight_decay(FLAGS)
     #optimizer_mix_percision = mixed_precision.LossScaleOptimizer(optimizer)
 
     return optimizer
@@ -56,8 +56,8 @@ def build_optimizer_multi_machine(lr_schedule):
     '''
 
     Optimizer_type = FLAGS.optimizer
-    optimizers = optimizer_weight_decay(lr_schedule, Optimizer_type)
-    optimizer = optimizers.original_optimizer(FLAGS)
+    optimizers = get_optimizer(lr_schedule, Optimizer_type)
+    optimizer = optimizers.optimizer_weight_decay(FLAGS)
     optimizer_mix_percision = mixed_precision.LossScaleOptimizer(optimizer)
 
     return optimizer_mix_percision
