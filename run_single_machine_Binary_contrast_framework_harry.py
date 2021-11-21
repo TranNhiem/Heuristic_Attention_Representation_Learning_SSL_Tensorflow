@@ -758,10 +758,22 @@ def main(argv):
 
                         '''Attention'''
                         # Noted Consideration Aggregate (Supervised + Contrastive Loss) --> Update the Model Gradient
-                        if loss is None:
-                            loss = scale_sup_loss
-                        else:
-                            loss += scale_sup_loss
+                        if FLAGS.aggregate_loss== "contrastive_supervised": 
+                            if loss is None:
+                                loss = scale_sup_loss
+                            else:
+                                loss += scale_sup_loss
+
+                        elif FLAGS.aggregate_loss== "contrastive":
+                           
+                            supervise_loss=None
+                            if supervise_loss is None:
+                                supervise_loss = scale_sup_loss
+                            else:
+                                supervise_loss += scale_sup_loss
+                        else: 
+                            raise ValueError(" Loss aggregate is invalid please check FLAGS.aggregate_loss")
+                    
 
                     weight_decay_loss = add_weight_decay(
                         model, adjust_per_optimizer=True)

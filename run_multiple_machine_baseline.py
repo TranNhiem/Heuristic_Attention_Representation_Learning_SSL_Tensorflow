@@ -851,7 +851,9 @@ def main(argv):
                                 supervise_loss = scale_sup_loss
                             else:
                                 supervise_loss += scale_sup_loss
-
+                        else: 
+                            raise ValueError(" Loss aggregate is invalid please check FLAGS.aggregate_loss")
+                    
                     # Consideration Remove L2 Regularization Loss 
                     # --> This Only Use for Supervised Head
                     weight_decay_loss = all_model.add_weight_decay(

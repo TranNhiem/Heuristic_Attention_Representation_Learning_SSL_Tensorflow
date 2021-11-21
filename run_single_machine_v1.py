@@ -741,24 +741,37 @@ with strategy.scope():
                                                                 supervised_acc_metric, scale_sup_loss,
                                                                 l, outputs)
 
-                    '''Attention'''
-                    # Noted Consideration Aggregate (Supervised + Contrastive Loss) --> Update the Model Gradient
-                        if loss is None:
-                            loss = scale_sup_loss
-                        else:
-                            loss += scale_sup_loss
+                        '''Attention'''
+                        # Noted Consideration Aggregate (Supervised + Contrastive Loss) --> Update the Model Gradient
+                        if FLAGS.aggregate_loss== "contrastive_supervised": 
+                            if loss is None:
+                                loss = scale_sup_loss
+                            else:
+                                loss += scale_sup_loss
+
+                        elif FLAGS.aggregate_loss== "contrastive":
+                           
+                            supervise_loss=None
+                            if supervise_loss is None:
+                                supervise_loss = scale_sup_loss
+                            else:
+                                supervise_loss += scale_sup_loss
+                        else: 
+                            raise ValueError(" Loss aggregate is invalid please check FLAGS.aggregate_loss")
+                    
 
                     weight_decay_loss = all_model.add_weight_decay(
                         model, adjust_per_optimizer=True)
 
-                    weight_decay_loss_scale = tf.nn.scale_regularization_loss(
-                        weight_decay_loss)
-                    weight_decay_metric.update_state(weight_decay_loss_scale)
-                    loss += weight_decay_loss_scale
+                    # Under experiment Scale loss after adding Regularization and scaled by Batch_size
+                    # weight_decay_loss = tf.nn.scale_regularization_loss(
+                    #     weight_decay_loss)
+                    weight_decay_metric.update_state(weight_decay_loss)
+                    loss += weight_decay_loss
 
-                    scale_loss = tf.reduce_sum(
-                        loss) * (1. / train_global_batch)
-                    total_loss_metric.update_state(scale_loss)
+                     # Contrast Loss +  Supervised + Regularization Loss
+                    total_loss_metric.update_state(loss)
+
 
                     logging.info('Trainable variables:')
 
@@ -766,11 +779,11 @@ with strategy.scope():
                         logging.info(var.name)
 
                     grads = tape.gradient(
-                        scale_loss, model.trainable_variables)
+                        loss, model.trainable_variables)
                     optimizer.apply_gradients(
                         zip(grads, model.trainable_variables))
 
-                return scale_loss
+                return loss
 
             @tf.function
             def distributed_train_step(ds_one, ds_two):
