@@ -87,15 +87,15 @@ flags.DEFINE_integer(
     'Number of class in dataset.')
 
 flags.DEFINE_integer(
-    'single_machine_train_batch_size', 200,
+    'single_machine_train_batch_size', 500,
     'Train batch_size .')
 
 flags.DEFINE_integer(
-    'single_machine_val_batch_size', 200,
+    'single_machine_val_batch_size', 500,
     'Validaion_Batch_size.')
 
 flags.DEFINE_integer(
-    'train_epochs', 200,
+    'train_epochs', 400,
     'Number of epochs to train for.')
 
 
