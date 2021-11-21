@@ -826,11 +826,19 @@ def main(argv):
                         # --> Update the Model Gradient base on Loss  
                         # Option 1: Only use Contrast loss 
                         # option 2: Contrast Loss + Supervised Loss 
+                        if FLAGS.aggregate_loss== "contrastive_supervised": 
+                            if loss is None:
+                                loss = scale_sup_loss
+                            else:
+                                loss += scale_sup_loss
 
-                        if loss is None:
-                            loss = scale_sup_loss
-                        else:
-                            loss += scale_sup_loss
+                        elif FLAGS.aggregate_loss== "contrastive":
+                           
+                            supervise_loss=None
+                            if supervise_loss is None:
+                                supervise_loss = scale_sup_loss
+                            else:
+                                supervise_loss += scale_sup_loss
 
                     # Consideration Remove L2 Regularization Loss 
                     # --> This Only Use for Supervised Head
@@ -839,6 +847,7 @@ def main(argv):
                    # Under experiment Scale loss after adding Regularization and scaled by Batch_size
                     # weight_decay_loss = tf.nn.scale_regularization_loss(
                     #     weight_decay_loss)
+                    
                     weight_decay_metric.update_state(weight_decay_loss)
                 
                     loss += weight_decay_loss
