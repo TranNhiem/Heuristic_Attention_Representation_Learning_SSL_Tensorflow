@@ -10,7 +10,7 @@ from absl import app
 import tensorflow as tf
 from learning_rate_optimizer import WarmUpAndCosineDecay
 import metrics
-from byol_simclr_imagenet_data import imagenet_dataset_single_machine
+from byol_simclr_imagenet_data_harry import imagenet_dataset_single_machine
 from self_supervised_losses import nt_xent_symetrize_loss_simcrl, nt_xent_asymetrize_loss_v2
 import model as all_model
 import objective as obj_lib

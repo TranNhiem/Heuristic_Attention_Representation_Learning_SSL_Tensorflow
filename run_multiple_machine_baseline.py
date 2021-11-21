@@ -836,10 +836,11 @@ def main(argv):
                     # --> This Only Use for Supervised Head
                     weight_decay_loss = all_model.add_weight_decay(
                         model, adjust_per_optimizer=True)
+                    ## Scale the Regularization Loss after Scale by Global Batch_size
                     # weight_decay_loss_scale = tf.nn.scale_regularization_loss(
-                    #     weight_decay_loss)
+                    #      weight_decay_loss)
                     weight_decay_metric.update_state(weight_decay_loss)
-                    loss += weight_decay_loss_scale
+                    loss += weight_decay_loss
                     # Contrast loss + Supervised loss + Regularize loss
                     total_loss_metric.update_state(loss)
 
