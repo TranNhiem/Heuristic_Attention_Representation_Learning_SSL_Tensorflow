@@ -35,12 +35,29 @@ def build_optimizer(lr_schedule):
     lr_schedule: learning values.
 
     Return:
+    'original', 'optimizer_weight_decay','optimizer_GD','optimizer_W_GD' 
     optimizer.
     '''
+    if FLAGS.optimizer_type= "original": 
+        Optimizer_type = FLAGS.optimizer
+        optimizers = get_optimizer(lr_schedule, Optimizer_type)
+        optimizer = optimizers.original_optimizer(FLAGS)
+    elif FLAGS.optimizer_type= "optimizer_weight_decay": 
+        Optimizer_type = FLAGS.optimizer
+        optimizers = get_optimizer(lr_schedule, Optimizer_type)
+        optimizer = optimizers.optimizer_weight_decay(FLAGS)
 
-    Optimizer_type = FLAGS.optimizer
-    optimizers = get_optimizer(lr_schedule, Optimizer_type)
-    optimizer = optimizers.optimizer_weight_decay(FLAGS)
+    elif  FLAGS.optimizer_type= "optimizer_GD": 
+        Optimizer_type = FLAGS.optimizer
+        optimizers = get_optimizer(lr_schedule, Optimizer_type)
+        optimizer = optimizers.optimizer_gradient_centralization(FLAGS)
+
+    elif  FLAGS.optimizer_type= "optimizer_W_GD"
+        Optimizer_type = FLAGS.optimizer
+        optimizers = get_optimizer(lr_schedule, Optimizer_type)
+        optimizer = optimizers.optimizer_weight_decay_gradient_centralization(FLAGS)
+    else: 
+        raise ValueError(" FLAGS.Optimizer type is invalid please check again")
     #optimizer_mix_percision = mixed_precision.LossScaleOptimizer(optimizer)
 
     return optimizer
@@ -52,13 +69,34 @@ def build_optimizer_multi_machine(lr_schedule):
     lr_schedule: learning values.
 
     Return:
-    The mix_percision optimizer.
+    The mix_percision optimizer.'optimizer_weight_decay','optimizer_GD','optimizer_W_GD' 
     '''
 
-    Optimizer_type = FLAGS.optimizer
-    optimizers = get_optimizer(lr_schedule, Optimizer_type)
-    optimizer = optimizers.optimizer_weight_decay(FLAGS)
-    optimizer_mix_percision = mixed_precision.LossScaleOptimizer(optimizer)
+    if FLAGS.optimizer_type= "original": 
+        Optimizer_type = FLAGS.optimizer
+        optimizers = get_optimizer(lr_schedule, Optimizer_type)
+        optimizer = optimizers.original_optimizer(FLAGS)
+        optimizer_mix_percision = mixed_precision.LossScaleOptimizer(optimizer)
+    elif FLAGS.optimizer_type= "optimizer_weight_decay": 
+        Optimizer_type = FLAGS.optimizer
+        optimizers = get_optimizer(lr_schedule, Optimizer_type)
+        optimizer = optimizers.optimizer_weight_decay(FLAGS)
+        optimizer_mix_percision = mixed_precision.LossScaleOptimizer(optimizer)
+
+    elif  FLAGS.optimizer_type= "optimizer_GD": 
+        Optimizer_type = FLAGS.optimizer
+        optimizers = get_optimizer(lr_schedule, Optimizer_type)
+        optimizer = optimizers.optimizer_gradient_centralization(FLAGS)
+        optimizer_mix_percision = mixed_precision.LossScaleOptimizer(optimizer)
+
+    elif  FLAGS.optimizer_type= "optimizer_W_GD"
+        Optimizer_type = FLAGS.optimizer
+        optimizers = get_optimizer(lr_schedule, Optimizer_type)
+        optimizer = optimizers.optimizer_weight_decay_gradient_centralization(FLAGS)
+        optimizer_mix_percision = mixed_precision.LossScaleOptimizer(optimizer)
+    else: 
+        raise ValueError(" FLAGS.Optimizer type is invalid please check again")
+    #optimizer_mix_percision = mixed_precision.LossScaleOptimizer(optimizer)
 
     return optimizer_mix_percision
 

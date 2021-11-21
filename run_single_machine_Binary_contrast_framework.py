@@ -117,14 +117,24 @@ flags.DEFINE_integer(
 flags.DEFINE_enum(
     'lr_rate_scaling', 'linear', ['linear', 'sqrt', 'no_scale', ],
     'How to scale the learning rate as a function of batch size.')
-
 # Optimizer
-
 flags.DEFINE_enum(
-    # Same as the Original Simclrv2 Design
+    # Same the Original SimClRV2 training Configure
+    '''ATTENTION'''
+    # if Change the Optimizer please change --
     'optimizer', 'LARSW', ['Adam', 'SGD', 'LARS', 'AdamW', 'SGDW', 'LARSW',
                           'AdamGC', 'SGDGC', 'LARSGC', 'AdamW_GC', 'SGDW_GC', 'LARSW_GC'],
     'How to scale the learning rate as a function of batch size.')
+
+flags.DEFINE_enum(
+    # Same the Original SimClRV2 training Configure
+    # 1. original for ['Adam', 'SGD', 'LARS']
+    # 2.optimizer_weight_decay for ['AdamW', 'SGDW', 'LARSW']
+    # 3. optimizer_GD fir  ['AdamGC', 'SGDGC', 'LARSGC']
+    # 4. optimizer_W_GD for ['AdamW_GC', 'SGDW_GC', 'LARSW_GC']
+
+    'optimizer_type', 'optimizer_weight_decay', ['original', 'optimizer_weight_decay','optimizer_GD','optimizer_W_GD' ],
+    'Optimizer type corresponding to Configure of optimizer')
 
 flags.DEFINE_float(
     'momentum', 0.9,
