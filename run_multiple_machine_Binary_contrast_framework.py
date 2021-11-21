@@ -654,7 +654,7 @@ def main(argv):
     train_global_batch_size = per_worker_train_batch_size * FLAGS.num_workers
     val_global_batch_size = per_worker_val_batch_size * FLAGS.num_workers
     
-    dataset_loader = imagenet_dataset_single_machine(img_size=FLAGS.image_size, train_batch=train_global_batch_size,  val_batch=val_global_batch_size,
+    dataset_loader = imagenet_dataset_multi_machine(img_size=FLAGS.image_size, train_batch=train_global_batch_size,  val_batch=val_global_batch_size,
                                                     strategy=strategy, train_path=FLAGS.train_path,
                                                     val_path=FLAGS.val_path,
                                                     mask_path=FLAGS.mask_path, bi_mask=True)
