@@ -34,7 +34,7 @@ class LARSOptimizer(tf.keras.optimizers.Optimizer):
                  momentum=0.9,
                  use_nesterov=False,
                  weight_decay=0.0,
-                 exclude_from_weight_decay=None,
+                 exclude_from_weight_decay=['batch_normalization', 'bias', 'head_supervised'],
                  exclude_from_layer_adaptation=None,
                  classic_momentum=True,
                  eeta=EETA_DEFAULT,

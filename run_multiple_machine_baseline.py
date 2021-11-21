@@ -135,9 +135,9 @@ flags.DEFINE_enum(
     'How to scale the learning rate as a function of batch size.')
 
 # Optimizer
-
 flags.DEFINE_enum(
-    'optimizer', 'LARS', ['Adam', 'SGD', 'LARS', 'AdamW', 'SGDW', 'LARSW',
+    # Same the Original SimClRV2 training Configure
+    'optimizer', 'LARSW', ['Adam', 'SGD', 'LARS', 'AdamW', 'SGDW', 'LARSW',
                           'AdamGC', 'SGDGC', 'LARSGC', 'AdamW_GC', 'SGDW_GC', 'LARSW_GC'],
     'How to scale the learning rate as a function of batch size.')
 
@@ -779,8 +779,9 @@ def main(argv):
                             proj_head_output_1, proj_head_output_2)
 
                         # Reduce loss Precision to 16 Bits
-                        scale_con_loss = optimizer.get_scaled_loss(
-                            scale_con_loss)
+                        # scale_con_loss = optimizer.get_scaled_loss(
+                        #     scale_con_loss)
+
                         # Output to Update Contrastive
                         if loss is None:
                             loss = scale_con_loss
@@ -810,8 +811,10 @@ def main(argv):
                                 sup_loss) * (1. / train_global_batch_size)
 
                             # Reduce loss Precision to 16 Bits
-                            scale_sup_loss = optimizer.get_scaled_loss(
-                                scale_sup_loss)
+
+                            # scale_sup_loss = optimizer.get_scaled_loss(
+                            #     scale_sup_loss)
+
                             # Update Supervised Metrics
                             metrics.update_finetune_metrics_train(supervised_loss_metric,
                                                                   supervised_acc_metric, scale_sup_loss,
@@ -910,7 +913,8 @@ def main(argv):
                         tf.summary.scalar('learning_rate', lr_schedule(tf.cast(global_step, dtype=tf.float32)),
                                           global_step)
                         summary_writer.flush()
-                epoch_loss = total_loss/num_classes
+                
+                epoch_loss = total_loss/num_batches
                 # Wandb Configure for Visualize the Model Training
                 wandb.log({
                     "epochs": epoch+1,

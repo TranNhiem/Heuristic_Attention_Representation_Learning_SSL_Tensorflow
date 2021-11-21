@@ -117,7 +117,8 @@ flags.DEFINE_enum(
 # Optimizer
 
 flags.DEFINE_enum(
-    'optimizer', 'LARS', ['Adam', 'SGD', 'LARS', 'AdamW', 'SGDW', 'LARSW',
+    # Same the Original SimClR training Configure
+    'optimizer', 'LARSW', ['Adam', 'SGD', 'LARS', 'AdamW', 'SGDW', 'LARSW',
                           'AdamGC', 'SGDGC', 'LARSGC', 'AdamW_GC', 'SGDW_GC', 'LARSW_GC'],
     'How to scale the learning rate as a function of batch size.')
 
