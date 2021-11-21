@@ -807,8 +807,9 @@ def main(argv):
                             # Calculte the cross_entropy loss with Labels
                             sup_loss = obj_lib.add_supervised_loss(
                                 labels=supervised_lable, logits=outputs)
-                            scale_sup_loss = tf.reduce_sum(
-                                sup_loss) * (1. / train_global_batch_size)
+                            # scale_sup_loss = tf.reduce_sum(
+                            #     sup_loss) * (1. / train_global_batch_size)
+                            scale_sup_loss=tf.nn.compute_averageper_example_loss_loss(sup_loss, global_batch_size=train_global_batch_size)
 
                             # Reduce loss Precision to 16 Bits
 
@@ -821,18 +822,23 @@ def main(argv):
                                                                   supervised_lable, outputs)
 
                         '''Attention'''
-                        # Noted Consideration Aggregate (Supervised + Contrastive Loss) --> Update the Model Gradient
+                        # Noted Consideration Aggregate (Supervised + Contrastive Loss) 
+                        # --> Update the Model Gradient base on Loss  
+                        # Option 1: Only use Contrast loss 
+                        # option 2: Contrast Loss + Supervised Loss 
+
                         if loss is None:
                             loss = scale_sup_loss
                         else:
                             loss += scale_sup_loss
 
-                    # Consideration Remove L2 Regularization Loss
+                    # Consideration Remove L2 Regularization Loss 
+                    # --> This Only Use for Supervised Head
                     weight_decay_loss = all_model.add_weight_decay(
                         model, adjust_per_optimizer=True)
-                    weight_decay_loss_scale = tf.nn.scale_regularization_loss(
-                        weight_decay_loss)
-                    weight_decay_metric.update_state(weight_decay_loss_scale)
+                    # weight_decay_loss_scale = tf.nn.scale_regularization_loss(
+                    #     weight_decay_loss)
+                    weight_decay_metric.update_state(weight_decay_loss)
                     loss += weight_decay_loss_scale
                     # Contrast loss + Supervised loss + Regularize loss
                     total_loss_metric.update_state(loss)
