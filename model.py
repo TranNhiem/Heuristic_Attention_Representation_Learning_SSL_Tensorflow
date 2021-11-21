@@ -51,7 +51,7 @@ def build_optimizer(lr_schedule):
         optimizers = get_optimizer(lr_schedule, Optimizer_type)
         optimizer = optimizers.optimizer_gradient_centralization(FLAGS)
 
-    elif  FLAGS.optimizer_type== "optimizer_W_GD"
+    elif  FLAGS.optimizer_type== "optimizer_W_GD":
         Optimizer_type = FLAGS.optimizer
         optimizers = get_optimizer(lr_schedule, Optimizer_type)
         optimizer = optimizers.optimizer_weight_decay_gradient_centralization(FLAGS)
@@ -88,7 +88,7 @@ def build_optimizer_multi_machine(lr_schedule):
         optimizer = optimizers.optimizer_gradient_centralization(FLAGS)
         optimizer_mix_percision = mixed_precision.LossScaleOptimizer(optimizer)
 
-    elif  FLAGS.optimizer_type== "optimizer_W_GD"
+    elif  FLAGS.optimizer_type== "optimizer_W_GD":
         Optimizer_type = FLAGS.optimizer
         optimizers = get_optimizer(lr_schedule, Optimizer_type)
         optimizer = optimizers.optimizer_weight_decay_gradient_centralization(FLAGS)
