@@ -21,7 +21,6 @@ gpus = tf.config.experimental.list_physical_devices('GPU')
 
 
 if gpus:
-
     try:
         for gpu in gpus:
             tf.config.experimental.set_memory_growth(gpu, True)
@@ -739,10 +738,12 @@ def main(argv):
                     weight_decay_loss = all_model.add_weight_decay(
                         model, adjust_per_optimizer=True)
 
-                    weight_decay_loss_scale = tf.nn.scale_regularization_loss(weight_decay_loss)
-                    weight_decay_metric.update_state(weight_decay_loss_scale)
-                    
-                    loss += weight_decay_loss_scale
+                    # Under experiment Scale loss after adding Regularization and scaled by Batch_size
+                    # weight_decay_loss = tf.nn.scale_regularization_loss(
+                    #     weight_decay_loss)
+                    weight_decay_metric.update_state(weight_decay_loss)
+                    loss += weight_decay_loss
+                
                     total_loss_metric.update_state(loss)
 
                     logging.info('Trainable variables:')
