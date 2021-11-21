@@ -10,7 +10,7 @@ from absl import app
 import tensorflow as tf
 from learning_rate_optimizer import WarmUpAndCosineDecay
 import metrics
-from byol_simclr_imagenet_data import imagenet_dataset_single_machine
+from byol_simclr_imagenet_data_harry import imagenet_dataset_single_machine
 from self_supervised_losses import byol_symetrize_loss
 import model_for_non_contrastive_framework as all_model
 import objective as obj_lib
@@ -60,17 +60,33 @@ flags.DEFINE_integer(
     'random seed for spliting data the same for all the run with the same validation dataset.')
 
 flags.DEFINE_integer(
-    'train_batch_size', 100,
+    'train_batch_size', 25,
     'Train batch_size .')
 
 flags.DEFINE_integer(
-    'val_batch_size', 100,
+    'val_batch_size', 25,
     'Validaion_Batch_size.')
 
 flags.DEFINE_integer(
     'train_epochs', 100,
     'Number of epochs to train for.')
 
+flags.DEFINE_integer(
+    'num_classes', 1000,
+    'Number of class in dataset.'
+)
+
+flags.DEFINE_string(
+    'train_path', "/data/SSL_dataset/ImageNet/1K_New/train",
+    'Train dataset path.')
+
+flags.DEFINE_string(
+    'val_path', "/data/SSL_dataset/ImageNet/1K_New/val",
+    'Validaion dataset path.')
+
+flags.DEFINE_string(
+    'mask_path', "/data/SSL_dataset/ImageNet/1K_New/val_binary_mask_by_USS",
+    'Mask path.')
 # ------------------------------------------
 # Define for Linear Evaluation
 # ------------------------------------------
@@ -549,25 +565,21 @@ def main(argv):
 
     # Preparing dataset
     # Imagenet path prepare localy
-    imagenet_path = "/data/SSL_dataset/ImageNet/1K/"
-    dataset = list(paths.list_images(imagenet_path))
-    random.Random(FLAGS.SEED_data_split).shuffle(dataset)
-    x_val = dataset[0:50000]
-    x_train = dataset[50000:]
-
-    strategy = tf.distribute.MirroredStrategy()
+    strategy= tf.distribute.MirroredStrategy()
     train_global_batch = FLAGS.train_batch_size * strategy.num_replicas_in_sync
     val_global_batch = FLAGS.val_batch_size * strategy.num_replicas_in_sync
 
     train_dataset = imagenet_dataset_single_machine(img_size=FLAGS.image_size, train_batch=train_global_batch,  val_batch=val_global_batch,
-                                                    strategy=strategy, img_path=None, x_val=x_val,  x_train=x_train, bi_mask=False)
+                                                    strategy=strategy, train_path=FLAGS.train_path,
+                                                    val_path=FLAGS.val_path,
+                                                    mask_path=FLAGS.mask_path, bi_mask=True)
 
-    train_ds = train_dataset.simclr_random_global_crop()
+    train_ds = train_dataset.simclr_random_global_crop_image_mask()
+
     val_ds = train_dataset.supervised_validation()
-    num_classes = 999
 
-    num_train_examples = len(x_train)
-    num_eval_examples = len(x_val)
+    num_train_examples, num_eval_examples = train_dataset.get_data_size()
+
 
     train_steps = FLAGS.eval_steps or int(
         num_train_examples * FLAGS.train_epochs // train_global_batch)
