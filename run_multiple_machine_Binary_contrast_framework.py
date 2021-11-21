@@ -37,7 +37,7 @@ TF_CONFIG='{"cluster": {"worker": ["140.115.59.131:12345", "140.115.59.132:12345
 '''
 
 flags.DEFINE_enum(
-    'communication_method', 'NCCL', ['NCCL', 'auto'],
+    'communication_method', 'auto', ['NCCL', 'auto'],
     'communication_method to aggreate gradient for multiple machines.')
 
 flags.DEFINE_enum(
