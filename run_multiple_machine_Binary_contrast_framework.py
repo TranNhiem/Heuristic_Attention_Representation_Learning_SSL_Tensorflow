@@ -83,7 +83,7 @@ flags.DEFINE_integer(
     'random seed for spliting data.')
 
 flags.DEFINE_integer(
-    'num_classes', 999,
+    'num_classes', 1000,
     'Number of class in dataset.')
 
 flags.DEFINE_integer(
