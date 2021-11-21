@@ -618,6 +618,12 @@ def main(argv):
     dataset_loader = imagenet_dataset_multi_machine(img_size=FLAGS.image_size, train_batch=train_global_batch_size,  val_batch=val_global_batch_size,
                                                     img_path=None, x_val=x_val,  x_train=x_train, bi_mask=False)
 
+    # dataset_loader = imagenet_dataset_single_machine(img_size=FLAGS.image_size, train_batch=train_global_batch,  val_batch=val_global_batch,
+    #                                                 strategy=strategy, train_path=FLAGS.train_path,
+    #                                                 val_path=FLAGS.val_path,
+    #                                                 mask_path=FLAGS.mask_path, bi_mask=True)
+
+
     train_multi_worker_dataset = strategy.distribute_datasets_from_function(
         lambda input_context: dataset_loader.simclr_inception_style_crop(input_context))
 

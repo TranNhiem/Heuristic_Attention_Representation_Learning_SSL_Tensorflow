@@ -321,75 +321,107 @@ class imagenet_dataset_single_machine():
 
 class imagenet_dataset_multi_machine():
 
-    def __init__(self, img_size, train_batch, val_batch, img_path=None, x_val=None, x_train=None, bi_mask=False):
+    def __init__(self, img_size, train_batch, val_batch, strategy, train_path=None, val_path=None, bi_mask=False,
+                 mask_path=None):
         '''
-        args:
-        IMG_SIZE: Image training size
-        BATCH_SIZE: Distributed Batch_size for training multi-GPUs
+        args: 
+        img_size: Image training size
+        train_batch: Distributed Batch_size for training multi-GPUs
 
-        image_path: Directory to train data
+        image_path: Directory to train data 
         val_path:   Directory to validation or testing data
 
         '''
+
         self.IMG_SIZE = img_size
         self.BATCH_SIZE = train_batch
         self.val_batch = val_batch
+        self.strategy = strategy
         self.seed = FLAGS.SEED
-        self.x_train = x_train
-        self.x_val = x_val
         self.bi_mask = []
+
+        self.label, self.class_name = self.get_label("image_net_1k_lable.txt")
+        numeric_train_cls = []
+        numeric_val_cls = []
+        print(train_path,val_path)
+
+        if train_path is None and val_path is None:
+            raise ValueError(f'The train_path and val_path is None, please cheeek')
+        elif val_path is None:
+            dataset = list(paths.list_images(train_path))
+            dataset_len = dataset = len(dataset)
+            random.Random(FLAGS.SEED_data_split).shuffle(dataset)
+            self.x_val = dataset[0:int(dataset_len * 0.2)]
+            self.x_train = dataset[len(self.x_val) + 1:]
+            for image_path in self.x_train:
+                label = image_path.split("/")[-2]
+                numeric_train_cls.append(self.label[label])
+            for image_path in self.x_val:
+                label = image_path.split("/")[-2]
+                numeric_val_cls.append(self.label[label])
+
+        else:
+            self.x_train = list(paths.list_images(train_path))
+            self.x_val = list(paths.list_images(val_path))
+            random.Random(FLAGS.SEED_data_split).shuffle(self.x_train)
+            random.Random(FLAGS.SEED_data_split).shuffle(self.x_val)
+
+            for image_path in self.x_train:
+                label = image_path.split("/")[-2]
+                numeric_train_cls.append(self.label[label])
+
+            val_label = self.get_val_label("ILSVRC2012_validation_ground_truth.txt")
+            numeric_val_cls = []
+            for image_path in self.x_val:
+                label = image_path.split("/")[-1]
+                label = image_path.split("_")[-1]
+                label = int(label.split(".")[0])
+                numeric_val_cls.append(val_label[label-1])
+
         if bi_mask:
             for p in self.x_train:
-                self.bi_mask.append(
-                    p.replace("1K/", "1K_binary_image_by_USS/").replace("JPEG", "png"))
+                self.bi_mask.append(p.replace("train", mask_path).replace("JPEG", "png"))
 
         # Path for loading all Images
         # For training
-        all_train_class = []
-        for image_path in x_train:
-            # label = tf.strings.split(image_path, os.path.sep)[5]
-            # all_train_class.append(label.numpy())
-            label = image_path.split("/")[5]
-            all_train_class.append(label)
 
-        number_class = set(all_train_class)
-        all_cls = list(number_class)
+        self.x_train_lable = tf.one_hot(numeric_train_cls, depth=len(self.class_name))
+        self.x_val_lable = tf.one_hot(numeric_val_cls, depth=len(self.class_name))
 
-        class_dic = dict()
-        for i in range(999):
-            class_dic[all_cls[i]] = i + 1
-
-        numeric_train_cls = []
-        for i in range(len(all_train_class)):
-            for k, v in class_dic.items():
-                if all_train_class[i] == k:
-                    numeric_train_cls.append(v)
-
-        # For Validation
-        all_val_class = []
-        for image_path in x_val:
-            label = image_path.split("/")[5]
-            all_val_class.append(label)
-
-        numeric_val_cls = []
-        for i in range(len(all_val_class)):
-            for k, v in class_dic.items():
-                if all_train_class[i] == k:
-                    numeric_val_cls.append(v)
-
-        self.x_train_lable = tf.one_hot(numeric_train_cls, depth=999)
-        self.x_val_lable = tf.one_hot(numeric_val_cls, depth=999)
-
-        if img_path is not None:
-            dataset = list(paths.list_images(img_path))
-            self.dataset_shuffle = random.sample(dataset, len(dataset))
-            self.x_val = self.dataset_shuffle[0:50000]
-            self.x_train = self.dataset_shuffle[50000:]
+        # if img_path is not None: #?
+        #     dataset = list(paths.list_images(img_path))
+        #     self.dataset_shuffle = random.sample(dataset, len(dataset))
+        #     self.x_val = self.dataset_shuffle[0:50000]
+        #     self.x_train = self.dataset_shuffle[50000:]
 
         if bi_mask:
             self.x_train_image_mask = np.stack(
                 (np.array(self.x_train), np.array(self.bi_mask)), axis=-1)
             print(self.x_train_image_mask.shape)
+
+    def get_label(self, label_txt_path=None):
+        class_name = []
+        class_ID = []
+        class_number = []
+        with open(label_txt_path) as file:
+            for line in file.readlines():
+                # n02119789 1 kit_fox
+                lint_split = line.split(" ")
+                class_ID.append(lint_split[0])
+                class_number.append(int(lint_split[1]))
+                class_name.append(lint_split[2])
+
+        label = dict(zip(class_ID, class_number))
+        class_name = dict(zip(class_ID, class_name))
+        return label, class_name
+
+    def get_val_label(self, label_txt_path=None):
+        class_number = []
+        with open(label_txt_path) as file:
+            for line in file.readlines():
+                class_number.append(int(line[:-1]))
+                # n02119789 1 kit_fox
+        return class_number
 
     @classmethod
     def parse_images_lable_pair(self, image_path, lable):
@@ -445,7 +477,13 @@ class imagenet_dataset_multi_machine():
 
                   )
 
-        val_ds.with_options(option)
+        if FLAGS.with_option:
+            logging.info("You implement data loader with option")
+            val_ds.with_options(option)
+        else:
+            logging.info("You implement data loader Without option")
+            val_ds = val_ds
+
         val_ds = val_ds.shard(input_context.num_input_pipelines,
                               input_context.input_pipeline_id)
         val_ds = val_ds.batch(dis_tributed_batch)
@@ -495,7 +533,14 @@ class imagenet_dataset_multi_machine():
                         )
 
         train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
-        train_ds.with_options(option)
+        
+        if FLAGS.with_option:
+            logging.info("You implement data loader with option")
+            train_ds.with_options(option)
+        else:
+            logging.info("You implement data loader Without option")
+            train_ds = train_ds
+
         train_ds = train_ds.shard(input_context.num_input_pipelines,
                                   input_context.input_pipeline_id)
 
@@ -548,7 +593,13 @@ class imagenet_dataset_multi_machine():
                         )
 
         train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
-        train_ds.with_options(option)
+        if FLAGS.with_option:
+            logging.info("You implement data loader with option")
+            train_ds.with_options(option)
+        else:
+            logging.info("You implement data loader Without option")
+            train_ds = train_ds
+
         train_ds = train_ds.shard(input_context.num_input_pipelines,
                                   input_context.input_pipeline_id)
         train_ds = train_ds.batch(dis_tributed_batch)
@@ -590,7 +641,13 @@ class imagenet_dataset_multi_machine():
                         )
 
         train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
-        train_ds.with_options(option)
+        if FLAGS.with_option:
+            logging.info("You implement data loader with option")
+            train_ds.with_options(option)
+        else:
+            logging.info("You implement data loader Without option")
+            train_ds = train_ds
+
         train_ds = train_ds.shard(input_context.num_input_pipelines,
                                   input_context.input_pipeline_id)
         train_ds = train_ds.batch(dis_tributed_batch)
@@ -633,13 +690,22 @@ class imagenet_dataset_multi_machine():
                         )
 
         train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
-        train_ds.with_options(option)
+        if FLAGS.with_option:
+            logging.info("You implement data loader with option")
+            train_ds.with_options(option)
+        else:
+            logging.info("You implement data loader Without option")
+            train_ds = train_ds
+
         train_ds = train_ds.shard(input_context.num_input_pipelines,
                                   input_context.input_pipeline_id)
         train_ds = train_ds.batch(dis_tributed_batch)
         train_ds = train_ds.prefetch(AUTO)
 
         return train_ds
+
+    def get_data_size(self):
+        return len(self.x_train) , len(self.x_val)
 
 
 if __name__ == "__main__":
