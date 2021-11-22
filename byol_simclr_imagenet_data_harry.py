@@ -64,13 +64,13 @@ class imagenet_dataset_single_machine():
                 label = image_path.split("/")[-2]
                 numeric_train_cls.append(self.label[label])
 
-            val_label = self.get_val_label(val_path)
+            val_label_map = self.get_val_label(val_label)
             numeric_val_cls = []
             for image_path in self.x_val:
-                label = image_path.split("/")[-1]
-                label = image_path.split("_")[-1]
+                label = re.split(r"/|\|//|\\", image_path)
+                label = label.split("_")[-1]
                 label = int(label.split(".")[0])
-                numeric_val_cls.append(val_label[label-1])
+                numeric_val_cls.append(val_label_map[label-1])
 
         if bi_mask:
             for p in self.x_train:
@@ -97,6 +97,7 @@ class imagenet_dataset_single_machine():
         class_name = []
         class_ID = []
         class_number = []
+        print(label_txt_path)
         with open(label_txt_path) as file:
             for line in file.readlines():
                 # n02119789 1 kit_fox
@@ -104,6 +105,7 @@ class imagenet_dataset_single_machine():
                 class_ID.append(lint_split[0])
                 class_number.append(int(lint_split[1]))
                 class_name.append(lint_split[2])
+            file.close()
 
         label = dict(zip(class_ID, class_number))
         class_name = dict(zip(class_ID, class_name))
@@ -322,7 +324,7 @@ class imagenet_dataset_single_machine():
 
 class imagenet_dataset_multi_machine():
 
-    def __init__(self, img_size, train_batch, val_batch, strategy, train_path=None, val_path=None, bi_mask=False,
+    def __init__(self, img_size, train_batch, val_batch, strategy, train_path=None,train_label = None, val_path=None,val_label = None, bi_mask=False,
                  mask_path=None):
         '''
         args: 
@@ -341,7 +343,7 @@ class imagenet_dataset_multi_machine():
         self.seed = FLAGS.SEED
         self.bi_mask = []
 
-        self.label, self.class_name = self.get_label("image_net_1k_lable.txt")
+        self.label, self.class_name = self.get_label(train_label)
         numeric_train_cls = []
         numeric_val_cls = []
         print(train_path,val_path)
@@ -371,13 +373,13 @@ class imagenet_dataset_multi_machine():
                 label = image_path.split("/")[-2]
                 numeric_train_cls.append(self.label[label])
 
-            val_label = self.get_val_label("ILSVRC2012_validation_ground_truth.txt")
+            val_label_map = self.get_val_label(val_label)
             numeric_val_cls = []
             for image_path in self.x_val:
-                label = image_path.split("/")[-1]
-                label = image_path.split("_")[-1]
+                label = re.split(r"/|\|//|\\", image_path)
+                label = label.split("_")[-1]
                 label = int(label.split(".")[0])
-                numeric_val_cls.append(val_label[label-1])
+                numeric_val_cls.append(val_label_map[label-1])
 
         if bi_mask:
             for p in self.x_train:
@@ -388,12 +390,6 @@ class imagenet_dataset_multi_machine():
 
         self.x_train_lable = tf.one_hot(numeric_train_cls, depth=len(self.class_name))
         self.x_val_lable = tf.one_hot(numeric_val_cls, depth=len(self.class_name))
-
-        # if img_path is not None: #?
-        #     dataset = list(paths.list_images(img_path))
-        #     self.dataset_shuffle = random.sample(dataset, len(dataset))
-        #     self.x_val = self.dataset_shuffle[0:50000]
-        #     self.x_train = self.dataset_shuffle[50000:]
 
         if bi_mask:
             self.x_train_image_mask = np.stack(
