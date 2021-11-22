@@ -79,11 +79,11 @@ flags.DEFINE_string(
     'Train dataset path.')
 
 flags.DEFINE_string(
-    'val_path', None,
+    'val_path', r"D:\OneDrive\鴻海\SSL\Modify_code\imagenet_1k_tiny\imagenet_1k_tiny\val",
     'Validaion dataset path.')
 
 flags.DEFINE_string(
-    'mask_path', "/train_binary_mask_by_USS",
+    'mask_path', "train_binary_mask_by_USS",
     'Mask path.')
 
 flags.DEFINE_string(

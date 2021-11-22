@@ -55,19 +55,20 @@ class imagenet_dataset_single_machine():
                 numeric_val_cls.append(self.label[label])
 
         else:
-            self.x_train = list(paths.list_images(val_path))
+            self.x_train = list(paths.list_images(train_path))
             self.x_val = list(paths.list_images(val_path))
             random.Random(FLAGS.SEED_data_split).shuffle(self.x_train)
             random.Random(FLAGS.SEED_data_split).shuffle(self.x_val)
 
             for image_path in self.x_train:
-                label = image_path.split("/")[-2]
+                label = re.split(r"/|\|//|\\",image_path)[-2]
                 numeric_train_cls.append(self.label[label])
 
             val_label_map = self.get_val_label(val_label)
             numeric_val_cls = []
             for image_path in self.x_val:
-                label = re.split(r"/|\|//|\\", image_path)
+                label = re.split(r"/|\|//|\\", image_path)[-1]
+
                 label = label.split("_")[-1]
                 label = int(label.split(".")[0])
                 numeric_val_cls.append(val_label_map[label-1])
@@ -370,13 +371,13 @@ class imagenet_dataset_multi_machine():
             random.Random(FLAGS.SEED_data_split).shuffle(self.x_val)
 
             for image_path in self.x_train:
-                label = image_path.split("/")[-2]
+                label = re.split(r"/|\|//|\\",image_path)[-2]
                 numeric_train_cls.append(self.label[label])
 
             val_label_map = self.get_val_label(val_label)
             numeric_val_cls = []
             for image_path in self.x_val:
-                label = re.split(r"/|\|//|\\", image_path)
+                label = re.split(r"/|\|//|\\", image_path)[-1]
                 label = label.split("_")[-1]
                 label = int(label.split(".")[0])
                 numeric_val_cls.append(val_label_map[label-1])
