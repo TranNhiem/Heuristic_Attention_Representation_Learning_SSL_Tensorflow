@@ -85,6 +85,14 @@ flags.DEFINE_string(
     'mask_path', "/train_binary_mask_by_USS",
     'Mask path.')
 
+flags.DEFINE_string(
+    'train_label', "/image_net_1k_lable.txt",
+    'train_label.')
+
+flags.DEFINE_string(
+    'val_label', "ILSVRC2012_validation_ground_truth.txt",
+    'val_label.')
+
 # ---------------------------------------------------
 # Define for Linear Evaluation
 # ---------------------------------------------------
@@ -565,7 +573,8 @@ def main(argv):
     train_dataset = imagenet_dataset_single_machine(img_size=FLAGS.image_size, train_batch=train_global_batch,  val_batch=val_global_batch,
                                                     strategy=strategy, train_path=FLAGS.train_path,
                                                     val_path=FLAGS.val_path,
-                                                    mask_path=FLAGS.mask_path, bi_mask=True)
+                                                    mask_path=FLAGS.mask_path, bi_mask=True,
+                                                    train_label=False.train_label,val_label = FLAGS.val_label)
 
     train_ds = train_dataset.simclr_random_global_crop_image_mask()
 

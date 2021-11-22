@@ -37,7 +37,7 @@ def build_optimizer(lr_schedule):
     'original', 'optimizer_weight_decay','optimizer_GD','optimizer_W_GD' 
     optimizer.
     '''
-    if FLAGS.optimizer_type=="original": 
+    if FLAGS.optimizer_type == "original":
         Optimizer_type = FLAGS.optimizer
         optimizers = get_optimizer(lr_schedule, Optimizer_type)
         optimizer = optimizers.original_optimizer(FLAGS)
@@ -264,7 +264,7 @@ class Model(tf.keras.models.Model):
             self.supervised_head = SupervisedHead(num_classes)
 
     def __call__(self, inputs, training):
-
+        print(inputs)
         features = inputs
 
         if training and FLAGS.train_mode == 'pretrain':

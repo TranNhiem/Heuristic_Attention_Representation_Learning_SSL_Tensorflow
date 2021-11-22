@@ -18,8 +18,6 @@ from imutils import paths
 
 # Setting GPU
 gpus = tf.config.experimental.list_physical_devices('GPU')
-
-
 if gpus:
     try:
         for gpu in gpus:
@@ -65,11 +63,11 @@ flags.DEFINE_integer(
     'random seed for spliting data the same for all the run with the same validation dataset.')
 
 flags.DEFINE_integer(
-    'train_batch_size', 256,
+    'train_batch_size', 4,
     'Train batch_size .')
 
 flags.DEFINE_integer(
-    'val_batch_size', 256,
+    'val_batch_size', 4,
     'Validaion_Batch_size.')
 
 flags.DEFINE_integer(
@@ -77,16 +75,24 @@ flags.DEFINE_integer(
     'Number of epochs to train for.')
 
 flags.DEFINE_string(
-    'train_path', "/data1/1K_New/train",
+    'train_path', "C:/Users/ASUS/Downloads/imagenet_1k_tiny/imagenet_1k_tiny/Image/train",
     'Train dataset path.')
 
 flags.DEFINE_string(
-    'val_path', "/data1/1K_New/val",
+    'val_path', None,
     'Validaion dataset path.')
 
 flags.DEFINE_string(
     'mask_path', "/train_binary_mask_by_USS",
     'Mask path.')
+
+flags.DEFINE_string(
+    'train_label', "image_net_1k_lable.txt",
+    'train_label.')
+
+flags.DEFINE_string(
+    'val_label', "ILSVRC2012_validation_ground_truth.txt",
+    'val_label.')
 
 #------------------------------------------
 # Define for Linear Evaluation
@@ -128,23 +134,11 @@ flags.DEFINE_enum(
     'How to scale the learning rate as a function of batch size.')
 
 # Optimizer
+
 flags.DEFINE_enum(
-    # Same the Original SimClRV2 training Configure
-    '''ATTENTION'''
-    # if Change the Optimizer please change --
-    'optimizer', 'LARSW', ['Adam', 'SGD', 'LARS', 'AdamW', 'SGDW', 'LARSW',
+    'optimizer', 'LARS', ['Adam', 'SGD', 'LARS', 'AdamW', 'SGDW', 'LARSW',
                           'AdamGC', 'SGDGC', 'LARSGC', 'AdamW_GC', 'SGDW_GC', 'LARSW_GC'],
     'How to scale the learning rate as a function of batch size.')
-
-flags.DEFINE_enum(
-    # Same the Original SimClRV2 training Configure
-    # 1. original for ['Adam', 'SGD', 'LARS']
-    # 2.optimizer_weight_decay for ['AdamW', 'SGDW', 'LARSW']
-    # 3. optimizer_GD fir  ['AdamGC', 'SGDGC', 'LARSGC']
-    # 4. optimizer_W_GD for ['AdamW_GC', 'SGDW_GC', 'LARSW_GC']
-
-    'optimizer_type', 'optimizer_weight_decay', ['original', 'optimizer_weight_decay','optimizer_GD','optimizer_W_GD' ],
-    'Optimizer type corresponding to Configure of optimizer')
 
 flags.DEFINE_float(
     'momentum', 0.9,
@@ -233,6 +227,12 @@ flags.DEFINE_enum(
 flags.DEFINE_enum(
     'loss_options' , 'loss_v0', 
     ['loss_v0', 'loss_v1'], 
+    "Option for chossing loss version [V0]--> Original simclr loss [V1] --> Custom build design loss"
+)
+
+flags.DEFINE_enum(
+    'optimizer_type' , 'original',
+    ['original', 'optimizer_weight_decay',"optimizer_GD","optimizer_W_GD"],
     "Option for chossing loss version [V0]--> Original simclr loss [V1] --> Custom build design loss"
 )
 
@@ -546,11 +546,6 @@ def main(argv):
 
     # Preparing dataset
     # Imagenet path prepare localy
-    imagenet_path = "/data/SSL_dataset/ImageNet/1K/"
-    dataset = list(paths.list_images(imagenet_path))
-    random.Random(FLAGS.SEED_data_split).shuffle(dataset)
-    x_val = dataset[0:50000]
-    x_train = dataset[50000:]
 
     strategy = tf.distribute.MirroredStrategy()
     train_global_batch = FLAGS.train_batch_size * strategy.num_replicas_in_sync
@@ -558,10 +553,10 @@ def main(argv):
 
     train_dataset = imagenet_dataset_single_machine(img_size=FLAGS.image_size, train_batch=train_global_batch,  val_batch=val_global_batch,
                                                     strategy=strategy, train_path=FLAGS.train_path,
-                                                    val_path=FLAGS.val_path,
-                                                    mask_path=FLAGS.mask_path, bi_mask=True)
+                                                    val_path=FLAGS.val_path,train_label=FLAGS.train_path,
+                                                    mask_path=FLAGS.mask_path, bi_mask=False)
 
-    train_ds = train_dataset.simclr_random_global_crop_image_mask()
+    train_ds = train_dataset.simclr_random_global_crop()
 
     val_ds = train_dataset.supervised_validation()
 
@@ -699,7 +694,8 @@ def main(argv):
                 images_two, lable_two = ds_two
 
                 with tf.GradientTape() as tape:
-    
+
+                    print(images_one)
                     proj_head_output_1, supervised_head_output_1 = model(
                         images_one, training=True)
                     proj_head_output_2, supervised_head_output_2 = model(
@@ -731,8 +727,8 @@ def main(argv):
                             # Calculte the cross_entropy loss with Labels
                             sup_loss = obj_lib.add_supervised_loss(labels=supervise_lable, logits=outputs)
                             
-                            scale_sup_loss = tf.nn.compute_average_loss(sup_loss, global_batch_size=train_global_batch)
-                            #scale_sup_loss =  tf.reduce_sum(sup_loss) * (1./train_global_batch)
+                            #scale_sup_loss = tf.nn.compute_average_loss(sup_loss, global_batch_size=train_global_batch)
+                            scale_sup_loss =  tf.reduce_sum(sup_loss) * (1./train_global_batch)
                             # Update Supervised Metrics
                             metrics.update_finetune_metrics_train(supervised_loss_metric,
                                                                   supervised_acc_metric, scale_sup_loss,
@@ -741,32 +737,18 @@ def main(argv):
                         '''Attention'''
                         # Noted Consideration Aggregate (Supervised + Contrastive Loss) --> Update the Model Gradient
                     
-                        if FLAGS.aggregate_loss== "contrastive_supervised": 
-                            if loss is None:
-                                loss = scale_sup_loss
-                            else:
-                                loss += scale_sup_loss
-
-                        elif FLAGS.aggregate_loss== "contrastive":
-                           
-                            supervise_loss=None
-                            if supervise_loss is None:
-                                supervise_loss = scale_sup_loss
-                            else:
-                                supervise_loss += scale_sup_loss
-                        else: 
-                            raise ValueError(" Loss aggregate is invalid please check FLAGS.aggregate_loss")
-                    
+                        if loss is None:
+                            loss = scale_sup_loss
+                        else:
+                            loss += scale_sup_loss
 
                     weight_decay_loss = all_model.add_weight_decay(
                         model, adjust_per_optimizer=True)
 
-                    # Under experiment Scale loss after adding Regularization and scaled by Batch_size
-                    # weight_decay_loss = tf.nn.scale_regularization_loss(
-                    #     weight_decay_loss)
-                    weight_decay_metric.update_state(weight_decay_loss)
-                    loss += weight_decay_loss
-                
+                    weight_decay_loss_scale = tf.nn.scale_regularization_loss(weight_decay_loss)
+                    weight_decay_metric.update_state(weight_decay_loss_scale)
+                    
+                    loss += weight_decay_loss_scale
                     total_loss_metric.update_state(loss)
 
                     logging.info('Trainable variables:')

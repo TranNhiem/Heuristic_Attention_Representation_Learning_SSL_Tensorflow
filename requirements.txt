@@ -1,3 +1,4 @@
+absl-py
 tensorflow_addons
 imutils
 opencv-python-headless
