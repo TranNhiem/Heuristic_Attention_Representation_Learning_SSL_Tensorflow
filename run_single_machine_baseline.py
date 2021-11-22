@@ -75,15 +75,15 @@ flags.DEFINE_integer(
     'Number of epochs to train for.')
 
 flags.DEFINE_string(
-    'train_path', "C:/Users/ASUS/Downloads/imagenet_1k_tiny/imagenet_1k_tiny/Image/train",
+    'train_path', r"D:\OneDrive\鴻海\SSL\Modify_code\imagenet_1k_tiny\imagenet_1k_tiny\Image\train",
     'Train dataset path.')
 
 flags.DEFINE_string(
-    'val_path', None,
+    'val_path', r"D:\OneDrive\鴻海\SSL\Modify_code\imagenet_1k_tiny\imagenet_1k_tiny\val",
     'Validaion dataset path.')
 
 flags.DEFINE_string(
-    'mask_path', "/train_binary_mask_by_USS",
+    'mask_path', "train_binary_mask_by_USS",
     'Mask path.')
 
 flags.DEFINE_string(
@@ -552,8 +552,8 @@ def main(argv):
     val_global_batch = FLAGS.val_batch_size * strategy.num_replicas_in_sync
 
     train_dataset = imagenet_dataset_single_machine(img_size=FLAGS.image_size, train_batch=train_global_batch,  val_batch=val_global_batch,
-                                                    strategy=strategy, train_path=FLAGS.train_path,
-                                                    val_path=FLAGS.val_path,train_label=FLAGS.train_path,
+                                                    strategy=strategy, train_path=FLAGS.train_path, val_path=FLAGS.val_path,
+                                                    train_label=FLAGS.train_label,val_label=FLAGS.val_label,
                                                     mask_path=FLAGS.mask_path, bi_mask=False)
 
     train_ds = train_dataset.simclr_random_global_crop()
