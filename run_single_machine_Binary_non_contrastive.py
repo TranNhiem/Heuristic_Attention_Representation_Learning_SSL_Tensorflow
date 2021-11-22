@@ -77,15 +77,15 @@ flags.DEFINE_integer(
 
 
 flags.DEFINE_string(
-    'train_path', "/data1/1K_New/train",
+    'train_path', "/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/ILSVRC2012_img_train",
     'Train dataset path.')
 
 flags.DEFINE_string(
-    'val_path', "/data1/1K_New/val",
+    'val_path', "/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/val",
     'Validaion dataset path.')
 
 flags.DEFINE_string(
-    'mask_path', "/train_binary_mask_by_USS",
+    'mask_path', "/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/train_binary_mask_by_USS",
     'Mask path.')
 
 flags.DEFINE_string(
