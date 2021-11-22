@@ -600,7 +600,7 @@ def main(argv):
                                                     strategy=strategy, train_path=FLAGS.train_path,
                                                     val_path=FLAGS.val_path,
                                                     mask_path=FLAGS.mask_path, bi_mask=True,
-                                                    train_label=False.train_label,val_label = FLAGS.val_label)
+                                                    train_label=FLAGS.train_label,val_label = FLAGS.val_label)
 
     train_ds = train_dataset.simclr_random_global_crop_image_mask()
 
