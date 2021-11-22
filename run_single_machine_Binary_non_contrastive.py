@@ -60,15 +60,15 @@ flags.DEFINE_integer(
     'random seed for spliting data the same for all the run with the same validation dataset.')
 
 flags.DEFINE_integer(
-    'train_batch_size', 100,
+    'train_batch_size', 200,
     'Train batch_size .')
 
 flags.DEFINE_integer(
-    'val_batch_size', 25,
+    'val_batch_size', 200,
     'Validaion_Batch_size.')
 
 flags.DEFINE_integer(
-    'train_epochs', 25,
+    'train_epochs', 50,
     'Number of epochs to train for.')
 
 flags.DEFINE_integer(
@@ -128,7 +128,6 @@ flags.DEFINE_float(
 flags.DEFINE_integer(
     'warmup_epochs', 10,  # Configure BYOL and SimCLR
     'warmup epoch steps for Cosine Decay learning rate schedule.')
-
 
 flags.DEFINE_enum(
     'lr_rate_scaling', 'linear', ['linear', 'sqrt', 'no_scale', ],
