@@ -597,9 +597,9 @@ def main(argv):
 
     # Configure the Encoder Architecture.
     with strategy.scope():
-        online_model = all_model.online_model(num_classes)
+        online_model = all_model.online_model(FLAGS.num_classes)
         prediction_model = all_model.prediction_head_model()
-        target_model = all_model.target_model(num_classes)
+        target_model = all_model.target_model(FLAGS.num_classes)
 
     # Configure Wandb Training
     # Weight&Bias Tracking Experiment
