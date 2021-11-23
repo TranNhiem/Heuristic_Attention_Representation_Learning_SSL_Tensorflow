@@ -82,7 +82,7 @@ flags.DEFINE_string(
     'Train dataset path.')
 
 flags.DEFINE_string(
-    'val_path',"/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/val"
+    'val_path',"/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/val", 
     #'val_path', "/data1/share/1K_New/val/",
     'Validaion dataset path.')
 ## Mask_folder should locate in location and same level of train folder
