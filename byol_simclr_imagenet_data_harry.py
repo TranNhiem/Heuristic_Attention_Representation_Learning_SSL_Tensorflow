@@ -56,6 +56,7 @@ class imagenet_dataset_single_machine():
 
         else:
             self.x_train = list(paths.list_images(train_path))
+            print(self.x_train[0:2])
             self.x_val = list(paths.list_images(val_path))
             random.Random(FLAGS.SEED_data_split).shuffle(self.x_train)
             random.Random(FLAGS.SEED_data_split).shuffle(self.x_val)
@@ -93,8 +94,10 @@ class imagenet_dataset_single_machine():
             self.x_train_image_mask = np.stack(
                 (np.array(self.x_train), np.array(self.bi_mask)), axis=-1)
             print(self.x_train_image_mask.shape)
+        
         print(self.x_train[0:5])
         print(self.x_train_lable[0:5])
+
     def get_label(self, label_txt_path=None):
         class_name = []
         class_ID = []
