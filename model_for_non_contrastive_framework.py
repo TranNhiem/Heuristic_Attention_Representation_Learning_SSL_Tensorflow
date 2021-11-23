@@ -597,7 +597,7 @@ class PredictionHead(tf.keras.layers.Layer):
         # The second element is the input of the finetune head.
         proj_head_output = tf.identity(hiddens_list[-1], 'proj_head_output')
 
-        return proj_head_output, hiddens_list[FLAGS.ft_proj_selector]
+        return proj_head_output
 
 
 
