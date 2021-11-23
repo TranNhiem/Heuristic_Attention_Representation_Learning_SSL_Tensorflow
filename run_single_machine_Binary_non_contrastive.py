@@ -137,7 +137,6 @@ flags.DEFINE_enum(
 # Same the Original SimClRV2 training Configure
 '''ATTENTION'''
 flags.DEFINE_enum(
-
     # if Change the Optimizer please change --
     'optimizer', 'LARSW', ['Adam', 'SGD', 'LARS', 'AdamW', 'SGDW', 'LARSW',
                           'AdamGC', 'SGDGC', 'LARSGC', 'AdamW_GC', 'SGDW_GC', 'LARSW_GC'],

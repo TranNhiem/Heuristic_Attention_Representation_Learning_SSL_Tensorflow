@@ -83,6 +83,13 @@ flags.DEFINE_string(
 flags.DEFINE_string(
     'val_path', "/data/SSL_dataset/ImageNet/1K_New/val",
     'Validaion dataset path.')
+flags.DEFINE_string(
+    'train_label', "./image_net_1k_lable.txt",
+    'train_label.')
+
+flags.DEFINE_string(
+    'val_label', "./ILSVRC2012_validation_ground_truth.txt",
+    'val_label.')
 ## Mask_folder should locate in location and same level of train folder
 flags.DEFINE_string(
     'mask_path', "train_binary_mask_by_USS",
@@ -573,7 +580,9 @@ def main(argv):
     train_dataset = imagenet_dataset_single_machine(img_size=FLAGS.image_size, train_batch=train_global_batch,  val_batch=val_global_batch,
                                                     strategy=strategy, train_path=FLAGS.train_path,
                                                     val_path=FLAGS.val_path,
-                                                    mask_path=FLAGS.mask_path, bi_mask=True)
+                                                    mask_path=FLAGS.mask_path, bi_mask=True,
+                                                    train_label=FLAGS.train_label,val_label = FLAGS.val_label)
+
 
     train_ds = train_dataset.simclr_random_global_crop_image_mask()
 
@@ -633,7 +642,7 @@ def main(argv):
         # can choose different min_interval
         for ckpt in tf.train.checkpoints_iterator(FLAGS.model_dir, min_interval_secs=15):
             result = perform_evaluation(
-                model, val_ds, eval_steps, ckpt, strategy)
+                online_model, val_ds, eval_steps, ckpt, strategy)
             # global_step from ckpt
             if result['global_step'] >= train_steps:
                 logging.info('Evaluation complete. Existing-->')
