@@ -82,6 +82,8 @@ flags.DEFINE_string(
     'val_path', r"D:\OneDrive\鴻海\SSL\Modify_code\imagenet_1k_tiny\imagenet_1k_tiny\val",
     'Validaion dataset path.')
 
+
+## Mask_folder should locate in location and same level of train folder
 flags.DEFINE_string(
     'mask_path', "train_binary_mask_by_USS",
     'Mask path.')

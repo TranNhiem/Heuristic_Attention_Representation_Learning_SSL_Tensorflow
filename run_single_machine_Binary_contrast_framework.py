@@ -78,7 +78,7 @@ flags.DEFINE_string(
 flags.DEFINE_string(
     'val_path', "/data1/1KNew/ILSVRC2012_img_val",
     'Validaion dataset path.')
-
+## Mask_folder should locate in location and same level of train folder
 flags.DEFINE_string(
     'mask_path', "train_binary_mask_by_USS",
     'Mask path.')

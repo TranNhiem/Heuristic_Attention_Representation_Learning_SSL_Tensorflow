@@ -5,7 +5,7 @@ import tensorflow as tf
 from learning_rate_optimizer import WarmUpAndCosineDecay
 import os
 from self_supervised_losses import nt_xent_symetrize_loss_simcrl, nt_xent_asymetrize_loss_v2
-from byol_simclr_imagenet_data import imagenet_dataset_multi_machine
+from byol_simclr_imagenet_data_harry import imagenet_dataset_multi_machine
 import metrics
 import model as all_model
 import objective as obj_lib
@@ -94,6 +94,17 @@ flags.DEFINE_integer(
     'train_epochs', 200,
     'Number of epochs to train for.')
 
+flags.DEFINE_string(
+    'train_path', "/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/ILSVRC2012_img_train",
+    'Train dataset path.')
+
+flags.DEFINE_string(
+    'val_path', "/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/val",
+    'Validaion dataset path.')
+## Mask_folder should locate in location and same level of train folder
+flags.DEFINE_string(
+    'mask_path', "train_binary_mask_by_USS",
+    'Mask path.')
 # *****************************************************
 # Define for Linear Evaluation
 # *****************************************************
@@ -609,19 +620,11 @@ def main(argv):
 
     train_global_batch_size = per_worker_train_batch_size * FLAGS.num_workers
     val_global_batch_size = per_worker_val_batch_size * FLAGS.num_workers
-    imagenet_path = "/data/SSL_dataset/ImageNet/1K/"
-    dataset = list(paths.list_images(imagenet_path))
-    random.Random(FLAGS.SEED_data_split).shuffle(dataset)
-    x_val = dataset[0:50000]
-    x_train = dataset[50000:200000]
 
     dataset_loader = imagenet_dataset_multi_machine(img_size=FLAGS.image_size, train_batch=train_global_batch_size,  val_batch=val_global_batch_size,
-                                                    img_path=None, x_val=x_val,  x_train=x_train, bi_mask=False)
-
-    # dataset_loader = imagenet_dataset_single_machine(img_size=FLAGS.image_size, train_batch=train_global_batch,  val_batch=val_global_batch,
-    #                                                 strategy=strategy, train_path=FLAGS.train_path,
-    #                                                 val_path=FLAGS.val_path,
-    #                                                 mask_path=FLAGS.mask_path, bi_mask=True)
+                                                    strategy=strategy, train_path=FLAGS.train_path,
+                                                    val_path=FLAGS.val_path,
+                                                    mask_path=FLAGS.mask_path, bi_mask=True)
 
 
     train_multi_worker_dataset = strategy.distribute_datasets_from_function(
@@ -632,8 +635,9 @@ def main(argv):
 
     num_classes = FLAGS.num_classes
 
-    num_train_examples = len(x_train)
-    num_eval_examples = len(x_val)
+
+    num_train_examples, num_eval_examples = dataset_loader.get_data_size()
+
 
     train_steps = FLAGS.eval_steps or int(
         num_train_examples * FLAGS.train_epochs // train_global_batch_size)

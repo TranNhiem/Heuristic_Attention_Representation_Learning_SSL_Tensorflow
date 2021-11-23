@@ -584,7 +584,7 @@ class Binary_online_model(tf.keras.models.Model):
             raise ValueError(f"Didn't have this {Backbone} model")
 
         # Projcetion head
-        self._projection_head = ProjectionHead()
+        self.projection_head = ProjectionHead()
 
         self.indexer = Indexer()
 
@@ -685,7 +685,7 @@ class Binary_target_model(tf.keras.models.Model):
             raise ValueError(f"Didn't have this {Backbone} model")
 
         # Projcetion head
-        self._projection_head = ProjectionHead()
+        self.projection_head = ProjectionHead()
 
         self.indexer = Indexer()
 
