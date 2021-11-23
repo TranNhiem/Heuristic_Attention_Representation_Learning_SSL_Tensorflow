@@ -60,15 +60,15 @@ flags.DEFINE_integer(
     'random seed for spliting data the same for all the run with the same validation dataset.')
 
 flags.DEFINE_integer(
-    'train_batch_size', 250,
+    'train_batch_size', 200,
     'Train batch_size .')
 
 flags.DEFINE_integer(
-    'val_batch_size', 250,
+    'val_batch_size', 200,
     'Validaion_Batch_size.')
 
 flags.DEFINE_integer(
-    'train_epochs', 100,
+    'train_epochs', 50,
     'Number of epochs to train for.')
 
 flags.DEFINE_integer(
@@ -86,15 +86,15 @@ flags.DEFINE_integer(
 
 flags.DEFINE_string(
     #'train_path', "/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/ILSVRC2012_img_train",
-    'train_path', '/data1/share/1K_New/train/', 
+    'train_path', '/data1/share/1K_New/train/',
     'Train dataset path.')
 
 flags.DEFINE_string(
-    #'val_path',"/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/val", 
+    # 'val_path',"/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/val",
     'val_path', "/data1/share/1K_New/val/",
     'Validaion dataset path.')
 
-## Mask_folder should locate in location and same level of train folder
+# Mask_folder should locate in location and same level of train folder
 flags.DEFINE_string(
     'mask_path', "train_binary_mask_by_USS",
     'Mask path.')
@@ -154,7 +154,7 @@ flags.DEFINE_enum(
 
     # if Change the Optimizer please change --
     'optimizer', 'LARSW', ['Adam', 'SGD', 'LARS', 'AdamW', 'SGDW', 'LARSW',
-                          'AdamGC', 'SGDGC', 'LARSGC', 'AdamW_GC', 'SGDW_GC', 'LARSW_GC'],
+                           'AdamGC', 'SGDGC', 'LARSGC', 'AdamW_GC', 'SGDW_GC', 'LARSW_GC'],
     'How to scale the learning rate as a function of batch size.')
 
 flags.DEFINE_enum(
@@ -164,7 +164,8 @@ flags.DEFINE_enum(
     # 3. optimizer_GD fir  ['AdamGC', 'SGDGC', 'LARSGC']
     # 4. optimizer_W_GD for ['AdamW_GC', 'SGDW_GC', 'LARSW_GC']
 
-    'optimizer_type', 'optimizer_weight_decay', ['original', 'optimizer_weight_decay','optimizer_GD','optimizer_W_GD' ],
+    'optimizer_type', 'optimizer_weight_decay', [
+        'original', 'optimizer_weight_decay', 'optimizer_GD', 'optimizer_W_GD'],
     'Optimizer type corresponding to Configure of optimizer')
 
 flags.DEFINE_float(
@@ -220,7 +221,7 @@ flags.DEFINE_integer(
     'Number of head projection dimension.')
 
 flags.DEFINE_boolean(
-    'reduce_linear_dimention', False,  # Consider use it when Project head layers > 2
+    'reduce_linear_dimention', True,  # Consider use it when Project head layers > 2
     'Reduce the parameter of Projection in middel layers.')
 
 flags.DEFINE_integer(
@@ -587,7 +588,7 @@ def main(argv):
 
     # Preparing dataset
     # Imagenet path prepare localy
-    strategy= tf.distribute.MirroredStrategy()
+    strategy = tf.distribute.MirroredStrategy()
     train_global_batch = FLAGS.train_batch_size * strategy.num_replicas_in_sync
     val_global_batch = FLAGS.val_batch_size * strategy.num_replicas_in_sync
 
@@ -595,15 +596,13 @@ def main(argv):
                                                     strategy=strategy, train_path=FLAGS.train_path,
                                                     val_path=FLAGS.val_path,
                                                     mask_path=FLAGS.mask_path, bi_mask=False,
-                                                    train_label=FLAGS.train_label,val_label = FLAGS.val_label)
-
+                                                    train_label=FLAGS.train_label, val_label=FLAGS.val_label)
 
     train_ds = train_dataset.simclr_random_global_crop()
 
     val_ds = train_dataset.supervised_validation()
 
     num_train_examples, num_eval_examples = train_dataset.get_data_size()
-
 
     train_steps = FLAGS.eval_steps or int(
         num_train_examples * FLAGS.train_epochs // train_global_batch)
@@ -630,7 +629,7 @@ def main(argv):
     configs = {
 
         "Model_Arch": "ResNet50",
-        "Training mode": "SSL",
+        "Training mode": "Non_Contrastive SSL Framework Baseline",
         "DataAugmentation_types": "SimCLR_Random_Global_Croping",
         "Dataset": "ImageNet1k",
 
@@ -641,7 +640,8 @@ def main(argv):
         "Temperature": FLAGS.temperature,
         "Optimizer": FLAGS.optimizer,
         "SEED": FLAGS.SEED,
-        "Loss type": "NCE_Loss Temperature",
+        "Loss type": FLAGS.aggregate_loss,
+
     }
 
     wandb.init(project="heuristic_attention_representation_learning",
@@ -736,8 +736,10 @@ def main(argv):
                 with tf.GradientTape(persistent=True) as tape:
 
                     # Online
-                    proj_head_output_1, supervised_head_output_1 = online_model(images_one, training=True)
-                    proj_head_output_1 = prediction_model(proj_head_output_1, training=True)
+                    proj_head_output_1, supervised_head_output_1 = online_model(
+                        images_one, training=True)
+                    proj_head_output_1 = prediction_model(
+                        proj_head_output_1, training=True)
 
                     # Target
                     proj_head_output_2, supervised_head_output_2 = target_model(
@@ -778,7 +780,8 @@ def main(argv):
                             sup_loss = obj_lib.add_supervised_loss(
                                 labels=supervise_lable, logits=outputs)
 
-                            scale_sup_loss = tf.nn.compute_average_loss(sup_loss, global_batch_size=train_global_batch)
+                            scale_sup_loss = tf.nn.compute_average_loss(
+                                sup_loss, global_batch_size=train_global_batch)
                             # scale_sup_loss = tf.reduce_sum(
                             #     sup_loss) * (1./train_global_batch)
                             # Update Supervised Metrics
@@ -788,22 +791,22 @@ def main(argv):
 
                         '''Attention'''
                         # Noted Consideration Aggregate (Supervised + Contrastive Loss) --> Update the Model Gradient
-                        if FLAGS.aggregate_loss== "contrastive_supervised": 
+                        if FLAGS.aggregate_loss == "contrastive_supervised":
                             if loss is None:
                                 loss = scale_sup_loss
                             else:
                                 loss += scale_sup_loss
 
-                        elif FLAGS.aggregate_loss== "contrastive":
-                           
-                            supervise_loss=None
+                        elif FLAGS.aggregate_loss == "contrastive":
+
+                            supervise_loss = None
                             if supervise_loss is None:
                                 supervise_loss = scale_sup_loss
                             else:
                                 supervise_loss += scale_sup_loss
-                        else: 
-                            raise ValueError(" Loss aggregate is invalid please check FLAGS.aggregate_loss")
-                    
+                        else:
+                            raise ValueError(
+                                " Loss aggregate is invalid please check FLAGS.aggregate_loss")
 
                     weight_decay_loss = all_model.add_weight_decay(
                         online_model, adjust_per_optimizer=True)
@@ -812,7 +815,7 @@ def main(argv):
                     #     weight_decay_loss)
                     weight_decay_metric.update_state(weight_decay_loss)
                     loss += weight_decay_loss
-                   
+
                     total_loss_metric.update_state(loss)
 
                     logging.info('Trainable variables:')
@@ -888,7 +891,7 @@ def main(argv):
                 for metric in all_metrics:
                     metric.reset_states()
                 # Saving Entire Model
-                if epoch == 50:
+                if epoch + 1 == 25:
                     save_ = './model_ckpt/resnet_byol/baseline_encoder_resnet50_mlp' + \
                         str(epoch) + ".h5"
                     online_model.save_weights(save_)
