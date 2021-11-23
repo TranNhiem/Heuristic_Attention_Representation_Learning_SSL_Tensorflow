@@ -570,7 +570,7 @@ class PredictionHead(tf.keras.layers.Layer):
             raise ValueError('Unknown head projection mode {}'.format(
                 FLAGS.proj_head_mode))
 
-        super(ProjectionHead, self).__init__(**kwargs)
+        super(PredictionHead, self).__init__(**kwargs)
 
     def call(self, inputs, training):
         if FLAGS.proj_head_mode == 'none':
