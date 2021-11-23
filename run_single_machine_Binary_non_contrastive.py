@@ -258,7 +258,7 @@ flags.DEFINE_bool('lineareval_while_pretraining', True,
                   'Whether to finetune supervised head while pretraining.')
 
 flags.DEFINE_enum(
-    'aggregate_loss', 'contrastive', [
+    'aggregate_loss', 'contrastive_supervised', [
         'contrastive', 'contrastive_supervised', ],
     'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
 
