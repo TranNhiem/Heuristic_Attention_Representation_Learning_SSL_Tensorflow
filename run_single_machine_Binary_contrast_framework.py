@@ -118,9 +118,10 @@ flags.DEFINE_enum(
     'lr_rate_scaling', 'linear', ['linear', 'sqrt', 'no_scale', ],
     'How to scale the learning rate as a function of batch size.')
 # Optimizer
+# Same the Original SimClRV2 training Configure
+'''ATTENTION'''
 flags.DEFINE_enum(
-    # Same the Original SimClRV2 training Configure
-    '''ATTENTION'''
+
     # if Change the Optimizer please change --
     'optimizer', 'LARSW', ['Adam', 'SGD', 'LARS', 'AdamW', 'SGDW', 'LARSW',
                           'AdamGC', 'SGDGC', 'LARSGC', 'AdamW_GC', 'SGDW_GC', 'LARSW_GC'],
