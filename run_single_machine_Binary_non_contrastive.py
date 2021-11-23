@@ -208,7 +208,7 @@ flags.DEFINE_integer(
     'Number of head projection dimension.')
 
 flags.DEFINE_boolean(
-    'reduce_linear_dimention', False,  # Consider use it when Project head layers > 2
+    'reduce_linear_dimention', True,  # Consider use it when Project head layers > 2
     'Reduce the parameter of Projection in middel layers.')
 
 flags.DEFINE_integer(
