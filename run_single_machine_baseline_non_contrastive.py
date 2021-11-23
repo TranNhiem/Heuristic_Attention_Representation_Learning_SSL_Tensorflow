@@ -584,7 +584,7 @@ def main(argv):
                                                     train_label=FLAGS.train_label,val_label = FLAGS.val_label)
 
 
-    train_ds = train_dataset.simclr_random_global_crop_image_mask()
+    train_ds = train_dataset.simclr_random_global_crop()
 
     val_ds = train_dataset.supervised_validation()
 
