@@ -38,25 +38,26 @@ def build_optimizer(lr_schedule):
     'original', 'optimizer_weight_decay','optimizer_GD','optimizer_W_GD' 
     optimizer.
     '''
-    if FLAGS.optimizer_type=="original": 
+    if FLAGS.optimizer_type == "original":
         Optimizer_type = FLAGS.optimizer
         optimizers = get_optimizer(lr_schedule, Optimizer_type)
         optimizer = optimizers.original_optimizer(FLAGS)
-    elif FLAGS.optimizer_type== "optimizer_weight_decay": 
+    elif FLAGS.optimizer_type == "optimizer_weight_decay":
         Optimizer_type = FLAGS.optimizer
         optimizers = get_optimizer(lr_schedule, Optimizer_type)
         optimizer = optimizers.optimizer_weight_decay(FLAGS)
 
-    elif  FLAGS.optimizer_type== "optimizer_GD": 
+    elif FLAGS.optimizer_type == "optimizer_GD":
         Optimizer_type = FLAGS.optimizer
         optimizers = get_optimizer(lr_schedule, Optimizer_type)
         optimizer = optimizers.optimizer_gradient_centralization(FLAGS)
 
-    elif  FLAGS.optimizer_type== "optimizer_W_GD":
+    elif FLAGS.optimizer_type == "optimizer_W_GD":
         Optimizer_type = FLAGS.optimizer
         optimizers = get_optimizer(lr_schedule, Optimizer_type)
-        optimizer = optimizers.optimizer_weight_decay_gradient_centralization(FLAGS)
-    else: 
+        optimizer = optimizers.optimizer_weight_decay_gradient_centralization(
+            FLAGS)
+    else:
         raise ValueError(" FLAGS.Optimizer type is invalid please check again")
     #optimizer_mix_percision = mixed_precision.LossScaleOptimizer(optimizer)
 
@@ -72,29 +73,30 @@ def build_optimizer_multi_machine(lr_schedule):
     The mix_percision optimizer.'optimizer_weight_decay','optimizer_GD','optimizer_W_GD' 
     '''
 
-    if FLAGS.optimizer_type== "original": 
+    if FLAGS.optimizer_type == "original":
         Optimizer_type = FLAGS.optimizer
         optimizers = get_optimizer(lr_schedule, Optimizer_type)
         optimizer = optimizers.original_optimizer(FLAGS)
         optimizer_mix_percision = mixed_precision.LossScaleOptimizer(optimizer)
-    elif FLAGS.optimizer_type== "optimizer_weight_decay": 
+    elif FLAGS.optimizer_type == "optimizer_weight_decay":
         Optimizer_type = FLAGS.optimizer
         optimizers = get_optimizer(lr_schedule, Optimizer_type)
         optimizer = optimizers.optimizer_weight_decay(FLAGS)
         optimizer_mix_percision = mixed_precision.LossScaleOptimizer(optimizer)
 
-    elif  FLAGS.optimizer_type== "optimizer_GD": 
+    elif FLAGS.optimizer_type == "optimizer_GD":
         Optimizer_type = FLAGS.optimizer
         optimizers = get_optimizer(lr_schedule, Optimizer_type)
         optimizer = optimizers.optimizer_gradient_centralization(FLAGS)
         optimizer_mix_percision = mixed_precision.LossScaleOptimizer(optimizer)
 
-    elif  FLAGS.optimizer_type== "optimizer_W_GD":
+    elif FLAGS.optimizer_type == "optimizer_W_GD":
         Optimizer_type = FLAGS.optimizer
         optimizers = get_optimizer(lr_schedule, Optimizer_type)
-        optimizer = optimizers.optimizer_weight_decay_gradient_centralization(FLAGS)
+        optimizer = optimizers.optimizer_weight_decay_gradient_centralization(
+            FLAGS)
         optimizer_mix_percision = mixed_precision.LossScaleOptimizer(optimizer)
-    else: 
+    else:
         raise ValueError(" FLAGS.Optimizer type is invalid please check again")
     #optimizer_mix_percision = mixed_precision.LossScaleOptimizer(optimizer)
 
@@ -301,9 +303,8 @@ class ProjectionHead(tf.keras.layers.Layer):
         return proj_head_output, hiddens_list[FLAGS.ft_proj_selector]
 
 
-
 class LinearLayer(tf.keras.layers.Layer):
-    
+
     def __init__(self,
                  num_classes,
                  use_bias=True,
@@ -408,7 +409,6 @@ class ProjectionHead_original(tf.keras.layers.Layer):
         return proj_head_output, hiddens_list[FLAGS.ft_proj_selector]
 
 
-
 class SupervisedHead(tf.keras.layers.Layer):
 
     def __init__(self, num_classes, name='head_supervised', **kwargs):
@@ -422,7 +422,9 @@ class SupervisedHead(tf.keras.layers.Layer):
 
 # Projection Head add  Batchnorm layer
 
-## Also Need input (Batch_size, Dim)
+# Also Need input (Batch_size, Dim)
+
+
 class PredictionHead(tf.keras.layers.Layer):
 
     def __init__(self, **kwargs):
@@ -534,7 +536,7 @@ class PredictionHead(tf.keras.layers.Layer):
 
 
 class PredictionHead_original(tf.keras.layers.Layer):
-    
+
     def __init__(self, **kwargs):
         out_dim = FLAGS.prediction_out_dim
         self.linear_layers = []
@@ -668,12 +670,12 @@ class online_model(tf.keras.models.Model):
 
         # # Base network forward pass.
         hiddens = self.resnet_model(features, training=training)
-        print("Output from ResNet Model", hiddens.shape)
+        #print("Output from ResNet Model", hiddens.shape)
         # Add heads.
         projection_head_outputs, supervised_head_inputs, = self._projection_head(
             hiddens, training)
 
-        print("output from  Online projection Head",projection_head_outputs.shape )
+        #print("output from  Online projection Head",projection_head_outputs.shape )
 
         if FLAGS.train_mode == 'finetune':
             supervised_head_outputs = self.supervised_head(supervised_head_inputs,
@@ -686,7 +688,7 @@ class online_model(tf.keras.models.Model):
             # so we put a stop_gradient.
             supervised_head_outputs = self.supervised_head(
                 tf.stop_gradient(supervised_head_inputs), training)
-            print("Supervised Head Output Dim", supervised_head_outputs.shape)
+            #print("Supervised Head Output Dim", supervised_head_outputs.shape)
             return projection_head_outputs, supervised_head_outputs
 
         else:
