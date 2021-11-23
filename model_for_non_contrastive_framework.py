@@ -218,6 +218,7 @@ class ProjectionHead(tf.keras.layers.Layer):
                     elif j != FLAGS.num_proj_layers - 1:
                         # for the middle layers, use bias and relu for the output.
                         if FLAGS.reduce_linear_dimention:
+                            print("You Implement reduction")
                             self.linear_layers.append(
                                 modify_LinearLayer(
                                     num_classes=lambda input_shape: int(
@@ -341,6 +342,7 @@ class PredictionHead(tf.keras.layers.Layer):
                     elif j != FLAGS.num_proj_layers - 1:
                         # for the middle layers, use bias and relu for the output.
                         if FLAGS.reduce_linear_dimention:
+                            print("Implement reduce dimention")
                             self.linear_layers.append(
                                 modify_LinearLayer(
                                     num_classes=lambda input_shape: int(
