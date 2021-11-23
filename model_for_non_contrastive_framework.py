@@ -190,7 +190,7 @@ class modify_LinearLayer(tf.keras.layers.Layer):
 # Projection Head add  Batchnorm layer
 
 
-class ProjectionHead_modify(tf.keras.layers.Layer):
+class ProjectionHead(tf.keras.layers.Layer):
 
     def __init__(self, **kwargs):
         out_dim = FLAGS.proj_out_dim
@@ -341,7 +341,7 @@ class LinearLayer(tf.keras.layers.Layer):
         return inputs
 
 
-class ProjectionHead(tf.keras.layers.Layer):
+class ProjectionHead_original(tf.keras.layers.Layer):
 
     def __init__(self, **kwargs):
         out_dim = FLAGS.proj_out_dim
@@ -423,7 +423,7 @@ class SupervisedHead(tf.keras.layers.Layer):
 # Projection Head add  Batchnorm layer
 
 ## Also Need input (Batch_size, Dim)
-class PredictionHead_modify(tf.keras.layers.Layer):
+class PredictionHead(tf.keras.layers.Layer):
 
     def __init__(self, **kwargs):
         out_dim = FLAGS.prediction_out_dim
@@ -533,7 +533,7 @@ class PredictionHead_modify(tf.keras.layers.Layer):
         return proj_head_output
 
 
-class PredictionHead(tf.keras.layers.Layer):
+class PredictionHead_original(tf.keras.layers.Layer):
     
     def __init__(self, **kwargs):
         out_dim = FLAGS.prediction_out_dim
@@ -598,7 +598,6 @@ class PredictionHead(tf.keras.layers.Layer):
         proj_head_output = tf.identity(hiddens_list[-1], 'proj_head_output')
 
         return proj_head_output
-
 
 
 """# Indexer"""
