@@ -93,7 +93,8 @@ class imagenet_dataset_single_machine():
             self.x_train_image_mask = np.stack(
                 (np.array(self.x_train), np.array(self.bi_mask)), axis=-1)
             print(self.x_train_image_mask.shape)
-
+        print(self.x_train[0:5])
+        print(self.x_train_lable[0:5])
     def get_label(self, label_txt_path=None):
         class_name = []
         class_ID = []
