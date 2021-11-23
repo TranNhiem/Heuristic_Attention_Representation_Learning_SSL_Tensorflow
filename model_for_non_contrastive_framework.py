@@ -190,7 +190,7 @@ class modify_LinearLayer(tf.keras.layers.Layer):
 # Projection Head add  Batchnorm layer
 
 
-class ProjectionHead(tf.keras.layers.Layer):
+class ProjectionHead_modify(tf.keras.layers.Layer):
 
     def __init__(self, **kwargs):
         out_dim = FLAGS.proj_out_dim
@@ -301,6 +301,114 @@ class ProjectionHead(tf.keras.layers.Layer):
         return proj_head_output, hiddens_list[FLAGS.ft_proj_selector]
 
 
+
+class LinearLayer(tf.keras.layers.Layer):
+    
+    def __init__(self,
+                 num_classes,
+                 use_bias=True,
+                 use_bn=False,
+                 name='linear_layer',
+                 **kwargs):
+        # Note: use_bias is ignored for the dense layer when use_bn=True.
+        # However, it is still used for batch norm.
+        super(LinearLayer, self).__init__(**kwargs)
+        self.num_classes = num_classes
+        self.use_bias = use_bias
+        self.use_bn = use_bn
+        self._name = name
+        if self.use_bn:
+            self.bn_relu = resnet.BatchNormRelu(relu=False, center=use_bias)
+
+    def build(self, input_shape):
+        # TODO(srbs): Add a new SquareDense layer.
+        if callable(self.num_classes):
+            num_classes = self.num_classes(input_shape)
+        else:
+            num_classes = self.num_classes
+        self.dense = tf.keras.layers.Dense(
+            num_classes,
+            kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.01),
+            use_bias=self.use_bias and not self.use_bn)
+
+        super(LinearLayer, self).build(input_shape)
+
+    def call(self, inputs, training):
+        assert inputs.shape.ndims == 2, inputs.shape
+        inputs = self.dense(inputs)
+        if self.use_bn:
+            inputs = self.bn_relu(inputs, training=training)
+        return inputs
+
+
+class ProjectionHead(tf.keras.layers.Layer):
+
+    def __init__(self, **kwargs):
+        out_dim = FLAGS.proj_out_dim
+        self.linear_layers = []
+        if FLAGS.proj_head_mode == 'none':
+            pass  # directly use the output hiddens as hiddens
+        elif FLAGS.proj_head_mode == 'linear':
+
+            self.linear_layers = [
+                LinearLayer(
+                    num_classes=out_dim, use_bias=False, use_bn=True, name='l_0')
+            ]
+        elif FLAGS.proj_head_mode == 'nonlinear':
+
+            for j in range(FLAGS.num_proj_layers):
+                if j != FLAGS.num_proj_layers - 1:
+                    # for the middle layers, use bias and relu for the output.
+                    self.linear_layers.append(
+                        LinearLayer(
+                            num_classes=lambda input_shape: int(
+                                input_shape[-1]),
+                            use_bias=True,
+                            use_bn=True,
+                            name='nl_%d' % j))
+                else:
+                    # for the final layer, neither bias nor relu is used.
+                    self.linear_layers.append(
+                        LinearLayer(
+                            num_classes=FLAGS.proj_out_dim,
+                            use_bias=False,
+                            use_bn=True,
+                            name='nl_%d' % j))
+        else:
+            raise ValueError('Unknown head projection mode {}'.format(
+                FLAGS.proj_head_mode))
+
+        super(ProjectionHead, self).__init__(**kwargs)
+
+    def call(self, inputs, training):
+        if FLAGS.proj_head_mode == 'none':
+            return inputs  # directly use the output hiddens as hiddens
+        hiddens_list = [tf.identity(inputs, 'proj_head_input')]
+
+        if FLAGS.proj_head_mode == 'linear':
+            assert len(self.linear_layers) == 1, len(self.linear_layers)
+            return hiddens_list.append(self.linear_layers[0](hiddens_list[-1],
+                                                             training))
+        elif FLAGS.proj_head_mode == 'nonlinear':
+            for j in range(FLAGS.num_proj_layers):
+                hiddens = self.linear_layers[j](hiddens_list[-1], training)
+                if j != FLAGS.num_proj_layers - 1:
+                    # for the middle layers, use bias and relu for the output.
+                    hiddens = tf.nn.relu(hiddens)
+                hiddens_list.append(hiddens)
+
+        else:
+            raise ValueError('Unknown head projection mode {}'.format(
+                FLAGS.proj_head_mode))
+
+        # The first element is the output of the projection head.
+        # The second element is the input of the finetune head.
+        proj_head_output = tf.identity(hiddens_list[-1], 'proj_head_output')
+
+        return proj_head_output, hiddens_list[FLAGS.ft_proj_selector]
+
+
+
 class SupervisedHead(tf.keras.layers.Layer):
 
     def __init__(self, num_classes, name='head_supervised', **kwargs):
@@ -315,7 +423,7 @@ class SupervisedHead(tf.keras.layers.Layer):
 # Projection Head add  Batchnorm layer
 
 ## Also Need input (Batch_size, Dim)
-class PredictionHead(tf.keras.layers.Layer):
+class PredictionHead_modify(tf.keras.layers.Layer):
 
     def __init__(self, **kwargs):
         out_dim = FLAGS.prediction_out_dim
@@ -423,6 +531,74 @@ class PredictionHead(tf.keras.layers.Layer):
         # The second element is the input of the finetune head.
         proj_head_output = tf.identity(hiddens_list[-1], 'proj_head_output')
         return proj_head_output
+
+
+class PredictionHead(tf.keras.layers.Layer):
+    
+    def __init__(self, **kwargs):
+        out_dim = FLAGS.prediction_out_dim
+        self.linear_layers = []
+        if FLAGS.proj_head_mode == 'none':
+            pass  # directly use the output hiddens as hiddens
+        elif FLAGS.proj_head_mode == 'linear':
+
+            self.linear_layers = [
+                LinearLayer(
+                    num_classes=out_dim, use_bias=False, use_bn=True, name='l_0')
+            ]
+        elif FLAGS.proj_head_mode == 'nonlinear':
+
+            for j in range(FLAGS.num_proj_layers):
+                if j != FLAGS.num_proj_layers - 1:
+                    # for the middle layers, use bias and relu for the output.
+                    self.linear_layers.append(
+                        LinearLayer(
+                            num_classes=lambda input_shape: int(
+                                input_shape[-1]),
+                            use_bias=True,
+                            use_bn=True,
+                            name='nl_%d' % j))
+                else:
+                    # for the final layer, neither bias nor relu is used.
+                    self.linear_layers.append(
+                        LinearLayer(
+                            num_classes=FLAGS.proj_out_dim,
+                            use_bias=False,
+                            use_bn=True,
+                            name='nl_%d' % j))
+        else:
+            raise ValueError('Unknown head projection mode {}'.format(
+                FLAGS.proj_head_mode))
+
+        super(ProjectionHead, self).__init__(**kwargs)
+
+    def call(self, inputs, training):
+        if FLAGS.proj_head_mode == 'none':
+            return inputs  # directly use the output hiddens as hiddens
+        hiddens_list = [tf.identity(inputs, 'proj_head_input')]
+
+        if FLAGS.proj_head_mode == 'linear':
+            assert len(self.linear_layers) == 1, len(self.linear_layers)
+            return hiddens_list.append(self.linear_layers[0](hiddens_list[-1],
+                                                             training))
+        elif FLAGS.proj_head_mode == 'nonlinear':
+            for j in range(FLAGS.num_proj_layers):
+                hiddens = self.linear_layers[j](hiddens_list[-1], training)
+                if j != FLAGS.num_proj_layers - 1:
+                    # for the middle layers, use bias and relu for the output.
+                    hiddens = tf.nn.relu(hiddens)
+                hiddens_list.append(hiddens)
+
+        else:
+            raise ValueError('Unknown head projection mode {}'.format(
+                FLAGS.proj_head_mode))
+
+        # The first element is the output of the projection head.
+        # The second element is the input of the finetune head.
+        proj_head_output = tf.identity(hiddens_list[-1], 'proj_head_output')
+
+        return proj_head_output, hiddens_list[FLAGS.ft_proj_selector]
+
 
 
 """# Indexer"""
