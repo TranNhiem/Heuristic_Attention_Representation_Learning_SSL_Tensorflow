@@ -76,21 +76,21 @@ flags.DEFINE_integer(
     'Number of class in dataset.'
 )
 
-flags.DEFINE_string(
-    'train_path', "/data/SSL_dataset/ImageNet/1K_New/train",
-    'Train dataset path.')
-
-flags.DEFINE_string(
-    'val_path', "/data/SSL_dataset/ImageNet/1K_New/val",
-    'Validaion dataset path.')
-
 # flags.DEFINE_string(
-#     'train_path', "/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/ILSVRC2012_img_train",
+#     'train_path', "/data/SSL_dataset/ImageNet/1K_New/train",
 #     'Train dataset path.')
 
 # flags.DEFINE_string(
-#     'val_path', "/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/val",
+#     'val_path', "/data/SSL_dataset/ImageNet/1K_New/val",
 #     'Validaion dataset path.')
+
+flags.DEFINE_string(
+    'train_path', "/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/ILSVRC2012_img_train",
+    'Train dataset path.')
+
+flags.DEFINE_string(
+    'val_path', "/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/val",
+    'Validaion dataset path.')
 ## Mask_folder should locate in location and same level of train folder
 flags.DEFINE_string(
     'mask_path', "train_binary_mask_by_USS",
