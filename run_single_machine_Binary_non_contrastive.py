@@ -78,7 +78,7 @@ flags.DEFINE_integer(
 
 flags.DEFINE_string(
     #'train_path', "/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/ILSVRC2012_img_train",
-    'train_path', '/data1/share/1K_New/train'
+    'train_path', '/data1/share/1K_New/train', 
     'Train dataset path.')
 
 flags.DEFINE_string(
