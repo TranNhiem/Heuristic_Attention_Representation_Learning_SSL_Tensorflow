@@ -60,11 +60,11 @@ flags.DEFINE_integer(
     'random seed for spliting data the same for all the run with the same validation dataset.')
 
 flags.DEFINE_integer(
-    'train_batch_size', 300,
+    'train_batch_size', 200,
     'Train batch_size .')
 
 flags.DEFINE_integer(
-    'val_batch_size', 300,
+    'val_batch_size', 200,
     'Validaion_Batch_size.')
 
 flags.DEFINE_integer(
@@ -78,15 +78,15 @@ flags.DEFINE_integer(
 
 flags.DEFINE_string(
     #'train_path', "/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/ILSVRC2012_img_train",
-    'train_path', '/data1/share/1K_New/train/', 
+    'train_path', '/data1/share/1K_New/train/',
     'Train dataset path.')
 
 flags.DEFINE_string(
-    #'val_path',"/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/val", 
+    # 'val_path',"/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/val",
     'val_path', "/data1/share/1K_New/val/",
     'Validaion dataset path.')
 
-## Mask_folder should locate in location and same level of train folder
+# Mask_folder should locate in location and same level of train folder
 flags.DEFINE_string(
     'mask_path', "train_binary_mask_by_USS",
     'Mask path.')
@@ -142,7 +142,7 @@ flags.DEFINE_enum(
 flags.DEFINE_enum(
     # if Change the Optimizer please change --
     'optimizer', 'LARSW', ['Adam', 'SGD', 'LARS', 'AdamW', 'SGDW', 'LARSW',
-                          'AdamGC', 'SGDGC', 'LARSGC', 'AdamW_GC', 'SGDW_GC', 'LARSW_GC'],
+                           'AdamGC', 'SGDGC', 'LARSGC', 'AdamW_GC', 'SGDW_GC', 'LARSW_GC'],
     'How to scale the learning rate as a function of batch size.')
 
 flags.DEFINE_enum(
@@ -152,7 +152,8 @@ flags.DEFINE_enum(
     # 3. optimizer_GD fir  ['AdamGC', 'SGDGC', 'LARSGC']
     # 4. optimizer_W_GD for ['AdamW_GC', 'SGDW_GC', 'LARSW_GC']
 
-    'optimizer_type', 'optimizer_weight_decay', ['original', 'optimizer_weight_decay','optimizer_GD','optimizer_W_GD' ],
+    'optimizer_type', 'optimizer_weight_decay', [
+        'original', 'optimizer_weight_decay', 'optimizer_GD', 'optimizer_W_GD'],
     'Optimizer type corresponding to Configure of optimizer')
 
 flags.DEFINE_float(
@@ -329,6 +330,7 @@ flags.DEFINE_integer(
 # Helper function to save and resore model.
 # -------------------------------------------------------------
 
+
 def get_salient_tensors_dict(include_projection_head):
     """Returns a dictionary of tensors."""
     graph = tf.compat.v1.get_default_graph()
@@ -379,6 +381,7 @@ def build_saved_model(model, include_projection_head=True):
     return module
 
 # configure Json format saving file
+
 
 def json_serializable(val):
     #
@@ -600,7 +603,7 @@ def main(argv):
                                                     strategy=strategy, train_path=FLAGS.train_path,
                                                     val_path=FLAGS.val_path,
                                                     mask_path=FLAGS.mask_path, bi_mask=True,
-                                                    train_label=FLAGS.train_label,val_label = FLAGS.val_label)
+                                                    train_label=FLAGS.train_label, val_label=FLAGS.val_label)
 
     train_ds = train_dataset.simclr_random_global_crop_image_mask()
 
@@ -645,7 +648,9 @@ def main(argv):
         "Temperature": FLAGS.temperature,
         "Optimizer": FLAGS.optimizer,
         "SEED": FLAGS.SEED,
+        "Loss configure": FLAGS.aggregate_loss,
         "Loss type": FLAGS.non_contrast_binary_loss,
+
     }
 
     wandb.init(project="heuristic_attention_representation_learning",
@@ -813,7 +818,8 @@ def main(argv):
                             sup_loss = obj_lib.add_supervised_loss(
                                 labels=supervise_lable, logits=outputs)
 
-                            scale_sup_loss = tf.nn.compute_average_loss(sup_loss, global_batch_size=train_global_batch)
+                            scale_sup_loss = tf.nn.compute_average_loss(
+                                sup_loss, global_batch_size=train_global_batch)
                             # scale_sup_loss = tf.reduce_sum(
                             #     sup_loss) * (1./train_global_batch)
                             # Update Supervised Metrics
@@ -823,22 +829,22 @@ def main(argv):
 
                         '''Attention'''
                         # Noted Consideration Aggregate (Supervised + Contrastive Loss) --> Update the Model Gradient
-                        if FLAGS.aggregate_loss== "contrastive_supervised": 
+                        if FLAGS.aggregate_loss == "contrastive_supervised":
                             if loss is None:
                                 loss = scale_sup_loss
                             else:
                                 loss += scale_sup_loss
 
-                        elif FLAGS.aggregate_loss== "contrastive":
-                           
-                            supervise_loss=None
+                        elif FLAGS.aggregate_loss == "contrastive":
+
+                            supervise_loss = None
                             if supervise_loss is None:
                                 supervise_loss = scale_sup_loss
                             else:
                                 supervise_loss += scale_sup_loss
-                        else: 
-                            raise ValueError(" Loss aggregate is invalid please check FLAGS.aggregate_loss")
-                    
+                        else:
+                            raise ValueError(
+                                " Loss aggregate is invalid please check FLAGS.aggregate_loss")
 
                     weight_decay_loss = all_model.add_weight_decay(
                         online_model, adjust_per_optimizer=True)
@@ -925,7 +931,7 @@ def main(argv):
                 for metric in all_metrics:
                     metric.reset_states()
                 # Saving Entire Model
-                if epoch == 50:
+                if epoch + 1 == 50:
                     save_ = './model_ckpt/resnet_byol/baseline_encoder_resnet50_mlp' + \
                         str(epoch) + ".h5"
                     online_model.save_weights(save_)
@@ -935,7 +941,6 @@ def main(argv):
         if FLAGS.mode == 'train_then_eval':
             perform_evaluation(online_model, val_ds, eval_steps,
                                checkpoint_manager.latest_checkpoint, strategy)
-
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
