@@ -83,6 +83,19 @@ flags.DEFINE_string(
 flags.DEFINE_string(
     'val_path', "/data/SSL_dataset/ImageNet/1K_New/val",
     'Validaion dataset path.')
+
+# flags.DEFINE_string(
+#     'train_path', "/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/ILSVRC2012_img_train",
+#     'Train dataset path.')
+
+# flags.DEFINE_string(
+#     'val_path', "/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/val",
+#     'Validaion dataset path.')
+## Mask_folder should locate in location and same level of train folder
+flags.DEFINE_string(
+    'mask_path', "train_binary_mask_by_USS",
+    'Mask path.')
+
 flags.DEFINE_string(
     'train_label', "./image_net_1k_lable.txt",
     'train_label.')
@@ -90,6 +103,8 @@ flags.DEFINE_string(
 flags.DEFINE_string(
     'val_label', "./ILSVRC2012_validation_ground_truth.txt",
     'val_label.')
+
+
 ## Mask_folder should locate in location and same level of train folder
 flags.DEFINE_string(
     'mask_path', "train_binary_mask_by_USS",
@@ -580,7 +595,7 @@ def main(argv):
     train_dataset = imagenet_dataset_single_machine(img_size=FLAGS.image_size, train_batch=train_global_batch,  val_batch=val_global_batch,
                                                     strategy=strategy, train_path=FLAGS.train_path,
                                                     val_path=FLAGS.val_path,
-                                                    mask_path=FLAGS.mask_path, bi_mask=True,
+                                                    mask_path=FLAGS.mask_path, bi_mask=False,
                                                     train_label=FLAGS.train_label,val_label = FLAGS.val_label)
 
 
@@ -722,10 +737,8 @@ def main(argv):
                 with tf.GradientTape(persistent=True) as tape:
 
                     # Online
-                    proj_head_output_1, supervised_head_output_1 = online_model(
-                        images_one, training=True)
-                    proj_head_output_1 = prediction_model(
-                        proj_head_output_1, training=True)
+                    proj_head_output_1, supervised_head_output_1 = online_model(images_one, training=True)
+                    proj_head_output_1 = prediction_model(proj_head_output_1, training=True)
 
                     # Target
                     proj_head_output_2, supervised_head_output_2 = target_model(

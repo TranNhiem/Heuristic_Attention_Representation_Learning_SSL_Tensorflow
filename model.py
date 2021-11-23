@@ -264,7 +264,7 @@ class Model(tf.keras.models.Model):
             self.supervised_head = SupervisedHead(num_classes)
 
     def __call__(self, inputs, training):
-        print(inputs)
+        #print(inputs)
         features = inputs
 
         if training and FLAGS.train_mode == 'pretrain':
