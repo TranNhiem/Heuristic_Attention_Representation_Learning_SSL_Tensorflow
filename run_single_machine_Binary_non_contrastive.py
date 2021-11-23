@@ -640,6 +640,7 @@ def main(argv):
         "Training mode": "Binary Non Contrative SSL",
         "DataAugmentation_types": "SimCLR_Random_Global_Croping_image_mask",
         "Dataset": "ImageNet1k",
+        "object_backgroud_feature_Dsamp_method": FLAGS.downsample_mod,
 
         "IMG_SIZE": FLAGS.image_size,
         "Epochs": FLAGS.train_epochs,
@@ -941,6 +942,7 @@ def main(argv):
         if FLAGS.mode == 'train_then_eval':
             perform_evaluation(online_model, val_ds, eval_steps,
                                checkpoint_manager.latest_checkpoint, strategy)
+
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
