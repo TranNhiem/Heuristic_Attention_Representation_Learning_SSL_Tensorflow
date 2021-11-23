@@ -140,6 +140,8 @@ class imagenet_dataset_single_machine():
     @classmethod
     def parse_images_mask_lable_pair(self, image_mask_path, lable, IMG_SIZE):
         # Loading and reading Image
+        print(image_mask_path[0])
+        print(image_mask_path[1])
         image_path, mask_path = image_mask_path[0], image_mask_path[1]
         img = tf.io.read_file(image_path)
         img = tf.io.decode_jpeg(img, channels=3)
