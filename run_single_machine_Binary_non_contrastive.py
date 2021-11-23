@@ -60,11 +60,11 @@ flags.DEFINE_integer(
     'random seed for spliting data the same for all the run with the same validation dataset.')
 
 flags.DEFINE_integer(
-    'train_batch_size', 200,
+    'train_batch_size', 300,
     'Train batch_size .')
 
 flags.DEFINE_integer(
-    'val_batch_size', 200,
+    'val_batch_size', 300,
     'Validaion_Batch_size.')
 
 flags.DEFINE_integer(
@@ -216,7 +216,7 @@ flags.DEFINE_integer(
     'Upscale the Dense Unit of Non-Contrastive Framework')
 
 flags.DEFINE_boolean(
-    'non_contrastive', False,  # Consider use it when Project head layers > 2
+    'non_contrastive', True,  # Consider use it when Project head layers > 2
     'Using for upscaling the first layers of MLP == upscale value')
 
 flags.DEFINE_integer(

@@ -60,11 +60,11 @@ flags.DEFINE_integer(
     'random seed for spliting data the same for all the run with the same validation dataset.')
 
 flags.DEFINE_integer(
-    'train_batch_size', 25,
+    'train_batch_size', 250,
     'Train batch_size .')
 
 flags.DEFINE_integer(
-    'val_batch_size', 25,
+    'val_batch_size', 250,
     'Validaion_Batch_size.')
 
 flags.DEFINE_integer(
