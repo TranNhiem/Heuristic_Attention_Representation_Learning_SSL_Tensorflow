@@ -83,9 +83,9 @@ flags.DEFINE_string(
 flags.DEFINE_string(
     'val_path', "/data/SSL_dataset/ImageNet/1K_New/val",
     'Validaion dataset path.')
-
+## Mask_folder should locate in location and same level of train folder
 flags.DEFINE_string(
-    'mask_path', "/data/SSL_dataset/ImageNet/1K_New/val_binary_mask_by_USS",
+    'mask_path', "val_binary_mask_by_USS",
     'Mask path.')
 # ------------------------------------------
 # Define for Linear Evaluation
