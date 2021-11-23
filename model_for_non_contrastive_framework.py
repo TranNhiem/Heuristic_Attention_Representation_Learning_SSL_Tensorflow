@@ -575,7 +575,7 @@ class Binary_online_model(tf.keras.models.Model):
 
     def __init__(self, num_classes, Backbone="Resnet", **kwargs):
 
-        super(online_model, self).__init__(**kwargs)
+        super(Binary_online_model, self).__init__(**kwargs)
         # Encoder
         if Backbone == "Resnet":
             self.encoder = resnet_modify(resnet_depth=FLAGS.resnet_depth,
@@ -676,7 +676,7 @@ class Binary_target_model(tf.keras.models.Model):
 
     def __init__(self, num_classes, Backbone="Resnet", **kwargs):
 
-        super(online_model, self).__init__(**kwargs)
+        super(Binary_target_model, self).__init__(**kwargs)
         # Encoder
         if Backbone == "Resnet":
             self.encoder = resnet_modify(resnet_depth=FLAGS.resnet_depth,

@@ -326,7 +326,6 @@ flags.DEFINE_integer(
 # Helper function to save and resore model.
 # -------------------------------------------------------------
 
-
 def get_salient_tensors_dict(include_projection_head):
     """Returns a dictionary of tensors."""
     graph = tf.compat.v1.get_default_graph()
@@ -377,7 +376,6 @@ def build_saved_model(model, include_projection_head=True):
     return module
 
 # configure Json format saving file
-
 
 def json_serializable(val):
     #
