@@ -85,11 +85,13 @@ flags.DEFINE_integer(
 #     'Validaion dataset path.')
 
 flags.DEFINE_string(
-    'train_path', "/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/ILSVRC2012_img_train",
+    #'train_path', "/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/ILSVRC2012_img_train",
+    'train_path', '/data1/share/1K_New/train/', 
     'Train dataset path.')
 
 flags.DEFINE_string(
-    'val_path', "/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/val",
+    #'val_path',"/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/val", 
+    'val_path', "/data1/share/1K_New/val/",
     'Validaion dataset path.')
 
 ## Mask_folder should locate in location and same level of train folder
@@ -98,11 +100,11 @@ flags.DEFINE_string(
     'Mask path.')
 
 flags.DEFINE_string(
-    'train_label', "./image_net_1k_lable.txt",
+    'train_label', "image_net_1k_lable.txt",
     'train_label.')
 
 flags.DEFINE_string(
-    'val_label', "./ILSVRC2012_validation_ground_truth.txt",
+    'val_label', "ILSVRC2012_validation_ground_truth.txt",
     'val_label.')
 
 
@@ -226,7 +228,7 @@ flags.DEFINE_integer(
     'Upscale the Dense Unit of Non-Contrastive Framework')
 
 flags.DEFINE_boolean(
-    'non_contrastive', False,  # Consider use it when Project head layers > 2
+    'non_contrastive', True,  # Consider use it when Project head layers > 2
     'Using for upscaling the first layers of MLP == upscale value')
 
 flags.DEFINE_integer(

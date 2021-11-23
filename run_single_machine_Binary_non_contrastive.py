@@ -758,7 +758,7 @@ def main(argv):
                 images_mask_one, lable_1, = ds_one  # lable_one
                 images_mask_two, lable_2,  = ds_two  # lable_two
 
-                with tf.GradientTape() as tape:
+                with tf.GradientTape(persistent=True) as tape:
 
                     obj_1, backg_1,  proj_head_output_1, supervised_head_output_1 = online_model(
                         [images_mask_one[0], tf.expand_dims(images_mask_one[1], axis=-1)], training=True)
