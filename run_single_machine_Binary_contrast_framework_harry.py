@@ -74,11 +74,11 @@ flags.DEFINE_integer(
     'Number of epochs to train for.')
 
 flags.DEFINE_string(
-    'train_path', "/data1/1K_New/train",
+    'train_path', "/data1/share/1K_New/train",
     'Train dataset path.')
 
 flags.DEFINE_string(
-    'val_path', "/data1/1K_New/val",
+    'val_path', "/data1/share/1K_New/val",
     'Validaion dataset path.')
 
 ## Mask_folder should locate in location and same level of train folder
