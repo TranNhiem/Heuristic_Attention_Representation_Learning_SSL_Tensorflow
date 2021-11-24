@@ -83,6 +83,14 @@ flags.DEFINE_string(
     'mask_path', "train_binary_mask_by_USS",
     'Mask path.')
 
+flags.DEFINE_string(
+    'train_label', "/image_net_1k_lable.txt",
+    'train_label.')
+
+flags.DEFINE_string(
+    'val_label', "ILSVRC2012_validation_ground_truth.txt",
+    'val_label.')
+
 # ---------------------------------------------------
 # Define for Linear Evaluation
 # ---------------------------------------------------
