@@ -244,7 +244,7 @@ flags.DEFINE_float(
 )
 
 flags.DEFINE_enum(
-    'contrast_binary_loss', 'sum_contrast_obj_back',
+    'contrast_binary_loss', 'original_contrast_add_backgroud_object',
     # 4 Options Loss for training.
     [
         # two version binary_mask_nt_xent_object_backgroud_sum_loss, binary_mask_nt_xent_object_backgroud_sum_loss_v1
