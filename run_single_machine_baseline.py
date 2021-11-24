@@ -63,11 +63,11 @@ flags.DEFINE_integer(
     'random seed for spliting data the same for all the run with the same validation dataset.')
 
 flags.DEFINE_integer(
-    'train_batch_size', 250,
+    'train_batch_size', 128,
     'Train batch_size .')
 
 flags.DEFINE_integer(
-    'val_batch_size', 250,
+    'val_batch_size', 128,
     'Validaion_Batch_size.')
 
 flags.DEFINE_integer(
@@ -76,12 +76,12 @@ flags.DEFINE_integer(
 
 flags.DEFINE_string(
    
-    'train_path', '/data1/share/1K_New/train/',
+    'train_path', '/data1/1K_New/train/',
     'Train dataset path.')
 
 flags.DEFINE_string(
   
-    'val_path', "/data1/share/1K_New/val/",
+    'val_path', "/data1/1K_New/val/",
     'Validaion dataset path.')
 
 
@@ -200,7 +200,7 @@ flags.DEFINE_enum(
     'How the head projection is done.')
 
 flags.DEFINE_integer(
-    'proj_out_dim', ,
+    'proj_out_dim', 128,
     'Number of head projection dimension.')
 
 flags.DEFINE_integer(
