@@ -70,7 +70,7 @@ flags.DEFINE_integer(
     'Validaion_Batch_size.')
 
 flags.DEFINE_integer(
-    'train_epochs', 500,
+    'train_epochs', 50,
     'Number of epochs to train for.')
 
 flags.DEFINE_string(
