@@ -107,7 +107,7 @@ flags.DEFINE_integer(
 
 flags.DEFINE_float(
     'randaug_transform', 1,
-    'Number of augmentation transformations.')
+    'Number of augmentation  transformations.')
 
 flags.DEFINE_float(
     'randaug_magnitude', 7,
