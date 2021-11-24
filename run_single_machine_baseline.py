@@ -213,7 +213,7 @@ flags.DEFINE_integer(
     '0 means no projection head, and -1 means the final layer.')
 
 flags.DEFINE_float(
-    'temperature', 0.1,
+    'temperature', 0.5,
     'Temperature parameter for contrastive loss.')
 
 flags.DEFINE_boolean(
@@ -294,7 +294,7 @@ flags.DEFINE_integer(
     'Number of epochs between checkpoints/summaries.')
 
 flags.DEFINE_integer(
-    'checkpoint_steps', 10,
+    'checkpoint_steps', 100,
     'Number of steps between checkpoints/summaries. If provided, overrides '
     'checkpoint_epochs.')
 
@@ -810,18 +810,17 @@ def main(argv):
 
                     total_loss += distributed_train_step(ds_one, ds_two)
                     num_batches+=1
-                    #if (global_step.numpy()+ 1) % checkpoint_steps==0:
-                        
-                    with summary_writer.as_default():
-                        cur_step = global_step.numpy()
-                        checkpoint_manager.save(cur_step)
-                        logging.info('Completed: %d / %d steps',
-                                    cur_step, train_steps)
-                        metrics.log_and_write_metrics_to_summary(
-                            all_metrics, cur_step)
-                        tf.summary.scalar('learning_rate', lr_schedule(tf.cast(global_step, dtype=tf.float32)),
-                                        global_step)
-                        summary_writer.flush()
+                    if (global_step.numpy()+ 1) % checkpoint_steps==0:
+                        with summary_writer.as_default():
+                            cur_step = global_step.numpy()
+                            checkpoint_manager.save(cur_step)
+                            logging.info('Completed: %d / %d steps',
+                                        cur_step, train_steps)
+                            metrics.log_and_write_metrics_to_summary(
+                                all_metrics, cur_step)
+                            tf.summary.scalar('learning_rate', lr_schedule(tf.cast(global_step, dtype=tf.float32)),
+                                            global_step)
+                            summary_writer.flush()
                 epoch_loss= total_loss/num_batches
                 # Wandb Configure for Visualize the Model Training
                 wandb.log({
