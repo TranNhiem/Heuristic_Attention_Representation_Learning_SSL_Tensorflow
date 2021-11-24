@@ -954,7 +954,7 @@ def main(argv):
                     metric.reset_states()
 
                 # Saving Entire Model
-                if epoch == 50:
+                if epoch +1 == 50:
                     save_ = './model_ckpt/resnet_simclr/binary_contrast_encoder_resnet50_mlp' + \
                         str(epoch) + ".h5"
                     model.save_weights(save_)

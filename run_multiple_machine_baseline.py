@@ -973,7 +973,7 @@ def main(argv):
 
             logging.info('Training Complete ...')
             # Saving Entire Model
-            if epoch == 50:
+            if epoch +1 == 50:
                 save = './model_ckpt/resnet_simclr/encoder_resnet50_mlp_multi_nodes' + \
                     str(epoch) + ".h5"
                 model.save_weights(save)

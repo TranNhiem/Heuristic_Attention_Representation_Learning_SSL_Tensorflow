@@ -836,7 +836,7 @@ def main(argv):
                 })
                 for metric in all_metrics:
                     metric.reset_states()
-                if epoch == 50:
+                if epoch+1 == 50:
                     save_ = './model_ckpt/resnet_simclr/baseline_encoder_resnet50_mlp' + \
                         str(epoch) + ".h5"
                     model.save_weights(save_)
