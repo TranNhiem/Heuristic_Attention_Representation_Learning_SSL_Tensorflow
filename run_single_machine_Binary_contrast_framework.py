@@ -584,10 +584,6 @@ def main(argv):
     # x_val = dataset[0:50000]
     # x_train = dataset[50000:]
     #
-    strategy = tf.distribute.MirroredStrategy()
-    train_global_batch = FLAGS.train_batch_size * strategy.num_replicas_in_sync
-    val_global_batch = FLAGS.val_batch_size * strategy.num_replicas_in_sync
-    #
     # train_dataset = imagenet_dataset_single_machine(img_size=FLAGS.image_size, train_batch=train_global_batch,  val_batch=val_global_batch,
     #                                                 strategy=strategy, img_path=None, x_val=x_val,  x_train=x_train, bi_mask=True)
     #
@@ -598,6 +594,10 @@ def main(argv):
     # num_train_examples = len(x_train)
     # num_eval_examples = len(x_val)
 
+    strategy = tf.distribute.MirroredStrategy()
+    train_global_batch = FLAGS.train_batch_size * strategy.num_replicas_in_sync
+    val_global_batch = FLAGS.val_batch_size * strategy.num_replicas_in_sync
+ 
     train_dataset = imagenet_dataset_single_machine(img_size=FLAGS.image_size, train_batch=train_global_batch,  val_batch=val_global_batch,
                                                     strategy=strategy, train_path=FLAGS.train_path,
                                                     val_path=FLAGS.val_path,
