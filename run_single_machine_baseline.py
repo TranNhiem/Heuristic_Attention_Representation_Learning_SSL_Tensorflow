@@ -242,7 +242,7 @@ flags.DEFINE_enum(
     'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
 
 flags.DEFINE_enum(
-    'loss_options' , 'loss_v0', 
+    'loss_options' , 'loss_v1', 
     ['loss_v0', 'loss_v1'], 
     "Option for chossing loss version [V0]--> Original simclr loss [V1] --> Custom build design loss"
 )

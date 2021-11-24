@@ -335,7 +335,6 @@ def binary_mask_nt_xent_object_backgroud_sum_loss(v1_object, v2_object, v1_backg
     3. Scaling Alpha value shound be (Mulitply -- Divided at the same)
 
     '''
-
     # L2 Norm
     batch_size = tf.shape(v1_object)[0]
     v1_object = tf.math.l2_normalize(v1_object, -1)
@@ -570,7 +569,6 @@ def sum_symetrize_l2_loss_object_backg(o_1, o_2, b_1, b_2, alpha, temperature):
 
 '''Loss 2 SimSiam Model'''
 # Asymetric LOSS
-
 
 def simsam_loss(p, z):
     # The authors of SimSiam emphasize the impact of
