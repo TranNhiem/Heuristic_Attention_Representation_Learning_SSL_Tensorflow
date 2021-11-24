@@ -63,23 +63,25 @@ flags.DEFINE_integer(
     'random seed for spliting data the same for all the run with the same validation dataset.')
 
 flags.DEFINE_integer(
-    'train_batch_size', 4,
+    'train_batch_size', 250,
     'Train batch_size .')
 
 flags.DEFINE_integer(
-    'val_batch_size', 4,
+    'val_batch_size', 250,
     'Validaion_Batch_size.')
 
 flags.DEFINE_integer(
-    'train_epochs', 500,
+    'train_epochs', 50,
     'Number of epochs to train for.')
 
 flags.DEFINE_string(
-    'train_path', r"D:\OneDrive\鴻海\SSL\Modify_code\imagenet_1k_tiny\imagenet_1k_tiny\Image\train",
+   
+    'train_path', '/data1/share/1K_New/train/',
     'Train dataset path.')
 
 flags.DEFINE_string(
-    'val_path', r"D:\OneDrive\鴻海\SSL\Modify_code\imagenet_1k_tiny\imagenet_1k_tiny\val",
+  
+    'val_path', "/data1/share/1K_New/val/",
     'Validaion dataset path.')
 
 
@@ -198,7 +200,7 @@ flags.DEFINE_enum(
     'How the head projection is done.')
 
 flags.DEFINE_integer(
-    'proj_out_dim', 128,
+    'proj_out_dim', ,
     'Number of head projection dimension.')
 
 flags.DEFINE_integer(
@@ -235,7 +237,7 @@ flags.DEFINE_bool('lineareval_while_pretraining', True,
                   'Whether to finetune supervised head while pretraining.')
 
 flags.DEFINE_enum(
-    'aggregate_loss', 'contrastive', [
+    'aggregate_loss', 'contrastive_supervised', [
         'contrastive', 'contrastive_supervised', ],
     'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
 
@@ -245,11 +247,7 @@ flags.DEFINE_enum(
     "Option for chossing loss version [V0]--> Original simclr loss [V1] --> Custom build design loss"
 )
 
-flags.DEFINE_enum(
-    'optimizer_type' , 'original',
-    ['original', 'optimizer_weight_decay',"optimizer_GD","optimizer_W_GD"],
-    "Option for chossing loss version [V0]--> Original simclr loss [V1] --> Custom build design loss"
-)
+
 
 
 # Fine Tuning configure
@@ -607,7 +605,8 @@ def main(argv):
         "Temperature": FLAGS.temperature,
         "Optimizer": FLAGS.optimizer,
         "SEED": FLAGS.SEED,
-        "Loss type": "NCE_Loss Temperature",
+        "Loss type":FLAGS.aggregate_loss,
+        "loss_version": FLAGS.loss_options
     }
 
     wandb.init(project="heuristic_attention_representation_learning",
