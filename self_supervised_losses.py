@@ -157,9 +157,12 @@ def nt_xent_asymetrize_loss_v2(z,  temperature):
     z = tf.math.l2_normalize(z, axis=1)
     similarity_matrix = tf.matmul(
         z, z, transpose_b=True)  # pairwise similarity
+    
     similarity = tf.exp(similarity_matrix / temperature)
 
+    logit_output= similarity_matrix/ temperature
     batch_size = tf.shape(z)[0]
+
     labels = tf.one_hot(tf.range(batch_size), batch_size * 2)
 
     ij_indices = tf.reshape(tf.range(z.shape[0]), shape=[-1, 2])
@@ -182,7 +185,7 @@ def nt_xent_asymetrize_loss_v2(z,  temperature):
     losses = -tf.math.log(numerator/denominators)
     total_loss = tf.reduce_mean(losses)
 
-    return total_loss, similarity, labels
+    return total_loss, logit_output, labels
 
 
 def nt_xent_symetrize_loss_simcrl(hidden1, hidden2, LARGE_NUM,
@@ -219,8 +222,11 @@ def nt_xent_symetrize_loss_simcrl(hidden1, hidden2, LARGE_NUM,
     logits_bb = tf.matmul(hidden2, hidden2_large,
                           transpose_b=True) / temperature
     logits_bb = logits_bb - masks * LARGE_NUM
+    
     logits_ab = tf.matmul(hidden1, hidden2_large,
                           transpose_b=True) / temperature
+
+
     logits_ba = tf.matmul(hidden2, hidden1_large,
                           transpose_b=True) / temperature
 

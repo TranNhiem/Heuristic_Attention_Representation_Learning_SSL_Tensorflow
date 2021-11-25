@@ -741,8 +741,8 @@ def main(argv):
                             # Calculte the cross_entropy loss with Labels
                             sup_loss = obj_lib.add_supervised_loss(labels=supervise_lable, logits=outputs)
                             
-                            #scale_sup_loss = tf.nn.compute_average_loss(sup_loss, global_batch_size=train_global_batch)
-                            scale_sup_loss =  tf.reduce_sum(sup_loss) * (1./train_global_batch)
+                            scale_sup_loss = tf.nn.compute_average_loss(sup_loss, global_batch_size=train_global_batch)
+                            # scale_sup_loss =  tf.reduce_sum(sup_loss) * (1./train_global_batch)
                             # Update Supervised Metrics
                             metrics.update_finetune_metrics_train(supervised_loss_metric,
                                                                   supervised_acc_metric, scale_sup_loss,
@@ -799,6 +799,7 @@ def main(argv):
                     train_step, args=(ds_one, ds_two))
                 return strategy.reduce(tf.distribute.ReduceOp.SUM, per_replica_losses,
                                        axis=None)
+
             global_step = optimizer.iterations
 
             for epoch in range(FLAGS.train_epochs):
@@ -810,17 +811,17 @@ def main(argv):
 
                     total_loss += distributed_train_step(ds_one, ds_two)
                     num_batches+=1
-                    if (global_step.numpy()+ 1) % checkpoint_steps==0:
-                        with summary_writer.as_default():
-                            cur_step = global_step.numpy()
-                            checkpoint_manager.save(cur_step)
-                            logging.info('Completed: %d / %d steps',
-                                        cur_step, train_steps)
-                            metrics.log_and_write_metrics_to_summary(
-                                all_metrics, cur_step)
-                            tf.summary.scalar('learning_rate', lr_schedule(tf.cast(global_step, dtype=tf.float32)),
-                                            global_step)
-                            summary_writer.flush()
+                    #if (global_step.numpy()+ 1) % checkpoint_steps==0:
+                    with summary_writer.as_default():
+                        cur_step = global_step.numpy()
+                        checkpoint_manager.save(cur_step)
+                        logging.info('Completed: %d / %d steps',
+                                    cur_step, train_steps)
+                        metrics.log_and_write_metrics_to_summary(
+                            all_metrics, cur_step)
+                        tf.summary.scalar('learning_rate', lr_schedule(tf.cast(global_step, dtype=tf.float32)),
+                                        global_step)
+                        summary_writer.flush()
                 epoch_loss= total_loss/num_batches
                 # Wandb Configure for Visualize the Model Training
                 wandb.log({
