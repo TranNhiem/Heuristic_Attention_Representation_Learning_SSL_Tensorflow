@@ -682,6 +682,7 @@ def main(argv):
 
             # Scale loss  --> Aggregating all Gradients
             def distributed_loss(x1, x2):
+                
                 if FLAGS.loss_options =="loss_v0": 
                     # each GPU loss per_replica batch loss
                     per_example_loss, logits_ab, labels = nt_xent_symetrize_loss_simcrl(
@@ -807,12 +808,10 @@ def main(argv):
             for epoch in range(FLAGS.train_epochs):
 
                 total_loss = 0.0
-   
                 num_batches=0
                 for _, (ds_one, ds_two) in enumerate(train_ds):
 
                     total_loss += distributed_train_step(ds_one, ds_two)
-                    
                     num_batches+=1
                     #if (global_step.numpy()+ 1) % checkpoint_steps==0:
                     with summary_writer.as_default():
