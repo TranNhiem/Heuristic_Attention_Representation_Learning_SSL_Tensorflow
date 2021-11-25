@@ -720,6 +720,7 @@ def main(argv):
                     if proj_head_output_1 is not None:
                         # Compute Contrastive Loss model
                         loss, logits_ab, labels = distributed_loss( proj_head_output_1, proj_head_output_2)
+                        
                         if loss is None:
                             loss = loss
                         else:
@@ -755,6 +756,7 @@ def main(argv):
                         # Option 1: Only use Contrast loss 
                         # option 2: Contrast Loss + Supervised Loss 
                         if FLAGS.aggregate_loss== "contrastive_supervised": 
+                            
                             if loss is None:
                                 loss = scale_sup_loss
                             else:
@@ -810,6 +812,7 @@ def main(argv):
                 for _, (ds_one, ds_two) in enumerate(train_ds):
 
                     total_loss += distributed_train_step(ds_one, ds_two)
+                    
                     num_batches+=1
                     #if (global_step.numpy()+ 1) % checkpoint_steps==0:
                     with summary_writer.as_default():
@@ -822,6 +825,7 @@ def main(argv):
                         tf.summary.scalar('learning_rate', lr_schedule(tf.cast(global_step, dtype=tf.float32)),
                                         global_step)
                         summary_writer.flush()
+
                 epoch_loss= total_loss/num_batches
                 # Wandb Configure for Visualize the Model Training
                 wandb.log({
