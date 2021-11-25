@@ -263,7 +263,7 @@ flags.DEFINE_enum(
     'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
 
 flags.DEFINE_enum(
-    'non_contrast_binary_loss', 'original_add_backgroud', [
+    'non_contrast_binary_loss', 'sum_symetrize_l2_loss_object_backg', [
         'Original_loss_add_contrast_level_object', 'sum_symetrize_l2_loss_object_backg', 'original_add_backgroud'],
     'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
 
