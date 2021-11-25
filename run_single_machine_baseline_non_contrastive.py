@@ -666,7 +666,6 @@ def main(argv):
     # *****************************************************************
     else:
         summary_writer = tf.summary.create_file_writer(FLAGS.model_dir)
-
         with strategy.scope():
 
             # Configure the learning rate
