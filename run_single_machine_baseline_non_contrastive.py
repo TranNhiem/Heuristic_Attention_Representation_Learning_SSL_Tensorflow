@@ -24,7 +24,7 @@ if gpus:
     try:
         for gpu in gpus:
             tf.config.experimental.set_memory_growth(gpu, True)
-        tf.config.experimental.set_visible_devices(gpus[0:4], 'GPU')
+        tf.config.experimental.set_visible_devices(gpus[0:8], 'GPU')
         logical_gpus = tf.config.experimental.list_logical_devices('GPU')
         print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPU")
     except RuntimeError as e:
