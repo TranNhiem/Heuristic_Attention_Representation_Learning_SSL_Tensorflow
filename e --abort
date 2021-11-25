@@ -1,0 +1,54 @@
+[33mb33ad97[m[33m ([m[1;36mHEAD -> [m[1;32mmaster[m[33m)[m HEAD@{0}: reset: moving to HEAD
+[33mb33ad97[m[33m ([m[1;36mHEAD -> [m[1;32mmaster[m[33m)[m HEAD@{1}: commit: commit
+[33m981a8e4[m HEAD@{2}: commit: server code
+[33m13d1097[m HEAD@{3}: merge mastere: Merge made by the 'recursive' strategy.
+[33m8e5dda7[m HEAD@{4}: checkout: moving from 4005a32c1813a1ed01d1616472f16b992277c696 to master
+[33m4005a32[m HEAD@{5}: commit: change
+[33mf2cc0b6[m HEAD@{6}: rebase -i (start): checkout HEAD~3
+[33m8e5dda7[m HEAD@{7}: pull github2 master: Merge made by the 'recursive' strategy.
+[33mf2cc0b6[m HEAD@{8}: commit: change
+[33m7f4e740[m HEAD@{9}: checkout: moving from e2fa1d0aaf76ae02355ccab4971cf6806f33f13c to master
+[33me2fa1d0[m HEAD@{10}: rebase -i (pick): create a new branch and update it
+[33m8d0be77[m HEAD@{11}: rebase -i (pick): harry upddate
+[33m021fe57[m HEAD@{12}: rebase -i (pick): some change
+[33m9fc134f[m HEAD@{13}: rebase -i (pick): fix the dataloader(imagenet) bug for read the label.
+[33m59ed8a7[m HEAD@{14}: rebase -i (start): checkout HEAD~10
+[33m25ad30d[m HEAD@{15}: commit (amend): create a new branch and update it
+[33me2a215d[m HEAD@{16}: rebase -i (start): checkout HEAD~3
+[33m7f4e740[m HEAD@{17}: rebase -i (finish): returning to refs/heads/master
+[33m7f4e740[m HEAD@{18}: rebase -i (reword): I'm so sorry for that again
+[33md56cbd3[m HEAD@{19}: rebase -i (reword): fuck rick
+[33m5fe8b19[m HEAD@{20}: rebase -i: fast-forward
+[33m8e55ead[m[33m ([m[1;31mgithub/harry[m[33m)[m HEAD@{21}: rebase -i (start): checkout HEAD~3
+[33m2beebc5[m HEAD@{22}: rebase -i (finish): returning to refs/heads/master
+[33m2beebc5[m HEAD@{23}: rebase -i (reword): I'm so sorry for that again
+[33m5fe8b19[m HEAD@{24}: rebase -i (reword): fuck rick
+[33me10da5f[m HEAD@{25}: rebase -i: fast-forward
+[33m8e55ead[m[33m ([m[1;31mgithub/harry[m[33m)[m HEAD@{26}: rebase -i (start): checkout HEAD~3
+[33m80bc548[m HEAD@{27}: rebase -i (finish): returning to refs/heads/master
+[33m80bc548[m HEAD@{28}: rebase -i (reword): I'm so sorry for that again
+[33me10da5f[m HEAD@{29}: rebase -i (reword): fuck rick
+[33m5248ff4[m HEAD@{30}: rebase -i: fast-forward
+[33m8e55ead[m[33m ([m[1;31mgithub/harry[m[33m)[m HEAD@{31}: rebase -i (start): checkout HEAD~3
+[33mec54cc1[m HEAD@{32}: rebase -i (finish): returning to refs/heads/master
+[33mec54cc1[m HEAD@{33}: rebase -i (start): checkout HEAD~3
+[33mec54cc1[m HEAD@{34}: rebase -i (finish): returning to refs/heads/master
+[33mec54cc1[m HEAD@{35}: rebase -i (start): checkout HEAD~3
+[33mec54cc1[m HEAD@{36}: rebase -i (finish): returning to refs/heads/master
+[33mec54cc1[m HEAD@{37}: rebase -i (start): checkout HEAD~3
+[33mec54cc1[m HEAD@{38}: commit (amend): I'm so sorry for that again
+[33m44ac5b6[m HEAD@{39}: commit (amend): I'm so sorry for that again
+[33mca0a3df[m HEAD@{40}: commit: I'm so sorry for that again
+[33m5248ff4[m HEAD@{41}: commit: fuck rick
+[33m8e55ead[m[33m ([m[1;31mgithub/harry[m[33m)[m HEAD@{42}: merge harry: Fast-forward
+[33m896eb75[m HEAD@{43}: checkout: moving from harry to master
+[33m8e55ead[m[33m ([m[1;31mgithub/harry[m[33m)[m HEAD@{44}: commit: update the latest result
+[33me2a215d[m HEAD@{45}: reset: moving to HEAD
+[33me2a215d[m HEAD@{46}: commit: create a new branch and update it
+[33m9293d5a[m HEAD@{47}: checkout: moving from 9293d5adc7ce49464039e81118dc3602db349ca6 to harry
+[33m9293d5a[m HEAD@{48}: commit: harry upddate
+[33m4882fc6[m HEAD@{49}: commit: some change
+[33m896eb75[m HEAD@{50}: checkout: moving from master to master
+[33m896eb75[m HEAD@{51}: checkout: moving from 896eb75a4c6c5dd8656954b14463d37e5dd974ee to master
+[33m896eb75[m HEAD@{52}: checkout: moving from master to master
+[33m896eb75[m HEAD@{53}: clone: from https://github.com/TranNhiem/Heuristic_attention_simclr_tensorflow_modify.git
