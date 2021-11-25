@@ -126,6 +126,7 @@ def centralized_gradients_for_optimizer(optimizer):
 def get_train_steps(num_examples, train_epochs, gloabl_batch_size, train_steps=None):
     """Determine the number of training steps."""
     if train_steps is None:
+        print("Calculate training steps")
         train_steps = (num_examples * train_epochs //
                        gloabl_batch_size + 1)
     else:
