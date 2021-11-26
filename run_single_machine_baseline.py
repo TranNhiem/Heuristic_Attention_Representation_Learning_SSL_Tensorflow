@@ -575,7 +575,7 @@ def main(argv):
 
     num_train_examples,num_eval_examples = train_dataset.get_data_size()
 
-    train_steps = FLAGS.eval_steps or int(num_train_examples * FLAGS.train_epochs // train_global_batch)
+    train_steps = FLAGS.eval_steps or int(num_train_examples * FLAGS.train_epochs // train_global_batch)*2
     eval_steps = FLAGS.eval_steps or int(math.ceil(num_eval_examples / val_global_batch))
 
     epoch_steps = int(round(num_train_examples / train_global_batch))
