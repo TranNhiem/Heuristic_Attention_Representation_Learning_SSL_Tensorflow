@@ -914,8 +914,10 @@ class Indexer(tf.keras.layers.Layer):
 """Use the maxpooling to do the down sample"""
 class SSL_train_model_Model(tf.keras.models.Model):
 
-    def __init__(self, Backbone="Resnet", num_classes=1000, **kwargs):
+    def __init__(self, Backbone="Resnet", num_classes=100, **kwargs):
         super(SSL_train_model_Model, self).__init__(**kwargs)
+
+        print("num_classes : ",num_classes)
 
         if Backbone == "Resnet":
             self.encoder = resnet(resnet_depth=FLAGS.resnet_depth,
