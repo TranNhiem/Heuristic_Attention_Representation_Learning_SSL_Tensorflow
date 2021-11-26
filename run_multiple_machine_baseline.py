@@ -641,7 +641,7 @@ def main(argv):
 
 
     train_steps = FLAGS.eval_steps or int(
-        num_train_examples * FLAGS.train_epochs // train_global_batch_size)
+        num_train_examples * FLAGS.train_epochs // train_global_batch_size) *2
     eval_steps = FLAGS.eval_steps or int(
         math.ceil(num_eval_examples / val_global_batch_size))
 
