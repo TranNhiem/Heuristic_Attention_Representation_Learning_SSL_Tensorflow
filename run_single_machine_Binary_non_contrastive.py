@@ -269,7 +269,7 @@ flags.DEFINE_enum(
 
 flags.DEFINE_float(
     # Alpha Weighted loss (Objec & Background) [binary_mask_nt_xent_object_backgroud_sum_loss]
-    'alpha', 0.7,
+    'alpha', 0.99,
     'Alpha value is configuration the weighted of Object and Background in Model Total Loss.'
 )
 flags.DEFINE_float(
@@ -297,7 +297,7 @@ flags.DEFINE_integer(
 # Saving Model
 
 flags.DEFINE_string(
-    'model_dir', "./model_ckpt/simclrResNet/",
+    'model_dir', "./model_ckpt/resnet_byol/",
     'Model directory for training.')
 
 flags.DEFINE_integer(
@@ -935,7 +935,7 @@ def main(argv):
                     metric.reset_states()
                 # Saving Entire Model
                 if epoch + 1 == 50:
-                    save_ = './model_ckpt/resnet_byol/baseline_encoder_resnet50_mlp' + \
+                    save_ = './model_ckpt/resnet_byol/binary_encoder_resnet50_mlp_run_1' + \
                         str(epoch) + ".h5"
                     online_model.save_weights(save_)
 
