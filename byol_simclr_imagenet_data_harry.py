@@ -16,7 +16,7 @@ FLAGS = flags.FLAGS
 class imagenet_dataset_single_machine():
 
     def __init__(self, img_size, train_batch, val_batch, strategy, train_path=None,train_label = None, val_path=None,val_label = None, bi_mask=False,
-                 mask_path=None):
+                 mask_path=None,subset_class_num = None):
         '''
         args: 
         img_size: Image training size
@@ -74,6 +74,27 @@ class imagenet_dataset_single_machine():
                 label = int(label.split(".")[0])
                 numeric_val_cls.append(val_label_map[label-1])
 
+
+        if subset_class_num != None:
+            x_train_sub = []
+            numeric_train_cls_sub = []
+            for file_path,numeric_cls in zip(self.x_train,numeric_train_cls):
+                if numeric_cls<subset_class_num:
+                    x_train_sub.append(file_path)
+                    numeric_train_cls_sub.append(numeric_cls)
+            self.x_train = x_train_sub
+            numeric_train_cls = numeric_train_cls_sub
+            
+            x_val_sub = []
+            numeric_val_cls_sub = []
+            for file_path,numeric_cls in zip(self.x_val,numeric_val_cls):
+                if numeric_cls<subset_class_num:
+                    x_val_sub.append(file_path)
+                    numeric_val_cls_sub.append(numeric_cls)
+            self.x_val = x_val_sub
+            numeric_val_cls = numeric_val_cls_sub
+        
+
         if bi_mask:
             for p in self.x_train:
                 self.bi_mask.append(p.replace("train", mask_path).replace("JPEG", "png"))
@@ -81,9 +102,11 @@ class imagenet_dataset_single_machine():
         # Path for loading all Images
         # For training
 
-        self.x_train_lable = tf.one_hot(numeric_train_cls, depth=len(self.class_name))
-        self.x_val_lable = tf.one_hot(numeric_val_cls, depth=len(self.class_name))
+        self.x_train_lable = tf.one_hot(numeric_train_cls, depth = len(self.class_name) if subset_class_num==None else subset_class_num)
+        self.x_val_lable = tf.one_hot(numeric_val_cls, depth = len(self.class_name) if subset_class_num==None else subset_class_num)
 
+        print(self.x_train_lable.shape)
+        print(self.x_val_lable.shape)
         # if img_path is not None: #?
         #     dataset = list(paths.list_images(img_path))
         #     self.dataset_shuffle = random.sample(dataset, len(dataset))

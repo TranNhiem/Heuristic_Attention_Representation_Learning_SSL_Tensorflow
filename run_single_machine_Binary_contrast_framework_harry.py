@@ -50,7 +50,7 @@ flags.DEFINE_float(
     'LARGE_NUM', 1e-9,
     'The Large_num for mutliply with logit')
 flags.DEFINE_integer(
-    'num_classes', 1000,
+    'num_classes', 100,
     'Number of class in dataset.'
 )
 flags.DEFINE_integer(
@@ -74,11 +74,11 @@ flags.DEFINE_integer(
     'Number of epochs to train for.')
 
 flags.DEFINE_string(
-    'train_path', "/data1/share/1K_New/train",
+    'train_path', "/data1/1K_New/train",
     'Train dataset path.')
 
 flags.DEFINE_string(
-    'val_path', "/data1/share/1K_New/val",
+    'val_path', "/data1/1K_New/val",
     'Validaion dataset path.')
 
 ## Mask_folder should locate in location and same level of train folder
@@ -244,7 +244,7 @@ flags.DEFINE_float(
 )
 
 flags.DEFINE_enum(
-    'contrast_binary_loss', 'original_contrast_add_backgroud_object',
+    'contrast_binary_loss', 'sum_contrast_obj_back',
     # 4 Options Loss for training.
     [
         # two version binary_mask_nt_xent_object_backgroud_sum_loss, binary_mask_nt_xent_object_backgroud_sum_loss_v1
@@ -588,13 +588,15 @@ def main(argv):
                                                     strategy=strategy, train_path=FLAGS.train_path,
                                                     val_path=FLAGS.val_path,
                                                     mask_path=FLAGS.mask_path, bi_mask=True,
-                                                    train_label=FLAGS.train_label,val_label = FLAGS.val_label)
+                                                    train_label=FLAGS.train_label,val_label = FLAGS.val_label,
+                                                    subset_class_num=FLAGS.num_classes)
 
     train_ds = train_dataset.simclr_random_global_crop_image_mask()
 
     val_ds = train_dataset.supervised_validation()
 
     num_train_examples, num_eval_examples = train_dataset.get_data_size()
+    print(num_train_examples, num_eval_examples)
 
     train_steps = FLAGS.eval_steps or int(
         num_train_examples * FLAGS.train_epochs // train_global_batch)*2
@@ -797,11 +799,13 @@ def main(argv):
                 # Get the data from
                 images_mask_one, lable_1, = ds_one  # lable_one
                 images_mask_two, lable_2,  = ds_two  # lable_two
-
+                
                 with tf.GradientTape() as tape:
 
                     obj_1, backg_1,  proj_head_output_1, supervised_head_output_1 = model(
                         [images_mask_one[0], tf.expand_dims(images_mask_one[1], axis=-1)], training=True)
+                    
+                    
                     obj_2, backg_2, proj_head_output_2, supervised_head_output_2 = model(
                         [images_mask_two[0], tf.expand_dims(images_mask_two[1], axis=-1)], training=True)
 
@@ -849,7 +853,7 @@ def main(argv):
 
                             # scale_sup_loss = tf.reduce_sum(sup_loss) * \
                             #     (1./train_global_batch)
-                            scale_sup_loss=tf.nn.compute_averageper_example_loss_loss(sup_loss, global_batch_size=train_global_batch)
+                            scale_sup_loss=tf.nn.compute_average_loss(sup_loss, global_batch_size=train_global_batch)
 
 
                             # Update Supervised Metrics
