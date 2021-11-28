@@ -79,12 +79,12 @@ flags.DEFINE_integer(
 
 flags.DEFINE_string(
     #'train_path', "/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/ILSVRC2012_img_train",
-    'train_path', '/data1/share/1K_New/train/',
+    'train_path', '/data1/1K_New/train/',
     'Train dataset path.')
 
 flags.DEFINE_string(
     # 'val_path',"/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/val",
-    'val_path', "/data1/share/1K_New/val/",
+    'val_path', "/data1/1K_New/val/",
     'Validaion dataset path.')
 
 # Mask_folder should locate in location and same level of train folder
@@ -239,7 +239,7 @@ flags.DEFINE_boolean(
     'L2 Normalization Vector representation.')
 
 flags.DEFINE_enum(
-    'downsample_mod', 'maxpooling', ['space_to_depth', 'maxpooling'],
+    'downsample_mod', 'space_to_depth', ['space_to_depth', 'maxpooling','averagepooling'],
     'How the head upsample is done.')
 
 # -----------------------------------------
@@ -298,9 +298,8 @@ flags.DEFINE_integer(
 # Saving Model
 
 flags.DEFINE_string(
-    'model_dir', "./model_ckpt/resnet_byol/indexer_maxpooling",
+    'model_dir', "./model_ckpt/resnet_byol/",
     'Model directory for training.')
-print("you using maxpooling indexer")
 
 flags.DEFINE_integer(
     'keep_hub_module_max', 1,
@@ -372,9 +371,9 @@ def main(argv):
 
     # Configure the Encoder Architecture.
     with strategy.scope():
-        online_model = all_model.Binary_online_model(FLAGS.num_classes)
+        online_model = all_model.Binary_online_model(FLAGS.num_classes,Downsample = FLAGS.downsample_mod)
         prediction_model = all_model.prediction_head_model()
-        target_model = all_model.Binary_target_model(FLAGS.num_classes)
+        target_model = all_model.Binary_target_model(FLAGS.num_classes,Downsample = FLAGS.downsample_mod)
 
     # Configure Wandb Training
     # Weight&Bias Tracking Experiment
@@ -596,8 +595,8 @@ def main(argv):
                     weight_decay_loss = all_model.add_weight_decay(
                         online_model, adjust_per_optimizer=True)
 
-                    # weight_decay_loss_scale = tf.nn.scale_regularization_loss(
-                    #     weight_decay_loss)
+                    weight_decay_loss_scale = tf.nn.scale_regularization_loss(
+                        weight_decay_loss)
                     # Under experiment Scale loss after adding Regularization and scaled by Batch_size
                     # weight_decay_loss = tf.nn.scale_regularization_loss(
                     #     weight_decay_loss)
