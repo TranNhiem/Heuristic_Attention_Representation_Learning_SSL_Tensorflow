@@ -349,6 +349,7 @@ def main(argv):
     checkpoint_steps = (FLAGS.checkpoint_steps or (
         FLAGS.checkpoint_epochs * epoch_steps))
 
+    logging.info("# Subset_training class %d", FLAGS.num_classes)
     logging.info('# train examples: %d', num_train_examples)
     logging.info('# train_steps: %d', train_steps)
     logging.info('# eval examples: %d', num_eval_examples)
