@@ -231,7 +231,7 @@ flags.DEFINE_integer(
     '0 means no projection head, and -1 means the final layer.')
 
 flags.DEFINE_float(
-    'temperature', 0.5,
+    'temperature', 0.3,
     'Temperature parameter for contrastive loss.')
 
 flags.DEFINE_boolean(
