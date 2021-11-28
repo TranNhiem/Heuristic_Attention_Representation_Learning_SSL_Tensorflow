@@ -1,5 +1,7 @@
 from absl_mock import Mock_Flag
 flags = Mock_Flag()
+
+
 flags.DEFINE_integer(
     'IMG_height', 224,
     'image height.')

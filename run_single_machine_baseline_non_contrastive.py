@@ -72,7 +72,7 @@ flags.DEFINE_integer(
     'Number of epochs to train for.')
 
 flags.DEFINE_integer(
-    'num_classes', 100,
+    'num_classes', 200,
     'Number of class in dataset.'
 )
 
@@ -223,7 +223,6 @@ flags.DEFINE_integer(
 flags.DEFINE_boolean(
     'reduce_linear_dimention', True,  # Consider use it when Project head layers > 2
     'Reduce the parameter of Projection in middel layers.')
-
 flags.DEFINE_integer(
     'up_scale', 4096,  # scaling the Encoder output 2048 --> 4096
     'Upscale the Dense Unit of Non-Contrastive Framework')
@@ -335,7 +334,7 @@ def main(argv):
                                                     mask_path=FLAGS.mask_path, bi_mask=False,
                                                     train_label=FLAGS.train_label, val_label=FLAGS.val_label,subset_class_num=FLAGS.num_classes )
 
-    train_ds = train_dataset.simclr_random_global_crop()
+    train_ds = train_dataset.simclr_inception_style_crop()
 
     val_ds = train_dataset.supervised_validation()
 
@@ -366,8 +365,8 @@ def main(argv):
     configs = {
 
         "Model_Arch": "ResNet50",
-        "Training mode": "Non_Contrastive SSL Framework Baseline",
-        "DataAugmentation_types": "SimCLR_Random_Global_Croping",
+        "Training mode": "Baseline Non_Contrastive",
+        "DataAugmentation_types": "SimCLR_Inception_style_Croping",
         "Dataset": "ImageNet1k",
 
         "IMG_SIZE": FLAGS.image_size,
@@ -377,11 +376,12 @@ def main(argv):
         "Temperature": FLAGS.temperature,
         "Optimizer": FLAGS.optimizer,
         "SEED": FLAGS.SEED,
+        "Subset_dataset": FLAGS.num_classes, 
         "Loss type": FLAGS.aggregate_loss,
 
     }
 
-    wandb.init(project="heuristic_attention_representation_learning",
+    wandb.init(project="heuristic_attention_representation_learning_v1",
                sync_tensorboard=True, config=configs)
 
     # Training Configuration
