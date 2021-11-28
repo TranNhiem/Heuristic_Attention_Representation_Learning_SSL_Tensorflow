@@ -71,7 +71,7 @@ flags.DEFINE_integer(
     'Number of epochs to train for.')
 
 flags.DEFINE_integer(
-    'num_classes', 1000,
+    'num_classes', 100,
     'Number of class in dataset.'
 )
 
@@ -85,12 +85,12 @@ flags.DEFINE_integer(
 
 flags.DEFINE_string(
     #'train_path', "/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/ILSVRC2012_img_train",
-    'train_path', '/data1/share/1K_New/train',
+    'train_path', '/data1/1K_New/train',
     'Train dataset path.')
 
 flags.DEFINE_string(
     # 'val_path',"/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/val",
-    'val_path', "/data1/share/1K_New/val",
+    'val_path', "/data1/1K_New/val",
     'Validaion dataset path.')
 
 # Mask_folder should locate in location and same level of train folder
@@ -590,12 +590,11 @@ def main(argv):
     strategy = tf.distribute.MirroredStrategy()
     train_global_batch = FLAGS.train_batch_size * strategy.num_replicas_in_sync
     val_global_batch = FLAGS.val_batch_size * strategy.num_replicas_in_sync
-
     train_dataset = imagenet_dataset_single_machine(img_size=FLAGS.image_size, train_batch=train_global_batch,  val_batch=val_global_batch,
-                                                    strategy=strategy, train_path=FLAGS.train_path,
+                                                    strategy=strategy,train_path=FLAGS.train_path,
                                                     val_path=FLAGS.val_path,
                                                     mask_path=FLAGS.mask_path, bi_mask=False,
-                                                    train_label=FLAGS.train_label, val_label=FLAGS.val_label)
+                                                    train_label=FLAGS.train_label, val_label=FLAGS.val_label,subset_class_num=FLAGS.num_classes )
 
     train_ds = train_dataset.simclr_random_global_crop()
 

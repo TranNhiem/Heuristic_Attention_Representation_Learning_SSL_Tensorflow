@@ -72,7 +72,7 @@ flags.DEFINE_integer(
     'Number of epochs to train for.')
 
 flags.DEFINE_integer(
-    'num_classes', 1000,
+    'num_classes', 100,
     'Number of class in training data.')
 
 
@@ -603,7 +603,8 @@ def main(argv):
                                                     strategy=strategy, train_path=FLAGS.train_path,
                                                     val_path=FLAGS.val_path,
                                                     mask_path=FLAGS.mask_path, bi_mask=True,
-                                                    train_label=FLAGS.train_label, val_label=FLAGS.val_label)
+                                                    train_label=FLAGS.train_label, val_label=FLAGS.val_label,
+                                                    subset_class_num=FLAGS.num_classes)
 
     train_ds = train_dataset.simclr_random_global_crop_image_mask()
 
