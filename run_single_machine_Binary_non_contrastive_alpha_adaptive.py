@@ -471,7 +471,7 @@ def main(argv):
                 online_model, optimizer.iterations, optimizer)
 
             # Scale loss  --> Aggregating all Gradients
-            def distributed_loss(o1, o2, b1, b2):
+            def distributed_loss(o1, o2, b1, b2, alpha):
 
                 if FLAGS.non_contrast_binary_loss == 'original_add_backgroud':
                     ob1 = tf.concat([o1, b1], axis=0)
@@ -484,7 +484,7 @@ def main(argv):
 
                     # each GPU loss per_replica batch loss
                     per_example_loss, logits_ab, labels = sum_symetrize_l2_loss_object_backg(
-                        o1, o2, b1, b2,  alpha=FLAGS.alpha, temperature=FLAGS.temperature)
+                        o1, o2, b1, b2,  alpha=alpha, temperature=FLAGS.temperature)
 
                 # total sum loss //Global batch_size
                 loss = tf.reduce_sum(per_example_loss) * \
@@ -503,7 +503,7 @@ def main(argv):
                 return loss, logits_o_ab, labels
 
             @tf.function
-            def train_step(ds_one, ds_two):
+            def train_step(ds_one, ds_two, alpha):
 
                 # Get the data from
                 images_mask_one, lable_1, = ds_one  # lable_one
@@ -534,7 +534,7 @@ def main(argv):
                         else:
                             # Compute Contrastive Loss model
                             loss, logits_o_ab, labels = distributed_loss(
-                                obj_1, obj_2,  backg_1, backg_2)
+                                obj_1, obj_2,  backg_1, backg_2, alpha)
 
                         if loss is None:
                             loss = loss
@@ -622,9 +622,9 @@ def main(argv):
                 return loss
 
             @tf.function
-            def distributed_train_step(ds_one, ds_two):
+            def distributed_train_step(ds_one, ds_two, alpha):
                 per_replica_losses = strategy.run(
-                    train_step, args=(ds_one, ds_two))
+                    train_step, args=(ds_one, ds_two, alpha))
                 return strategy.reduce(tf.distribute.ReduceOp.SUM, per_replica_losses,
                                        axis=None)
             global_step = optimizer.iterations
@@ -633,10 +633,19 @@ def main(argv):
 
                 total_loss = 0.0
                 num_batches = 0
+                if epoch +1 <= 15: 
+                    alpha=0.5
+                elif epoch + 1 > 15: 
+                    alpha= 0.7
+                elif epoch + 1 > 30: 
+                    alpha = 0.9
+                elif epoch + 1 > 40: 
+                    alpha=0.97
+
 
                 for _, (ds_one, ds_two) in enumerate(train_ds):
                 
-                    total_loss += distributed_train_step(ds_one, ds_two)
+                    total_loss += distributed_train_step(ds_one, ds_two, alpha)
                     num_batches += 1
 
                     # Update weight of Target Encoder Every Step
@@ -672,7 +681,8 @@ def main(argv):
                     "train/weight_decay": weight_decay_metric.result(),
                     "train/total_loss": epoch_loss,
                     "train/supervised_loss":    supervised_loss_metric.result(),
-                    "train/supervised_acc": supervised_acc_metric.result()
+                    "train/supervised_acc": supervised_acc_metric.result(), 
+                    "train/alpha_value": alpha,
                 })
                 for metric in all_metrics:
                     metric.reset_states()
