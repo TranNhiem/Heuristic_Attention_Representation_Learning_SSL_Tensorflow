@@ -300,6 +300,7 @@ flags.DEFINE_integer(
 flags.DEFINE_string(
     'model_dir', "./model_ckpt/resnet_byol/indexer_maxpooling",
     'Model directory for training.')
+print("you using maxpooling indexer")
 
 flags.DEFINE_integer(
     'keep_hub_module_max', 1,
