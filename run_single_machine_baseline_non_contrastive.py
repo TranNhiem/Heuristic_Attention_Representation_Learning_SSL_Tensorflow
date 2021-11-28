@@ -289,7 +289,7 @@ flags.DEFINE_integer(
 # Saving Model
 
 flags.DEFINE_string(
-    'model_dir', "./model_ckpt/simclrResNet/",
+    'model_dir', "./model_ckpt/resnet_byol/",
     'Model directory for training.')
 
 flags.DEFINE_integer(
