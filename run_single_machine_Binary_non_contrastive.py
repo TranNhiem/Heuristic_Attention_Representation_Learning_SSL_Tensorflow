@@ -214,7 +214,7 @@ flags.DEFINE_boolean(
     'Reduce the parameter of Projection in middel layers.')
 
 flags.DEFINE_integer(
-    'up_scale', 4096,  # scaling the Encoder output 2048 --> 4096
+    'up_scale', 2048,  # scaling the Encoder output 2048 --> 4096
     'Upscale the Dense Unit of Non-Contrastive Framework')
 
 flags.DEFINE_boolean(
