@@ -765,7 +765,7 @@ class Downsample_Layear(tf.keras.layers.Layer):
 
     def call(self,x,k=2):
         if k == 1:
-            x = x
+            x = self.globalaveragepooling(x)
         elif self.mod == "maxpooling":
             x = self.maxpooling(x)
             x = self.flatten(x)
