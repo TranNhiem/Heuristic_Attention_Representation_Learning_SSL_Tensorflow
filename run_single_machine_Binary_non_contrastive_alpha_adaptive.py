@@ -635,11 +635,11 @@ def main(argv):
                 num_batches = 0
                 if epoch +1 <= 15: 
                     alpha=0.5
-                elif epoch + 1 > 15: 
+                elif epoch + 1 <= 30: 
                     alpha= 0.7
-                elif epoch + 1 > 30: 
+                elif epoch + 1 <= 40: 
                     alpha = 0.9
-                elif epoch + 1 > 40: 
+                elif epoch + 1 <=50 40: 
                     alpha=0.97
 
 
