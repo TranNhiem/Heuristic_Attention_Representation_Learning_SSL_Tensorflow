@@ -15,8 +15,8 @@ FLAGS = flags.FLAGS
 
 class imagenet_dataset_single_machine():
 
-    def __init__(self, img_size, train_batch, val_batch, strategy, train_path=None,train_label = None, val_path=None,val_label = None, bi_mask=False,
-                 mask_path=None,subset_class_num = None):
+    def __init__(self, img_size, train_batch, val_batch, strategy,subset_class_num, train_path=None,train_label = None, val_path=None,val_label = None, bi_mask=False,
+                 mask_path=None):
         '''
         args: 
         img_size: Image training size
@@ -26,7 +26,7 @@ class imagenet_dataset_single_machine():
         val_path:   Directory to validation or testing data
 
         '''
-
+        print(subset_class_num)
         self.IMG_SIZE = img_size
         self.BATCH_SIZE = train_batch
         self.val_batch = val_batch
@@ -76,6 +76,7 @@ class imagenet_dataset_single_machine():
 
 
         if subset_class_num != None:
+            print("sub")
             x_train_sub = []
             numeric_train_cls_sub = []
             for file_path,numeric_cls in zip(self.x_train,numeric_train_cls):
@@ -104,7 +105,8 @@ class imagenet_dataset_single_machine():
 
         self.x_train_lable = tf.one_hot(numeric_train_cls, depth = len(self.class_name) if subset_class_num==None else subset_class_num)
         self.x_val_lable = tf.one_hot(numeric_val_cls, depth = len(self.class_name) if subset_class_num==None else subset_class_num)
-
+        print(len(self.x_train))
+        print(len(self.x_val))
         print(self.x_train_lable.shape)
         print(self.x_val_lable.shape)
         # if img_path is not None: #?

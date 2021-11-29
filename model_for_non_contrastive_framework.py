@@ -606,7 +606,8 @@ class PredictionHead_original(tf.keras.layers.Layer):
 
 
 class Indexer(tf.keras.layers.Layer):
-    def __init__(self, Backbone="Resnet", **kwargs):
+
+    def __init__(self, **kwargs):
         super(Indexer, self).__init__(**kwargs)
 
     def call(self, input):
@@ -753,10 +754,32 @@ class target_model(tf.keras.models.Model):
             return projection_head_outputs, None
 
 
+class Downsample_Layear(tf.keras.layers.Layer):
+    def __init__(self,mod,**kwargs):
+        super(Downsample_Layear, self).__init__(**kwargs)
+        self.mod = mod
+        self.globalaveragepooling = tf.keras.layers.GlobalAveragePooling2D()
+        self.maxpooling = tf.keras.layers.MaxPooling2D()
+        self.avergepooling = tf.keras.layers.AveragePooling2D()
+        self.flatten = tf.keras.layers.Flatten()
+
+    def call(self,x,k=2):
+        if self.mod == "maxpooling":
+            x = self.maxpooling(x)
+            x = self.flatten(x)
+        elif self.mod == "averagepooling":
+            x = self.avergepooling(x)
+            x = self.flatten(x)
+        else:
+            x = tf.nn.space_to_depth(x,k)
+            x = self.globalaveragepooling(x)
+        return x
+
+
 class Binary_online_model(tf.keras.models.Model):
     """Resnet model with projection or supervised layer."""
 
-    def __init__(self, num_classes, Backbone="Resnet", **kwargs):
+    def __init__(self, num_classes, Backbone="Resnet", Downsample = "maxpooling", **kwargs):
 
         super(Binary_online_model, self).__init__(**kwargs)
         # Encoder
@@ -779,6 +802,8 @@ class Binary_online_model(tf.keras.models.Model):
         # Supervised classficiation head
         if FLAGS.train_mode == 'finetune' or FLAGS.lineareval_while_pretraining:
             self.supervised_head = SupervisedHead(num_classes)
+
+        self.downsample_layear=Downsample_Layear(Downsample)
 
     def call(self, inputs, training):
 
@@ -803,33 +828,16 @@ class Binary_online_model(tf.keras.models.Model):
         #print("feature_map_upsample", feature_map_upsample.shape)
 
         # Add heads
-        if FLAGS.downsample_mod == 'maxpooling':
-            # using the maxpooling to do th downsample
-            if FLAGS.train_mode == 'pretrain':
-                # object and background indexer
-                obj, back = self.indexer([feature_map_upsample, mask])
-                obj, _ = self.projection_head(self.flatten(
-                    self.maxpooling(obj)), training=training)
-                back, _ = self.projection_head(self.flatten(
-                    self.maxpooling(back)), training=training)
+        if FLAGS.train_mode == 'pretrain':
+            # object and background indexer
+            obj, back = self.indexer([feature_map_upsample, mask])
+            obj, _ = self.projection_head(self.downsample_layear(obj,inputs.shape[1]/feature_map.shape[1])
+                                          , training=training)
+            back, _ = self.projection_head(self.downsample_layear(back,inputs.shape[1]/feature_map.shape[1])
+                                          , training=training)
 
-            projection_head_outputs, supervised_head_inputs = self.projection_head(self.flatten(
-                self.maxpooling(feature_map_upsample)), training=training)
-        else:
-            if FLAGS.train_mode == 'pretrain':
-                # using the space_to_depth to do th downsample
-                # object and background indexer
-
-                obj, back = self.indexer([feature_map_upsample, mask])
-                obj = self.globalaveragepooling(tf.nn.space_to_depth(
-                    obj,  obj.shape[1]/feature_map.shape[1]))
-                back = self.globalaveragepooling(tf.nn.space_to_depth(
-                    back,  back.shape[1]/feature_map.shape[1]))
-                obj, _ = self.projection_head(obj, training=training)
-                back, _ = self.projection_head(back, training=training)
-
-            projection_head_outputs, supervised_head_inputs = self.projection_head(
-                self.globalaveragepooling(feature_map), training=training)
+        projection_head_outputs, supervised_head_inputs = self.projection_head(self.downsample_layear(feature_map_upsample,inputs.shape[1]/feature_map.shape[1])
+                                                                               , training=training)
 
         if FLAGS.train_mode == 'finetune':
             supervised_head_outputs = self.supervised_head(
@@ -857,7 +865,7 @@ class Binary_online_model(tf.keras.models.Model):
 class Binary_target_model(tf.keras.models.Model):
     """Resnet model with projection or supervised layer."""
 
-    def __init__(self, num_classes, Backbone="Resnet", **kwargs):
+    def __init__(self, num_classes, Backbone="Resnet",Downsample = "maxpooling",  **kwargs):
 
         super(Binary_target_model, self).__init__(**kwargs)
         # Encoder
@@ -880,6 +888,8 @@ class Binary_target_model(tf.keras.models.Model):
         # Supervised classficiation head
         if FLAGS.train_mode == 'finetune' or FLAGS.lineareval_while_pretraining:
             self.supervised_head = SupervisedHead(num_classes)
+
+        self.downsample_layear = Downsample_Layear(Downsample)
 
     def call(self, inputs, training):
 
@@ -904,33 +914,14 @@ class Binary_target_model(tf.keras.models.Model):
         #print("feature_map_upsample", feature_map_upsample.shape)
 
         # Add heads
-        if FLAGS.downsample_mod == 'maxpooling':
-            # using the maxpooling to do th downsample
-            if FLAGS.train_mode == 'pretrain':
-                # object and background indexer
-                obj, back = self.indexer([feature_map_upsample, mask])
-                obj, _ = self.projection_head(self.flatten(
-                    self.maxpooling(obj)), training=training)
-                back, _ = self.projection_head(self.flatten(
-                    self.maxpooling(back)), training=training)
+        if FLAGS.train_mode == 'pretrain':
+            # object and background indexer
+            obj, back = self.indexer([feature_map_upsample, mask])
+            obj, _ = self.projection_head(self.downsample_layear(obj,inputs.shape[1]/feature_map.shape[1]), training=training)
+            back, _ = self.projection_head(self.downsample_layear(back,inputs.shape[1]/feature_map.shape[1]), training=training)
 
-            projection_head_outputs, supervised_head_inputs = self.projection_head(self.flatten(
-                self.maxpooling(feature_map_upsample)), training=training)
-        else:
-            if FLAGS.train_mode == 'pretrain':
-                # using the space_to_depth to do th downsample
-                # object and background indexer
+        projection_head_outputs, supervised_head_inputs = self.projection_head(self.downsample_layear(feature_map_upsample,inputs.shape[1]/feature_map.shape[1]), training=training)
 
-                obj, back = self.indexer([feature_map_upsample, mask])
-                obj = self.globalaveragepooling(tf.nn.space_to_depth(
-                    obj,  obj.shape[1]/feature_map.shape[1]))
-                back = self.globalaveragepooling(tf.nn.space_to_depth(
-                    back,  back.shape[1]/feature_map.shape[1]))
-                obj, _ = self.projection_head(obj, training=training)
-                back, _ = self.projection_head(back, training=training)
-
-            projection_head_outputs, supervised_head_inputs = self.projection_head(
-                self.globalaveragepooling(feature_map), training=training)
 
         if FLAGS.train_mode == 'finetune':
             supervised_head_outputs = self.supervised_head(
