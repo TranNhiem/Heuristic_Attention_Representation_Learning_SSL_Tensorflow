@@ -613,9 +613,9 @@ class Indexer(tf.keras.layers.Layer):
     def call(self, input):
         feature_map = input[0]
         mask = input[1]
-        if feature_map.shape[1] != mask.shape[1] and feature_map.shape[0] != mask.shape[0]:
+        if feature_map.shape[1] != mask.shape[1] and feature_map.shape[2] != mask.shape[2]:
             mask = tf.image.resize(
-                mask, (feature_map.shape[0], feature_map.shape[1]))
+                mask, (feature_map.shape[1], feature_map.shape[2]))
         mask = tf.cast(mask, dtype=tf.bool)
         mask = tf.cast(mask, dtype=feature_map.dtype)
         obj = tf.multiply(feature_map, mask)
