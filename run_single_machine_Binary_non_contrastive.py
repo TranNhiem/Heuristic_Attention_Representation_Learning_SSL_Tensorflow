@@ -80,12 +80,12 @@ flags.DEFINE_integer(
 
 flags.DEFINE_string(
     #'train_path', "/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/ILSVRC2012_img_train",
-    'train_path', '/data1/1K_New/train/',
+    'train_path', '/data1/share/1K_New/train/',
     'Train dataset path.')
 
 flags.DEFINE_string(
     # 'val_path',"/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/val",
-    'val_path', "/data1/1K_New/val/",
+    'val_path', "/data1/share/1K_New/val/",
     'Validaion dataset path.')
 
 # Mask_folder should locate in location and same level of train folder
@@ -127,9 +127,9 @@ flags.DEFINE_float(
 # Learning Rate Scheudle
 
 flags.DEFINE_float(
-    'base_lr', 0.3,
+    'base_lr', 0.5,
     'Initial learning rate per batch size of 256.')
-
+print("use high learning rate")
 flags.DEFINE_integer(
     'warmup_epochs', 10,  # Configure BYOL and SimCLR
     'warmup epoch steps for Cosine Decay learning rate schedule.')
@@ -299,7 +299,7 @@ flags.DEFINE_integer(
 # Saving Model
 
 flags.DEFINE_string(
-    'model_dir', "./model_ckpt/resnet_byol/",
+    'model_dir', "./model_ckpt/resnet_byol/projec_2048/",
     'Model directory for training.')
 
 flags.DEFINE_integer(

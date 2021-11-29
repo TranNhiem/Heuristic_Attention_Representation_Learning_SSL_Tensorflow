@@ -38,7 +38,7 @@ class Mock_Flag(object):
             raise TypeError("The input value should be interger type")
     
     def DEFINE_float(self, var_name, value, helper_str):
-        if isinstance(value, float) or value == None:
+        if isinstance(value, float) or isinstance(value, int) or value == None:
             self.flag_spec.__dict__[var_name] = value
         else:
             raise TypeError("The input value should be float type")

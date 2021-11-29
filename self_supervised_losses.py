@@ -599,3 +599,29 @@ def simsam_loss_non_stop_Gr(p, z):
     # Negative cosine similarity (minimizing this is
     # equivalent to maximizing the similarity).
     return -tf.reduce_mean(tf.reduce_sum((p * z), axis=1))
+
+
+######################################################################################
+'''NON-MIX-CONTRASTIVE LOSS'''
+####################################################################################
+
+def byol_harry_loss(o_1, o_2, b_1, b_2, alpha, temperature):
+    '''
+    Noted this Design 
+
+    1. Similarity between object_1 and object_2, background_1 and background_2
+    2. Scaling Alpha value shound be for weighted loss between object and backgroud
+    3. Add negative sample(background and object )
+    '''
+
+    object_loss, object_logits, lables_object = byol_symetrize_loss(o_1, o_2,temperature=temperature)
+    backg_loss, backg_logits, lables_back= byol_symetrize_loss(b_1, b_2,temperature=temperature)
+    
+    negative_back1_loss1, _, _= byol_symetrize_loss(b_1, o_1,temperature=temperature)
+    negative_back1_loss2, _, _= byol_symetrize_loss(b_1, o_2,temperature=temperature)
+    negative_back2_loss1, _, _= byol_symetrize_loss(b_2, o_1,temperature=temperature)
+    negative_back2_loss2, _, _= byol_symetrize_loss(b_2, o_2,temperature=temperature)
+    #total_loss = (alpha * object_loss + (1-alpha)*backg_loss)/2
+    total_loss = (alpha * object_loss + (1-alpha)*backg_loss)/(negative_back1_loss1+negative_back1_loss2+negative_back2_loss1+negative_back2_loss2)
+    # ,whole_image_logits ,lables_image,
+    return total_loss, object_logits,  lables_object
