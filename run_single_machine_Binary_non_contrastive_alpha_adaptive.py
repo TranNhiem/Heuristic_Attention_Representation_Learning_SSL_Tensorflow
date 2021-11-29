@@ -639,7 +639,7 @@ def main(argv):
                     alpha= 0.7
                 elif epoch + 1 <= 40: 
                     alpha = 0.9
-                elif epoch + 1 <=50 40: 
+                elif epoch + 1 <=50 : 
                     alpha=0.97
 
 
