@@ -142,7 +142,7 @@ flags.DEFINE_enum(
 '''ATTENTION'''
 flags.DEFINE_enum(
     # if Change the Optimizer please change --
-    'optimizer', 'LARSW', ['Adam', 'SGD', 'LARS', 'AdamW', 'SGDW', 'LARSW',
+    'optimizer', 'LARSW_GC', ['Adam', 'SGD', 'LARS', 'AdamW', 'SGDW', 'LARSW',
                            'AdamGC', 'SGDGC', 'LARSGC', 'AdamW_GC', 'SGDW_GC', 'LARSW_GC'],
     'How to scale the learning rate as a function of batch size.')
 
@@ -153,7 +153,7 @@ flags.DEFINE_enum(
     # 3. optimizer_GD fir  ['AdamGC', 'SGDGC', 'LARSGC']
     # 4. optimizer_W_GD for ['AdamW_GC', 'SGDW_GC', 'LARSW_GC']
 
-    'optimizer_type', 'optimizer_weight_decay', [
+    'optimizer_type', 'optimizer_W_GD', [
         'original', 'optimizer_weight_decay', 'optimizer_GD', 'optimizer_W_GD'],
     'Optimizer type corresponding to Configure of optimizer')
 
