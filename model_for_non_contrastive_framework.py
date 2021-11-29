@@ -764,7 +764,9 @@ class Downsample_Layear(tf.keras.layers.Layer):
         self.flatten = tf.keras.layers.Flatten()
 
     def call(self,x,k=2):
-        if self.mod == "maxpooling":
+        if k == 1:
+            x = x
+        elif self.mod == "maxpooling":
             x = self.maxpooling(x)
             x = self.flatten(x)
         elif self.mod == "averagepooling":
@@ -779,9 +781,11 @@ class Downsample_Layear(tf.keras.layers.Layer):
 class Binary_online_model(tf.keras.models.Model):
     """Resnet model with projection or supervised layer."""
 
-    def __init__(self, num_classes, Backbone="Resnet", Downsample = "maxpooling", **kwargs):
+    def __init__(self, num_classes, Backbone="Resnet", Upsample = False,Downsample = "maxpooling", **kwargs):
 
         super(Binary_online_model, self).__init__(**kwargs)
+        self.Upsample = Upsample
+        self.magnification = 1
         # Encoder
         if Backbone == "Resnet":
             self.encoder = resnet_modify(resnet_depth=FLAGS.resnet_depth,
@@ -821,22 +825,26 @@ class Binary_online_model(tf.keras.models.Model):
 
         # Base network forward pass
         feature_map = self.encoder(inputs, training=training)
+        if self.Upsample:
+            # Pixel shuffle
+            self.magnification = mask.shape[1]/feature_map.shape[1]
+            feature_map_upsample = tf.nn.depth_to_space(
+                feature_map, self.magnification)  # PixelShuffle
+        else:
+            feature_map_upsample = feature_map
 
-        # Pixel shuffle
-        feature_map_upsample = tf.nn.depth_to_space(
-            feature_map, inputs.shape[1]/feature_map.shape[1])  # PixelShuffle
         #print("feature_map_upsample", feature_map_upsample.shape)
 
         # Add heads
         if FLAGS.train_mode == 'pretrain':
             # object and background indexer
             obj, back = self.indexer([feature_map_upsample, mask])
-            obj, _ = self.projection_head(self.downsample_layear(obj,inputs.shape[1]/feature_map.shape[1])
+            obj, _ = self.projection_head(self.downsample_layear(obj,self.magnification)
                                           , training=training)
-            back, _ = self.projection_head(self.downsample_layear(back,inputs.shape[1]/feature_map.shape[1])
+            back, _ = self.projection_head(self.downsample_layear(back,self.magnification)
                                           , training=training)
 
-        projection_head_outputs, supervised_head_inputs = self.projection_head(self.downsample_layear(feature_map_upsample,inputs.shape[1]/feature_map.shape[1])
+        projection_head_outputs, supervised_head_inputs = self.projection_head(self.downsample_layear(feature_map_upsample,self.magnification)
                                                                                , training=training)
 
         if FLAGS.train_mode == 'finetune':
@@ -865,9 +873,11 @@ class Binary_online_model(tf.keras.models.Model):
 class Binary_target_model(tf.keras.models.Model):
     """Resnet model with projection or supervised layer."""
 
-    def __init__(self, num_classes, Backbone="Resnet",Downsample = "maxpooling",  **kwargs):
+    def __init__(self, num_classes, Backbone="Resnet", Upsample = False,Downsample = "maxpooling",  **kwargs):
 
         super(Binary_target_model, self).__init__(**kwargs)
+        self.Upsample = Upsample
+        self.magnification = 1
         # Encoder
         if Backbone == "Resnet":
             self.encoder = resnet_modify(resnet_depth=FLAGS.resnet_depth,
@@ -909,18 +919,23 @@ class Binary_target_model(tf.keras.models.Model):
         feature_map = self.encoder(inputs, training=training)
 
         # Pixel shuffle
-        feature_map_upsample = tf.nn.depth_to_space(
-            feature_map, inputs.shape[1]/feature_map.shape[1])  # PixelShuffle
+        if self.Upsample:
+            # Pixel shuffle
+            self.magnification = mask.shape[1]/feature_map.shape[1]
+            feature_map_upsample = tf.nn.depth_to_space(
+                feature_map, self.magnification)  # PixelShuffle
+        else:
+            feature_map_upsample = feature_map
         #print("feature_map_upsample", feature_map_upsample.shape)
 
         # Add heads
         if FLAGS.train_mode == 'pretrain':
             # object and background indexer
             obj, back = self.indexer([feature_map_upsample, mask])
-            obj, _ = self.projection_head(self.downsample_layear(obj,inputs.shape[1]/feature_map.shape[1]), training=training)
-            back, _ = self.projection_head(self.downsample_layear(back,inputs.shape[1]/feature_map.shape[1]), training=training)
+            obj, _ = self.projection_head(self.downsample_layear(obj,self.magnification), training=training)
+            back, _ = self.projection_head(self.downsample_layear(back,self.magnification), training=training)
 
-        projection_head_outputs, supervised_head_inputs = self.projection_head(self.downsample_layear(feature_map_upsample,inputs.shape[1]/feature_map.shape[1]), training=training)
+        projection_head_outputs, supervised_head_inputs = self.projection_head(self.downsample_layear(feature_map_upsample,self.magnification), training=training)
 
 
         if FLAGS.train_mode == 'finetune':
