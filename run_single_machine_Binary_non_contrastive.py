@@ -592,16 +592,16 @@ def main(argv):
                             raise ValueError(
                                 " Loss aggregate is invalid please check FLAGS.aggregate_loss")
 
-                    weight_decay_loss = all_model.add_weight_decay(
-                        online_model, adjust_per_optimizer=True)
+                    # weight_decay_loss = all_model.add_weight_decay(
+                    #     online_model, adjust_per_optimizer=True)
 
-                    weight_decay_loss_scale = tf.nn.scale_regularization_loss(
-                        weight_decay_loss)
-                    # Under experiment Scale loss after adding Regularization and scaled by Batch_size
-                    # weight_decay_loss = tf.nn.scale_regularization_loss(
+                    # weight_decay_loss_scale = tf.nn.scale_regularization_loss(
                     #     weight_decay_loss)
-                    weight_decay_metric.update_state(weight_decay_loss)
-                    loss += weight_decay_loss
+                    # # Under experiment Scale loss after adding Regularization and scaled by Batch_size
+                    # # weight_decay_loss = tf.nn.scale_regularization_loss(
+                    # #     weight_decay_loss)
+                    # weight_decay_metric.update_state(weight_decay_loss)
+                    # loss += weight_decay_loss
                     total_loss_metric.update_state(loss)
 
                     logging.info('Trainable variables:')
