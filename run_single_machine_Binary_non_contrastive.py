@@ -126,7 +126,7 @@ flags.DEFINE_float(
 # Learning Rate Scheudle
 
 flags.DEFINE_float(
-    'base_lr', 0.5,
+    'base_lr', 0.3,
     'Initial learning rate per batch size of 256.')
 print("use high learning rate")
 flags.DEFINE_integer(
