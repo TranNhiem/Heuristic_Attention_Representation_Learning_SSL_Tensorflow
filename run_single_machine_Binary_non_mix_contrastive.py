@@ -12,25 +12,24 @@ from learning_rate_optimizer import WarmUpAndCosineDecay
 import metrics
 from helper_functions import *
 from byol_simclr_imagenet_data_harry import imagenet_dataset_single_machine
-from self_supervised_losses import byol_symetrize_loss, symetrize_l2_loss_object_level_whole_image, sum_symetrize_l2_loss_object_backg
+from self_supervised_losses import byol_harry_loss
 import model_for_non_contrastive_framework as all_model
 import objective as obj_lib
 from imutils import paths
 from wandb.keras import WandbCallback
+# from config import config
 
 # Setting GPU
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if gpus:
-
-    try:
-        for gpu in gpus:
-            tf.config.experimental.set_memory_growth(gpu, True)
-        tf.config.experimental.set_visible_devices(gpus[0:8], 'GPU')
-        logical_gpus = tf.config.experimental.list_logical_devices('GPU')
-        print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPU")
-    except RuntimeError as e:
-        print(e)
-
+   try:
+       for gpu in gpus:
+           tf.config.experimental.set_memory_growth(gpu, True)
+       tf.config.experimental.set_visible_devices(gpus[0:8], 'GPU')
+       logical_gpus = tf.config.experimental.list_logical_devices('GPU')
+       print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPU")
+   except RuntimeError as e:
+       print(e)
 FLAGS = flags.FLAGS
 # ------------------------------------------
 # General Define
@@ -74,17 +73,25 @@ flags.DEFINE_integer(
 
 flags.DEFINE_integer(
     'num_classes', 200,
-    'Number of class in training data.')
+    'Number of class in dataset.'
+)
 
+# flags.DEFINE_string(
+#     'train_path', "/data/SSL_dataset/ImageNet/1K_New/train",
+#     'Train dataset path.')
+
+# flags.DEFINE_string(
+#     'val_path', "/data/SSL_dataset/ImageNet/1K_New/val",
+#     'Validaion dataset path.')
 
 flags.DEFINE_string(
     #'train_path', "/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/ILSVRC2012_img_train",
-    'train_path', '/data1/share/1K_New/train/',
+    'train_path', '/data1/1K_New/train',
     'Train dataset path.')
 
 flags.DEFINE_string(
     # 'val_path',"/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/val",
-    'val_path', "/data1/share/1K_New/val/",
+    'val_path', "/data1/1K_New/val",
     'Validaion dataset path.')
 
 # Mask_folder should locate in location and same level of train folder
@@ -99,6 +106,8 @@ flags.DEFINE_string(
 flags.DEFINE_string(
     'val_label', "ILSVRC2012_validation_ground_truth.txt",
     'val_label.')
+
+
 # ------------------------------------------
 # Define for Linear Evaluation
 # ------------------------------------------
@@ -126,12 +135,13 @@ flags.DEFINE_float(
 # Learning Rate Scheudle
 
 flags.DEFINE_float(
-    'base_lr', 0.5,
+    'base_lr', 0.3,
     'Initial learning rate per batch size of 256.')
-print("use high learning rate")
+
 flags.DEFINE_integer(
     'warmup_epochs', 10,  # Configure BYOL and SimCLR
     'warmup epoch steps for Cosine Decay learning rate schedule.')
+
 
 flags.DEFINE_enum(
     'lr_rate_scaling', 'linear', ['linear', 'sqrt', 'no_scale', ],
@@ -141,6 +151,7 @@ flags.DEFINE_enum(
 # Same the Original SimClRV2 training Configure
 '''ATTENTION'''
 flags.DEFINE_enum(
+
     # if Change the Optimizer please change --
     'optimizer', 'LARSW', ['Adam', 'SGD', 'LARS', 'AdamW', 'SGDW', 'LARSW',
                            'AdamGC', 'SGDGC', 'LARSGC', 'AdamW_GC', 'SGDW_GC', 'LARSW_GC'],
@@ -212,9 +223,8 @@ flags.DEFINE_integer(
 flags.DEFINE_boolean(
     'reduce_linear_dimention', True,  # Consider use it when Project head layers > 2
     'Reduce the parameter of Projection in middel layers.')
-
 flags.DEFINE_integer(
-    'up_scale', 4096,  # scaling the Encoder output 2048 --> 4096
+    'up_scale', 2048,  # scaling the Encoder output 2048 --> 4096
     'Upscale the Dense Unit of Non-Contrastive Framework')
 
 flags.DEFINE_boolean(
@@ -237,9 +247,8 @@ flags.DEFINE_float(
 flags.DEFINE_boolean(
     'hidden_norm', True,
     'L2 Normalization Vector representation.')
-
 flags.DEFINE_enum(
-    'downsample_mod', 'space_to_depth', ['space_to_depth', 'maxpooling','averagepooling'],
+    'downsample_mod', 'space_to_depth', ['space_to_depth', 'maxpooling'],
     'How the head upsample is done.')
 
 # -----------------------------------------
@@ -264,21 +273,14 @@ flags.DEFINE_enum(
     'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
 
 flags.DEFINE_enum(
-    'non_contrast_binary_loss', 'sum_symetrize_l2_loss_object_backg', [
+    'non_contrast_binary_loss', 'byol_harry_loss', ["byol_harry_loss",
         'Original_loss_add_contrast_level_object', 'sum_symetrize_l2_loss_object_backg', 'original_add_backgroud'],
     'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
-
 flags.DEFINE_float(
     # Alpha Weighted loss (Objec & Background) [binary_mask_nt_xent_object_backgroud_sum_loss]
     'alpha', 0.99,
     'Alpha value is configuration the weighted of Object and Background in Model Total Loss.'
 )
-flags.DEFINE_float(
-    # Weighted loss is the scaling term between  [weighted_loss]*Binary & [1-weighted_loss]*original contrastive loss)
-    'weighted_loss', 0.8,
-    'weighted_loss value is configuration the weighted of original and Binary contrastive loss.'
-)
-
 # Fine Tuning configure
 
 flags.DEFINE_bool(
@@ -298,7 +300,7 @@ flags.DEFINE_integer(
 # Saving Model
 
 flags.DEFINE_string(
-    'model_dir', "./model_ckpt/resnet_byol/projec_2048/",
+    'model_dir', "./model_ckpt/resnet_byol/",
     'Model directory for training.')
 
 flags.DEFINE_integer(
@@ -472,35 +474,13 @@ def main(argv):
 
             # Scale loss  --> Aggregating all Gradients
             def distributed_loss(o1, o2, b1, b2):
-
-                if FLAGS.non_contrast_binary_loss == 'original_add_backgroud':
-                    ob1 = tf.concat([o1, b1], axis=0)
-                    ob2 = tf.concat([o2, b2], axis=0)
-                    # each GPU loss per_replica batch loss
-                    per_example_loss, logits_ab, labels = byol_symetrize_loss(
-                        ob1, ob2,  temperature=FLAGS.temperature)
-
-                elif FLAGS.non_contrast_binary_loss == 'sum_symetrize_l2_loss_object_backg':
-
-                    # each GPU loss per_replica batch loss
-                    per_example_loss, logits_ab, labels = sum_symetrize_l2_loss_object_backg(
-                        o1, o2, b1, b2,  alpha=FLAGS.alpha, temperature=FLAGS.temperature)
+                
+                per_example_loss, logits_ab, labels = byol_harry_loss(o1, o2, b1, b2,  alpha=FLAGS.alpha, temperature=FLAGS.temperature)
 
                 # total sum loss //Global batch_size
                 loss = tf.reduce_sum(per_example_loss) * \
                     (1./train_global_batch)
                 return loss, logits_ab, labels
-
-            def distributed_Orginal_add_Binary_non_contrast_loss(x1, x2, v1, v2, img_1, img_2,):
-                #Optional [binary_mask_nt_xent_object_backgroud_sum_loss, binary_mask_nt_xent_object_backgroud_sum_loss_v1]
-                per_example_loss, logits_o_ab, labels = symetrize_l2_loss_object_level_whole_image(
-                    x1, x2, v1, v2, img_1, img_2,  weight_loss=FLAGS.weighted_loss, temperature=FLAGS.temperature)
-
-                # total sum loss //Global batch_size
-                loss = tf.reduce_sum(per_example_loss) * \
-                    (1./train_global_batch)
-
-                return loss, logits_o_ab, labels
 
             @tf.function
             def train_step(ds_one, ds_two):
@@ -528,8 +508,7 @@ def main(argv):
 
                         # Compute Contrastive Loss model
                         if FLAGS.non_contrast_binary_loss == 'Original_loss_add_contrast_level_object':
-                            loss, logits_o_ab, labels = distributed_Orginal_add_Binary_non_contrast_loss(obj_1, obj_2,  backg_1, backg_2,
-                                                                                                         proj_head_output_1, proj_head_output_2)
+                            loss, logits_o_ab, labels = byol_harry_loss(obj_1, obj_2,  backg_1, backg_2, proj_head_output_1, proj_head_output_2)
 
                         else:
                             # Compute Contrastive Loss model
