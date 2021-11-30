@@ -128,7 +128,7 @@ flags.DEFINE_float(
 flags.DEFINE_float(
     'base_lr', 0.7,
     'Initial learning rate per batch size of 256.')
-print("use high learning rate")
+print("use high learning rate 0.7")
 flags.DEFINE_integer(
     'warmup_epochs', 10,  # Configure BYOL and SimCLR
     'warmup epoch steps for Cosine Decay learning rate schedule.')
