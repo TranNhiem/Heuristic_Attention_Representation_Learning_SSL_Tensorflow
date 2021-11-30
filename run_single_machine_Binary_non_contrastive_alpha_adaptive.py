@@ -203,11 +203,11 @@ flags.DEFINE_enum(
 # Projection & Prediction head  (Consideration the project out dim smaller than Represenation)
 
 flags.DEFINE_integer(
-    'proj_out_dim', 256,
+    'proj_out_dim', 512,
     'Number of head projection dimension.')
 
 flags.DEFINE_integer(
-    'prediction_out_dim', 256,
+    'prediction_out_dim', 512,
     'Number of head projection dimension.')
 
 flags.DEFINE_boolean(
