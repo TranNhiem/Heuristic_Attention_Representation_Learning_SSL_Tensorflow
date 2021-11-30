@@ -242,7 +242,7 @@ flags.DEFINE_boolean(
 flags.DEFINE_enum(
     'downsample_mod', 'averagepooling', ['space_to_depth', 'maxpooling','averagepooling'],
     'How the head upsample is done.')
-
+print("Using Average Pooling")
 # -----------------------------------------
 # Configure Model Training
 # -----------------------------------------
