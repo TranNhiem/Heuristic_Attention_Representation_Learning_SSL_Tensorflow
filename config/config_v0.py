@@ -93,7 +93,7 @@ class Flage():
         # Learning Rate Scheudle
 
         self.flags.DEFINE_float(
-        'base_lr', 0.5,
+        'base_lr', 0.3,
         'Initial learning rate per batch size of 256.')
         print("use high learning rate")
         self.flags.DEFINE_integer(
@@ -206,7 +206,7 @@ class Flage():
         'L2 Normalization Vector representation.')
 
         self.flags.DEFINE_enum(
-        'downsample_mod', 'averagepooling', ['space_to_depth', 'maxpooling','averagepooling'],
+        'downsample_mod', 'space_to_depth', ['space_to_depth', 'maxpooling','averagepooling'],
         'How the head upsample is done.')
 
         # -----------------------------------------
@@ -231,7 +231,7 @@ class Flage():
         'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
 
         self.flags.DEFINE_enum(
-        'non_contrast_binary_loss', 'byol_harry_loss', [
+        'non_contrast_binary_loss', 'sum_symetrize_l2_loss_object_backg', [
         'Original_loss_add_contrast_level_object', 'sum_symetrize_l2_loss_object_backg', 'original_add_backgroud','byol_harry_loss'],
         'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
 
