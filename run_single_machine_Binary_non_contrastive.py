@@ -298,7 +298,11 @@ flags.DEFINE_integer(
 # Saving Model
 
 flags.DEFINE_string(
+<<<<<<< HEAD
     'model_dir', "./model_ckpt/resnet_byol/",
+=======
+    'model_dir', "./model_ckpt/resnet_byol/projec_2048/",
+>>>>>>> 2088c62a4a620425b7b62aa27f7ebc8d3394afdf
     'Model directory for training.')
 
 flags.DEFINE_integer(

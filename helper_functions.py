@@ -1,3 +1,4 @@
+
 import os 
 import json
 import math
@@ -267,4 +268,3 @@ def perform_evaluation(model, val_ds, val_steps, ckpt, strategy):
     save(model, global_step=result['global_step'])
 
     return result
-
