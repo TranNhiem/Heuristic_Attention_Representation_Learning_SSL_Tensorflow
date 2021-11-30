@@ -18,6 +18,7 @@ import objective as obj_lib
 from imutils import paths
 from wandb.keras import WandbCallback
 from config import config_v0
+
 # Setting GPU
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if gpus:
