@@ -31,7 +31,7 @@ if gpus:
     except RuntimeError as e:
         print(e)
 
-FLAGS = flags.FLAGS
+# FLAGS = flags.FLAGS
 # ------------------------------------------
 # General Define
 # ------------------------------------------
