@@ -203,11 +203,11 @@ flags.DEFINE_enum(
 # Projection & Prediction head  (Consideration the project out dim smaller than Represenation)
 
 flags.DEFINE_integer(
-    'proj_out_dim', 512,
+    'proj_out_dim', 256,
     'Number of head projection dimension.')
 
 flags.DEFINE_integer(
-    'prediction_out_dim', 512,
+    'prediction_out_dim', 256,
     'Number of head projection dimension.')
 
 flags.DEFINE_boolean(
@@ -240,7 +240,7 @@ flags.DEFINE_boolean(
     'L2 Normalization Vector representation.')
 
 flags.DEFINE_enum(
-    'downsample_mod', 'space_to_depth', ['space_to_depth', 'maxpooling','averagepooling'],
+    'downsample_mod', 'averagepooling', ['space_to_depth', 'maxpooling','averagepooling'],
     'How the head upsample is done.')
 
 # -----------------------------------------
