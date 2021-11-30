@@ -781,7 +781,7 @@ class Downsample_Layear(tf.keras.layers.Layer):
 class Binary_online_model(tf.keras.models.Model):
     """Resnet model with projection or supervised layer."""
 
-    def __init__(self, num_classes, Backbone="Resnet", Upsample = False,Downsample = "maxpooling", **kwargs):
+    def __init__(self, num_classes, Backbone="Resnet", Upsample = True,Downsample = "maxpooling", **kwargs):
 
         super(Binary_online_model, self).__init__(**kwargs)
         self.Upsample = Upsample
@@ -873,7 +873,7 @@ class Binary_online_model(tf.keras.models.Model):
 class Binary_target_model(tf.keras.models.Model):
     """Resnet model with projection or supervised layer."""
 
-    def __init__(self, num_classes, Backbone="Resnet", Upsample = False,Downsample = "maxpooling",  **kwargs):
+    def __init__(self, num_classes, Backbone="Resnet", Upsample = True,Downsample = "maxpooling",  **kwargs):
 
         super(Binary_target_model, self).__init__(**kwargs)
         self.Upsample = Upsample
