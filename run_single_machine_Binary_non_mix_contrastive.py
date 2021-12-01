@@ -32,9 +32,9 @@ if gpus:
    except RuntimeError as e:
        print(e)
 
-import config
-FLAGS = config.Flage()
-FLAGS = FLAGS.flage.FLAGS
+
+from config.config import read_cfg
+read_cfg()
 
 
 def main(argv):

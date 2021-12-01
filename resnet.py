@@ -20,18 +20,18 @@ Residual networks (ResNets) were proposed in:
     Deep Residual Learning for Image Recognition. arXiv:1512.03385
 """
 
-from absl import flags
+#from absl import flags
 import tensorflow as tf
 
 
 #FLAGS = flags.FLAGS
 
-import config
-FLAGS = config.Flage()
-FLAGS = FLAGS.flage.FLAGS
+from config.absl_mock import Mock_Flag
+flag = Mock_Flag()
+FLAGS = flag.FLAGS
 
 BATCH_NORM_EPSILON = 1e-5
-
+s
 
 class BatchNormRelu(tf.keras.layers.Layer):  # pylint: disable=missing-docstring
 

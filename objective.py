@@ -15,15 +15,14 @@
 # ==============================================================================
 """Contrastive loss functions."""
 
-from absl import flags
+#from absl import flags
 
 import tensorflow as tf
 
 #FLAGS = flags.FLAGS
-
-import config
-FLAGS = config.Flage()
-FLAGS = FLAGS.flage.FLAGS
+from config.absl_mock import Mock_Flag
+flag = Mock_Flag()
+FLAGS = flag.FLAGS
 
 LARGE_NUM = 1e9
 

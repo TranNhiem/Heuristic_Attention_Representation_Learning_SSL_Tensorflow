@@ -1,5 +1,5 @@
 import os
-from absl import flags
+#from absl import flags
 import tensorflow as tf
 from imutils import paths
 from byol_simclr_multi_croping_augmentation import simclr_augment_randcrop_global_views, simclr_augment_inception_style, supervised_augment_eval, simclr_augment_randcrop_global_view_image_mask, simclr_augment_inception_style_image_mask

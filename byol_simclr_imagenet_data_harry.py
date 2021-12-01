@@ -1,5 +1,5 @@
 import os
-from absl import flags
+#from absl import flags
 import tensorflow as tf
 from imutils import paths
 from byol_simclr_multi_croping_augmentation import simclr_augment_randcrop_global_views, simclr_augment_inception_style, \
@@ -13,9 +13,9 @@ AUTO = tf.data.experimental.AUTOTUNE
 
 #FLAGS = flags.FLAGS
 
-import config
-FLAGS = config.Flage()
-FLAGS = FLAGS.flage.FLAGS
+from config.absl_mock import Mock_Flag
+flag = Mock_Flag()
+FLAGS = flag.FLAGS
 
 
 class imagenet_dataset_single_machine():

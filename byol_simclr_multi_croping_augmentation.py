@@ -7,13 +7,13 @@ BYOL paper: https://arxiv.org/pdf/2006.07733.pdf
 # https://github.com/google-research/simclr/blob/master/tf2/data_util.py
 import tensorflow as tf
 from official.vision.image_classification.augment import RandAugment
-from absl import flags
+#from absl import flags
 
 #FLAGS = flags.FLAGS
 
-import config
-FLAGS = config.Flage()
-FLAGS = FLAGS.flage.FLAGS
+from config.absl_mock import Mock_Flag
+flag = Mock_Flag()
+FLAGS = flag.FLAGS
 
 # This random brightness implement in SimCLRV2
 # Probability implement and Intensity inherence from BYOL paper

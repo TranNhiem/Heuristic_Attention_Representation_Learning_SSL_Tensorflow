@@ -16,7 +16,7 @@
 """Model specification for SimCLR."""
 
 import math
-from absl import flags
+#from absl import flags
 
 
 import lars_optimizer
@@ -27,9 +27,9 @@ from tensorflow.keras import mixed_precision
 
 #FLAGS = flags.FLAGS
 
-import config
-FLAGS = config.Flage()
-FLAGS = FLAGS.flage.FLAGS
+from config.absl_mock import Mock_Flag
+flag = Mock_Flag()
+FLAGS = flag.FLAGS
 
 def build_optimizer(lr_schedule):
     '''

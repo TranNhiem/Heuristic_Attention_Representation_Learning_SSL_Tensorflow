@@ -10,7 +10,7 @@ Original file is located at
 """
 
 import tensorflow as tf
-from absl import flags
+#from absl import flags
 import matplotlib.pyplot as plt
 # class Flags():
 #   def __init__(self):
@@ -55,9 +55,9 @@ Residual networks (ResNets) were proposed in:
 #FLAGS = flags.FLAGS
 
 
-import config
-FLAGS = config.Flage()
-FLAGS = FLAGS.flage.FLAGS
+from config.absl_mock import Mock_Flag
+flag = Mock_Flag()
+FLAGS = flag.FLAGS
 
 BATCH_NORM_EPSILON = 1e-5
 

@@ -3,18 +3,18 @@ import json
 import math
 import random
 import tensorflow as tf
-from absl import flags
+#from absl import flags
 from absl import logging
-from absl import app
+#from absl import app
 # -------------------------------------------------------------
 # Helper function to save and resore model.
 # -------------------------------------------------------------
 
 #FLAGS= flags.FLAGS
 
-import config
-FLAGS = config.Flage()
-FLAGS = FLAGS.flage.FLAGS
+from config.absl_mock import Mock_Flag
+flag = Mock_Flag()
+FLAGS = flag.FLAGS
 
 def get_salient_tensors_dict(include_projection_head):
     """Returns a dictionary of tensors."""
