@@ -190,7 +190,8 @@ def Projection_and_Prediction_head():
     flags.DEFINE_integer(
         'up_scale', 2048,  # scaling the Encoder output 2048 --> 4096
         'Upscale the Dense Unit of Non-Contrastive Framework')
-
+    print("You are using MLP Option 1")
+    
     flags.DEFINE_boolean(
         'non_contrastive', True,  # Consider use it when Project head layers > 2
         'Using for upscaling the first layers of MLP == upscale value')
