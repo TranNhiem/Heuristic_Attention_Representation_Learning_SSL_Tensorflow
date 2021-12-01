@@ -52,7 +52,13 @@ Residual networks (ResNets) were proposed in:
 [1] Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun
     Deep Residual Learning for Image Recognition. arXiv:1512.03385
 """
-FLAGS = flags.FLAGS
+#FLAGS = flags.FLAGS
+
+
+import config
+FLAGS = config.Flage()
+FLAGS = FLAGS.flage.FLAGS
+
 BATCH_NORM_EPSILON = 1e-5
 
 

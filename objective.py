@@ -19,7 +19,11 @@ from absl import flags
 
 import tensorflow as tf
 
-FLAGS = flags.FLAGS
+#FLAGS = flags.FLAGS
+
+import config
+FLAGS = config.Flage()
+FLAGS = FLAGS.flage.FLAGS
 
 LARGE_NUM = 1e9
 

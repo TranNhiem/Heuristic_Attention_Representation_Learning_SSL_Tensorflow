@@ -16,7 +16,6 @@ from self_supervised_losses import byol_symetrize_loss
 import model_for_non_contrastive_framework as all_model
 import objective as obj_lib
 from imutils import paths
-from wandb.keras import WandbCallback
 
 # Setting GPU
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -213,11 +212,11 @@ flags.DEFINE_enum(
 # Projection & Prediction head  (Consideration the project out dim smaller than Represenation)
 
 flags.DEFINE_integer(
-    'proj_out_dim', 256,
+    'proj_out_dim', 512,
     'Number of head projection dimension.')
 
 flags.DEFINE_integer(
-    'prediction_out_dim', 512,
+    'prediction_out_dim', 256,
     'Number of head projection dimension.')
 
 flags.DEFINE_boolean(

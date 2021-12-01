@@ -11,7 +11,11 @@ import re
 
 AUTO = tf.data.experimental.AUTOTUNE
 
-FLAGS = flags.FLAGS
+#FLAGS = flags.FLAGS
+
+import config
+FLAGS = config.Flage()
+FLAGS = FLAGS.flage.FLAGS
 
 
 class imagenet_dataset_single_machine():

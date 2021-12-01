@@ -9,7 +9,11 @@ import tensorflow as tf
 from official.vision.image_classification.augment import RandAugment
 from absl import flags
 
-FLAGS = flags.FLAGS
+#FLAGS = flags.FLAGS
+
+import config
+FLAGS = config.Flage()
+FLAGS = FLAGS.flage.FLAGS
 
 # This random brightness implement in SimCLRV2
 # Probability implement and Intensity inherence from BYOL paper

@@ -25,8 +25,11 @@ import tensorflow as tf
 from learning_rate_optimizer import get_optimizer
 from tensorflow.keras import mixed_precision
 
-FLAGS = flags.FLAGS
+#FLAGS = flags.FLAGS
 
+import config
+FLAGS = config.Flage()
+FLAGS = FLAGS.flage.FLAGS
 
 def build_optimizer(lr_schedule):
     '''

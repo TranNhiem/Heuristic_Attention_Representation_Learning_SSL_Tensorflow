@@ -10,7 +10,11 @@ from absl import app
 # Helper function to save and resore model.
 # -------------------------------------------------------------
 
-FLAGS= flags.FLAGS
+#FLAGS= flags.FLAGS
+
+import config
+FLAGS = config.Flage()
+FLAGS = FLAGS.flage.FLAGS
 
 def get_salient_tensors_dict(include_projection_head):
     """Returns a dictionary of tensors."""

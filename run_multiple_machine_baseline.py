@@ -18,8 +18,11 @@ from wandb.keras import WandbCallback
 # Checkpoint saving and Restoring weights Not whole model
 from multiprocessing import util
 
-FLAGS = flags.FLAGS
+#FLAGS = flags.FLAGS
 
+import config
+FLAGS = config.Flage()
+FLAGS = FLAGS.flage.FLAGS
 # ***********************************************************
 # Multi-GPU distributed Training Communication Method
 # ***********************************************************
