@@ -206,7 +206,7 @@ class Flage():
         'L2 Normalization Vector representation.')
 
         self.flags.DEFINE_enum(
-        'downsample_mod', 'space_to_depth', ['space_to_depth', 'maxpooling','averagepooling'],
+        'downsample_mod', 'averagepooling', ['space_to_depth', 'maxpooling','averagepooling'],
         'How the head upsample is done.')
 
         # -----------------------------------------

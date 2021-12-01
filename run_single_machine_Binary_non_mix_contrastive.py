@@ -574,8 +574,8 @@ def main(argv):
                     weight_decay_loss = all_model.add_weight_decay(
                         online_model, adjust_per_optimizer=True)
 
-                    weight_decay_loss_scale = tf.nn.scale_regularization_loss(
-                        weight_decay_loss)
+                    # weight_decay_loss_scale = tf.nn.scale_regularization_loss(
+                    #     weight_decay_loss)
                     # Under experiment Scale loss after adding Regularization and scaled by Batch_size
                     # weight_decay_loss = tf.nn.scale_regularization_loss(
                     #     weight_decay_loss)
@@ -670,5 +670,4 @@ def main(argv):
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
-
     app.run(main)
