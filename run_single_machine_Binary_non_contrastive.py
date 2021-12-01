@@ -126,9 +126,9 @@ flags.DEFINE_float(
 # Learning Rate Scheudle
 
 flags.DEFINE_float(
-    'base_lr', 0.5,
+    'base_lr', 0.7,
     'Initial learning rate per batch size of 256.')
-print("use high learning rate")
+print("use high learning rate 0.7")
 flags.DEFINE_integer(
     'warmup_epochs', 10,  # Configure BYOL and SimCLR
     'warmup epoch steps for Cosine Decay learning rate schedule.')
@@ -298,7 +298,7 @@ flags.DEFINE_integer(
 # Saving Model
 
 flags.DEFINE_string(
-    'model_dir', "./model_ckpt/resnet_byol/projec_2048/",
+    'model_dir', "./model_ckpt/resnet_byol/lr_rate/",
     'Model directory for training.')
 
 flags.DEFINE_integer(
@@ -595,11 +595,11 @@ def main(argv):
                     weight_decay_loss = all_model.add_weight_decay(
                         online_model, adjust_per_optimizer=True)
 
-                    weight_decay_loss_scale = tf.nn.scale_regularization_loss(
-                        weight_decay_loss)
-                    # Under experiment Scale loss after adding Regularization and scaled by Batch_size
-                    # weight_decay_loss = tf.nn.scale_regularization_loss(
+                    # weight_decay_loss_scale = tf.nn.scale_regularization_loss(
                     #     weight_decay_loss)
+                    # # Under experiment Scale loss after adding Regularization and scaled by Batch_size
+                    # # weight_decay_loss = tf.nn.scale_regularization_loss(
+                    # #     weight_decay_loss)
                     weight_decay_metric.update_state(weight_decay_loss)
                     loss += weight_decay_loss
                     total_loss_metric.update_state(loss)

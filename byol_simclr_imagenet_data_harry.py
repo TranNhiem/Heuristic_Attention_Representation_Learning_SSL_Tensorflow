@@ -10,6 +10,7 @@ import random
 import re
 
 AUTO = tf.data.experimental.AUTOTUNE
+
 FLAGS = flags.FLAGS
 
 

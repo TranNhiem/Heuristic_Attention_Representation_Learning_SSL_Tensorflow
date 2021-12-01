@@ -17,11 +17,11 @@ import model_for_non_contrastive_framework as all_model
 import objective as obj_lib
 from imutils import paths
 from wandb.keras import WandbCallback
+from config import config_v0
 
 # Setting GPU
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if gpus:
-
     try:
         for gpu in gpus:
             tf.config.experimental.set_memory_growth(gpu, True)
@@ -35,6 +35,7 @@ FLAGS = flags.FLAGS
 # ------------------------------------------
 # General Define
 # ------------------------------------------
+
 
 flags.DEFINE_integer(
     'IMG_height', 224,
@@ -126,9 +127,9 @@ flags.DEFINE_float(
 # Learning Rate Scheudle
 
 flags.DEFINE_float(
-    'base_lr', 0.3,
+    'base_lr', 0.5,
     'Initial learning rate per batch size of 256.')
-
+print("use high learning rate")
 flags.DEFINE_integer(
     'warmup_epochs', 10,  # Configure BYOL and SimCLR
     'warmup epoch steps for Cosine Decay learning rate schedule.')
@@ -142,7 +143,7 @@ flags.DEFINE_enum(
 '''ATTENTION'''
 flags.DEFINE_enum(
     # if Change the Optimizer please change --
-    'optimizer', 'LARSW_GC', ['Adam', 'SGD', 'LARS', 'AdamW', 'SGDW', 'LARSW',
+    'optimizer', 'LARSW', ['Adam', 'SGD', 'LARS', 'AdamW', 'SGDW', 'LARSW',
                            'AdamGC', 'SGDGC', 'LARSGC', 'AdamW_GC', 'SGDW_GC', 'LARSW_GC'],
     'How to scale the learning rate as a function of batch size.')
 
@@ -153,7 +154,7 @@ flags.DEFINE_enum(
     # 3. optimizer_GD fir  ['AdamGC', 'SGDGC', 'LARSGC']
     # 4. optimizer_W_GD for ['AdamW_GC', 'SGDW_GC', 'LARSW_GC']
 
-    'optimizer_type', 'optimizer_W_GD', [
+    'optimizer_type', 'optimizer_weight_decay', [
         'original', 'optimizer_weight_decay', 'optimizer_GD', 'optimizer_W_GD'],
     'Optimizer type corresponding to Configure of optimizer')
 
@@ -239,9 +240,9 @@ flags.DEFINE_boolean(
     'L2 Normalization Vector representation.')
 
 flags.DEFINE_enum(
-    'downsample_mod', 'space_to_depth', ['space_to_depth', 'maxpooling'],
+    'downsample_mod', 'averagepooling', ['space_to_depth', 'maxpooling','averagepooling'],
     'How the head upsample is done.')
-
+print("Using Average Pooling")
 # -----------------------------------------
 # Configure Model Training
 # -----------------------------------------
@@ -298,7 +299,7 @@ flags.DEFINE_integer(
 # Saving Model
 
 flags.DEFINE_string(
-    'model_dir', "./model_ckpt/resnet_byol/larsw_GC/",
+    'model_dir', "./model_ckpt/resnet_byol/projec_512/",
     'Model directory for training.')
 
 flags.DEFINE_integer(
@@ -393,6 +394,7 @@ def main(argv):
         "Optimizer": FLAGS.optimizer,
         "SEED": FLAGS.SEED,
         "Subset_dataset": FLAGS.num_classes, 
+      
         "Loss configure": FLAGS.aggregate_loss,
         "Loss type": FLAGS.non_contrast_binary_loss,
 
@@ -635,12 +637,12 @@ def main(argv):
                 num_batches = 0
                 if epoch +1 <= 15: 
                     alpha=0.5
-                elif epoch + 1 <= 30: 
+                elif epoch + 1 <= 35: 
                     alpha= 0.7
-                elif epoch + 1 <= 40: 
+                elif epoch + 1 <= 50: 
                     alpha = 0.9
-                elif epoch + 1 <=50 : 
-                    alpha=0.97
+                # elif epoch + 1 <=50 : 
+                #     alpha=0.97
 
 
                 for _, (ds_one, ds_two) in enumerate(train_ds):
