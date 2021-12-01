@@ -10,8 +10,6 @@ def read_cfg(mod="non_contrastive"):
     else:
         contrastive_cfg()
 
-
-
 def base_cfg():
     flags = Mock_Flag() 
     flags.DEFINE_integer(
