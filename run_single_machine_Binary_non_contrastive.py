@@ -33,6 +33,9 @@ if gpus:
 
 from config.config import read_cfg
 read_cfg()
+from config.absl_mock import Mock_Flag
+flag = Mock_Flag()
+FLAGS = flag.FLAGS
 
 # FLAGS = flags.FLAGS
 # ------------------------------------------
