@@ -191,11 +191,11 @@ def Projection_and_Prediction_head():
         # Projection & Prediction head  (Consideration the project out dim smaller than Represenation)
 
     flags.DEFINE_integer(
-        'proj_out_dim', 256,
+        'proj_out_dim', 512,
         'Number of head projection dimension.')
 
     flags.DEFINE_integer(
-        'prediction_out_dim', 256,
+        'prediction_out_dim', 512,
         'Number of head projection dimension.')
 
     flags.DEFINE_boolean(
@@ -231,7 +231,7 @@ def Projection_and_Prediction_head():
         'How the head upsample is done.')
 
     flags.DEFINE_boolean(
-        'feature_upsample',True,
+        'feature_upsample',False,
         'encoder out put do the upsample or mask do the downsample'
     )
 
@@ -255,7 +255,7 @@ def Configure_Model_Training():
         'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
 
     flags.DEFINE_enum(
-        'non_contrast_binary_loss', 'byol_harry_loss', [ "byol_harry_loss",
+        'non_contrast_binary_loss', 'sum_symetrize_l2_loss_object_backg', [ "byol_harry_loss",
             'Original_loss_add_contrast_level_object', 'sum_symetrize_l2_loss_object_backg', 'original_add_backgroud'],
         'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
 

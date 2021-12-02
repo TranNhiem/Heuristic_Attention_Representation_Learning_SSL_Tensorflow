@@ -79,9 +79,9 @@ def main():
 
     # Configure the Encoder Architecture.
     with strategy.scope():
-        online_model = all_model.Binary_online_model(FLAGS.num_classes,Upsample = False, Downsample = FLAGS.downsample_mod )
+        online_model = all_model.Binary_online_model(FLAGS.num_classes,Upsample = FLAGS.feature_upsample, Downsample = FLAGS.downsample_mod )
         prediction_model = all_model.prediction_head_model()
-        target_model = all_model.Binary_target_model(FLAGS.num_classes,Upsample = False, Downsample = FLAGS.downsample_mod)
+        target_model = all_model.Binary_target_model(FLAGS.num_classes,Upsample = FLAGS.feature_upsample, Downsample = FLAGS.downsample_mod)
 
     # Configure Wandb Training
     # Weight&Bias Tracking Experiment
@@ -90,7 +90,7 @@ def main():
         "Model_Arch": "ResNet50",
         "Training mode": "Binary_Non_Contrative_SSL",
         "DataAugmentation_types": "SimCLR_Inception_Croping_image_mask",
-        "Speratation Features": "Mask_Resize", 
+        "Speratation Features Upsampling Method": FLAGS.feature_upsample, 
         "Dataset": "ImageNet1k",
         "object_backgroud_feature_Dsamp_method": FLAGS.downsample_mod,
 
