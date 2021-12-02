@@ -10,8 +10,6 @@ def read_cfg(mod="non_contrastive"):
     else:
         contrastive_cfg()
 
-
-
 def base_cfg():
     flags = Mock_Flag() 
     flags.DEFINE_integer(
@@ -31,7 +29,7 @@ def base_cfg():
     'image size.')
 
     flags.DEFINE_integer(
-    'SEED', 26,
+    'SEED', 50, #26, 50
     'random seed use for shuffle data Generate two same image ds_one & ds_two')
 
     flags.DEFINE_integer(
@@ -177,21 +175,20 @@ def Projection_and_Prediction_head():
         # Projection & Prediction head  (Consideration the project out dim smaller than Represenation)
 
     flags.DEFINE_integer(
-        'proj_out_dim', 256,
+        'proj_out_dim', 512,
         'Number of head projection dimension.')
 
     flags.DEFINE_integer(
-        'prediction_out_dim', 256,
+        'prediction_out_dim', 512,
         'Number of head projection dimension.')
 
     flags.DEFINE_boolean(
         'reduce_linear_dimention', True,  # Consider use it when Project head layers > 2
         'Reduce the parameter of Projection in middel layers.')
     flags.DEFINE_integer(
-        'up_scale', 2048,  # scaling the Encoder output 2048 --> 4096
+        'up_scale', 4096,  # scaling the Encoder output 2048 --> 4096
         'Upscale the Dense Unit of Non-Contrastive Framework')
-    print("You are using MLP Option 1")
-    
+
     flags.DEFINE_boolean(
         'non_contrastive', True,  # Consider use it when Project head layers > 2
         'Using for upscaling the first layers of MLP == upscale value')
@@ -228,7 +225,7 @@ def Configure_Model_Training():
         'train_mode', 'pretrain', ['pretrain', 'finetune'],
         'The train mode controls different objectives and trainable components.')
 
-    flags.DEFINE_bool('lineareval_while_pretraining', True,
+    flags.DEFINE_boolean('lineareval_while_pretraining', True,
                     'Whether to finetune supervised head while pretraining.')
 
     flags.DEFINE_enum(
@@ -253,7 +250,7 @@ def Configure_Model_Training():
     )
     # Fine Tuning configure
 
-    flags.DEFINE_bool(
+    flags.DEFINE_boolean(
         'zero_init_logits_layer', False,
         'If True, zero initialize layers after avg_pool for supervised learning.')
 
@@ -267,7 +264,7 @@ def Configure_Saving_and_Restore_Model():
     # Saving Model
     flags = Mock_Flag()
     flags.DEFINE_string(
-        'model_dir', "./model_ckpt/resnet_byol/mlp_opt_2",
+        'model_dir', "./model_ckpt/resnet_byol/project_2048/",
         'Model directory for training.')
 
     flags.DEFINE_integer(
@@ -438,7 +435,7 @@ def contrastive_cfg():
         'train_mode', 'pretrain', ['pretrain', 'finetune'],
         'The train mode controls different objectives and trainable components.')
 
-    flags.DEFINE_bool('lineareval_while_pretraining', True,
+    flags.DEFINE_boolean('lineareval_while_pretraining', True,
                     'Whether to finetune supervised head while pretraining.')
 
     flags.DEFINE_enum(
@@ -484,7 +481,7 @@ def contrastive_cfg():
 
     # Fine Tuning configure
 
-    flags.DEFINE_bool(
+    flags.DEFINE_boolean(
         'zero_init_logits_layer', False,
         'If True, zero initialize layers after avg_pool for supervised learning.')
 
