@@ -786,9 +786,8 @@ class Binary_online_model(tf.keras.models.Model):
     """Resnet model with projection or supervised layer."""
 
     def __init__(self, num_classes, Backbone="Resnet", Upsample = True,Downsample = "maxpooling", **kwargs):
-        self.visualize = Visualize(FLAGS.visualize_epoch,FLAGS.visualize_dir)
-
         super(Binary_online_model, self).__init__(**kwargs)
+        self.visualize = Visualize(FLAGS.visualize_epoch,FLAGS.visualize_dir)
         self.Upsample = Upsample
         self.magnification = 1
         # Encoder

@@ -9,8 +9,10 @@ class Visualize:
 
     def plot_feature_map(self,epoch,features):
         b,d,h,w = features.shape
+        print(b,d,h,w)
         for i,feature in enumerate(features):
-            fig, ax = plt.subplots(nros=10,ncols=d/10,figsize = (d/10,10))
+            fig, ax = plt.subplots(nros=1,ncols=d/1,figsize = (d/1,1))
             for j,f in enumerate(feature):
                 ax[j].imshow(f)
             plt.savefig(os.path.join(self.visualize_dir,str(epoch)+"_"+str(i)+".png"))
+            print("save in : ",os.path.join(self.visualize_dir,str(epoch)+"_"+str(i)+".png"))
