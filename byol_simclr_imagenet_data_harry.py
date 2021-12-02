@@ -29,6 +29,7 @@ class imagenet_dataset_single_machine():
 
         image_path: Directory to train data 
         val_path:   Directory to validation or testing data
+        subset_class_num: subset class 
 
         '''
 
@@ -110,20 +111,11 @@ class imagenet_dataset_single_machine():
         self.x_train_lable = tf.one_hot(numeric_train_cls, depth = len(self.class_name) if subset_class_num==None else subset_class_num)
         self.x_val_lable = tf.one_hot(numeric_val_cls, depth = len(self.class_name) if subset_class_num==None else subset_class_num)
 
-        # if img_path is not None: #?
-        #     dataset = list(paths.list_images(img_path))
-        #     self.dataset_shuffle = random.sample(dataset, len(dataset))
-        #     self.x_val = self.dataset_shuffle[0:50000]
-        #     self.x_train = self.dataset_shuffle[50000:]
-
         if bi_mask:
             self.x_train_image_mask = np.stack(
                 (np.array(self.x_train), np.array(self.bi_mask)), axis=-1)
             print(self.x_train_image_mask.shape)
         
-        # print(self.x_train[0:5])
-        # print(self.x_train_lable[0:5])
-
     def get_label(self, label_txt_path=None):
         class_name = []
         class_ID = []
