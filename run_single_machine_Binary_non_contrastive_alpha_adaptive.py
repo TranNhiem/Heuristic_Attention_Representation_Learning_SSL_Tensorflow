@@ -30,7 +30,7 @@ if gpus:
     except RuntimeError as e:
         print(e)
 
-from config.config_v0 import read_cfg
+from config.config import read_cfg
 read_cfg()
 from config.absl_mock import Mock_Flag
 flag = Mock_Flag()
@@ -91,6 +91,7 @@ def main():
         "Model_Arch": "ResNet50",
         "Training mode": "Binary_Non_Contrative_SSL",
         "DataAugmentation_types": "SimCLR_Inception_Croping_image_mask",
+        "Speratation Features Upsampling Method": FLAGS.feature_upsample, 
         "Dataset": "ImageNet1k",
         "object_backgroud_feature_Dsamp_method": FLAGS.downsample_mod,
 

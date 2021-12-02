@@ -94,6 +94,7 @@ def main():
         "Training mode": "Binary_Non_Contrative_SSL",
         "DataAugmentation_types": "SimCLR_Inception_Croping_image_mask",
         "Dataset": "ImageNet1k",
+        "Speratation Features Upsampling Method": FLAGS.feature_upsample,
         "object_backgroud_feature_Dsamp_method": FLAGS.downsample_mod,
 
         "IMG_SIZE": FLAGS.image_size,
