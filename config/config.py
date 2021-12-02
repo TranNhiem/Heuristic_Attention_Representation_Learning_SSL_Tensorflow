@@ -183,7 +183,7 @@ def Encoder():
 def Projection_and_Prediction_head():
     
     flags = Mock_Flag() 
-    
+
     flags.DEFINE_enum(
     'proj_head_mode', 'nonlinear', ['none', 'linear', 'nonlinear'],
     'How the head projection is done.')
@@ -313,7 +313,6 @@ def Configure_Saving_and_Restore_Model():
         'checkpoint_steps', 10,
         'Number of steps between checkpoints/summaries. If provided, overrides '
         'checkpoint_epochs.')
-
 
 def non_contrastive_cfg():
     Linear_Evaluation()
