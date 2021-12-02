@@ -29,7 +29,7 @@ def base_cfg():
     'image size.')
 
     flags.DEFINE_integer(
-    'SEED', 26,
+    'SEED', 50, #26, 50
     'random seed use for shuffle data Generate two same image ds_one & ds_two')
 
     flags.DEFINE_integer(
@@ -175,18 +175,18 @@ def Projection_and_Prediction_head():
         # Projection & Prediction head  (Consideration the project out dim smaller than Represenation)
 
     flags.DEFINE_integer(
-        'proj_out_dim', 256,
+        'proj_out_dim', 512,
         'Number of head projection dimension.')
 
     flags.DEFINE_integer(
-        'prediction_out_dim', 256,
+        'prediction_out_dim', 512,
         'Number of head projection dimension.')
 
     flags.DEFINE_boolean(
         'reduce_linear_dimention', True,  # Consider use it when Project head layers > 2
         'Reduce the parameter of Projection in middel layers.')
     flags.DEFINE_integer(
-        'up_scale', 2048,  # scaling the Encoder output 2048 --> 4096
+        'up_scale', 4096,  # scaling the Encoder output 2048 --> 4096
         'Upscale the Dense Unit of Non-Contrastive Framework')
 
     flags.DEFINE_boolean(

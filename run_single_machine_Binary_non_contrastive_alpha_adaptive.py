@@ -79,9 +79,9 @@ def main():
 
     # Configure the Encoder Architecture.
     with strategy.scope():
-        online_model = all_model.Binary_online_model(FLAGS.num_classes)
+        online_model = all_model.Binary_online_model(FLAGS.num_classes,Upsample = False, Downsample = FLAGS.downsample_mod )
         prediction_model = all_model.prediction_head_model()
-        target_model = all_model.Binary_target_model(FLAGS.num_classes)
+        target_model = all_model.Binary_target_model(FLAGS.num_classes,Upsample = False, Downsample = FLAGS.downsample_mod)
 
     # Configure Wandb Training
     # Weight&Bias Tracking Experiment
