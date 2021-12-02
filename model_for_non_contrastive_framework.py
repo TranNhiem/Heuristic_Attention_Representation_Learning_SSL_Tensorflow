@@ -25,6 +25,7 @@ from Model_resnet_harry import resnet as resnet_modify
 import tensorflow as tf
 from learning_rate_optimizer import get_optimizer
 from tensorflow.keras import mixed_precision
+from visualize import Visualize
 
 #FLAGS = flags.FLAGS
 
@@ -785,6 +786,7 @@ class Binary_online_model(tf.keras.models.Model):
     """Resnet model with projection or supervised layer."""
 
     def __init__(self, num_classes, Backbone="Resnet", Upsample = True,Downsample = "maxpooling", **kwargs):
+        self.visualize = Visualize(FLAGS.visualize_epoch,FLAGS.visualize_dir)
 
         super(Binary_online_model, self).__init__(**kwargs)
         self.Upsample = Upsample
@@ -846,6 +848,8 @@ class Binary_online_model(tf.keras.models.Model):
                                           , training=training)
             back, _ = self.projection_head(self.downsample_layear(back,self.magnification)
                                           , training=training)
+            self.visualize.plot_feature_map("obj",obj)
+            self.visualize.plot_feature_map("back",obj)
 
         projection_head_outputs, supervised_head_inputs = self.projection_head(self.downsample_layear(feature_map_upsample,self.magnification)
                                                                                , training=training)
@@ -877,8 +881,9 @@ class Binary_target_model(tf.keras.models.Model):
     """Resnet model with projection or supervised layer."""
 
     def __init__(self, num_classes, Backbone="Resnet", Upsample = True,Downsample = "maxpooling",  **kwargs):
-
         super(Binary_target_model, self).__init__(**kwargs)
+        self.visualize = Visualize(FLAGS.visualize_epoch,FLAGS.visualize_dir)
+        
         self.Upsample = Upsample
         self.magnification = 1
         # Encoder
@@ -937,6 +942,8 @@ class Binary_target_model(tf.keras.models.Model):
             obj, back = self.indexer([feature_map_upsample, mask])
             obj, _ = self.projection_head(self.downsample_layear(obj,self.magnification), training=training)
             back, _ = self.projection_head(self.downsample_layear(back,self.magnification), training=training)
+            self.visualize.plot_feature_map("obj",obj)
+            self.visualize.plot_feature_map("back",obj)
 
         projection_head_outputs, supervised_head_inputs = self.projection_head(self.downsample_layear(feature_map_upsample,self.magnification), training=training)
 
