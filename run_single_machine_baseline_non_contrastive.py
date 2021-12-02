@@ -139,6 +139,12 @@ FLAGS = flag.FLAGS
 #     'warmup_epochs', 10,  # Configure BYOL and SimCLR
 #     'warmup epoch steps for Cosine Decay learning rate schedule.')
 
+# # ------------------------------------------
+# # Define for Linear Evaluation
+# # ------------------------------------------
+# flags.DEFINE_enum(
+#     'linear_evaluate', 'standard', ['standard', 'randaug', 'cropping_randaug'],
+#     'How to scale the learning rate as a function of batch size.')
 
 # flags.DEFINE_enum(
 #     'lr_rate_scaling', 'linear', ['linear', 'sqrt', 'no_scale', ],
@@ -296,6 +302,9 @@ FLAGS = flag.FLAGS
 #     'keep_checkpoint_max', 5,
 #     'Maximum number of checkpoints to keep.')
 
+# flags.DEFINE_enum(
+#     'lr_rate_scaling', 'linear', ['linear', 'sqrt', 'no_scale', ],
+#     'How to scale the learning rate as a function of batch size.')
 
 # # Loading Model
 
@@ -314,6 +323,9 @@ FLAGS = flag.FLAGS
 #     'Number of steps between checkpoints/summaries. If provided, overrides '
 #     'checkpoint_epochs.')
 
+# flags.DEFINE_bool(
+#     'zero_init_logits_layer', False,
+#     'If True, zero initialize layers after avg_pool for supervised learning.')
 
 def main():
     # if len(argv) > 1:
@@ -379,7 +391,7 @@ def main():
 
     }
 
-    wandb.init(project="heuristic_attention_representation_learning_v1",
+    wandb.init(project=FLAGS.wandb_project_name,name = FLAGS.wandb_run_name,mode = FLAGS.wandb_mod,
                sync_tensorboard=True, config=configs)
 
     # Training Configuration
@@ -636,6 +648,11 @@ def main():
             perform_evaluation(online_model, val_ds, eval_steps,
                                checkpoint_manager.latest_checkpoint, strategy)
 
+# # Restore model weights only, but not global step and optimizer states
+# flags.DEFINE_string(
+#     'checkpoint', None,
+#     'Loading from the given checkpoint for fine-tuning if a finetuning '
+#     'checkpoint does not already exist in model_dir.')
 
     # Pre-Training and Finetune
 if __name__ == '__main__':

@@ -108,7 +108,7 @@ def main():
 
     }
 
-    wandb.init(project="heuristic_attention_representation_learning_v1",
+    wandb.init(project=FLAGS.wandb_project_name,name = FLAGS.wandb_run_name,mode = FLAGS.wandb_mod,
                sync_tensorboard=True, config=configs)
 
     # Training Configuration
