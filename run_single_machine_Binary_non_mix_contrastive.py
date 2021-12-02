@@ -83,9 +83,9 @@ def main(argv):
 
     # Configure the Encoder Architecture.
     with strategy.scope():
-        online_model = all_model.Binary_online_model(FLAGS.num_classes,Downsample = FLAGS.downsample_mod)
+        online_model = all_model.Binary_online_model(FLAGS.num_classes,Upsample = FLAGS.feature_upsample,Downsample = FLAGS.downsample_mod)
         prediction_model = all_model.prediction_head_model()
-        target_model = all_model.Binary_target_model(FLAGS.num_classes,Downsample = FLAGS.downsample_mod)
+        target_model = all_model.Binary_target_model(FLAGS.num_classes,Upsample = FLAGS.feature_upsample,Downsample = FLAGS.downsample_mod)
 
     # Configure Wandb Training
     # Weight&Bias Tracking Experiment
@@ -110,7 +110,7 @@ def main(argv):
 
     }
 
-    wandb.init(project="heuristic_attention_representation_learning_v1",
+    wandb.init(project=FLAGS.wandb_project_name,name = FLAGS.wandb_run_name,mode = FLAGS.wandb_mod,
                sync_tensorboard=True, config=configs)
 
     # Training Configuration
@@ -185,6 +185,10 @@ def main(argv):
             # Scale loss  --> Aggregating all Gradients
             def distributed_loss(o1, o2, b1, b2):
                 
+                print(o1.shape)
+                print(o2.shape)
+                print(b1.shape)
+                print(b2.shape)
                 per_example_loss, logits_ab, labels = byol_harry_loss(o1, o2, b1, b2,  alpha=FLAGS.alpha, temperature=FLAGS.temperature)
 
                 # total sum loss //Global batch_size
@@ -215,14 +219,8 @@ def main(argv):
                     # Compute Contrastive Train Loss -->
                     loss = None
                     if proj_head_output_1 is not None:
-
-                        # Compute Contrastive Loss model
-                        if FLAGS.non_contrast_binary_loss == 'Original_loss_add_contrast_level_object':
-                            loss, logits_o_ab, labels = byol_harry_loss(obj_1, obj_2,  backg_1, backg_2, proj_head_output_1, proj_head_output_2)
-
-                        else:
                             # Compute Contrastive Loss model
-                            loss, logits_o_ab, labels = distributed_loss(
+                        loss, logits_o_ab, labels = distributed_loss(
                                 obj_1, obj_2,  backg_1, backg_2)
 
                         if loss is None:

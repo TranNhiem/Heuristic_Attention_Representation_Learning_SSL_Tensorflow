@@ -31,7 +31,7 @@ if gpus:
     except RuntimeError as e:
         print(e)
 
-from config.config import read_cfg
+from config.config_v0 import read_cfg
 read_cfg()
 from config.absl_mock import Mock_Flag
 flag = Mock_Flag()
@@ -81,9 +81,10 @@ def main():
 
     # Configure the Encoder Architecture.
     with strategy.scope():
-        online_model = all_model.Binary_online_model(FLAGS.num_classes,Downsample = FLAGS.downsample_mod)
+        online_model = all_model.Binary_online_model(FLAGS.num_classes,Upsample = FLAGS.feature_upsample,Downsample = FLAGS.downsample_mod)
         prediction_model = all_model.prediction_head_model()
-        target_model = all_model.Binary_target_model(FLAGS.num_classes,Downsample = FLAGS.downsample_mod)
+        target_model = all_model.Binary_target_model(FLAGS.num_classes,Upsample = FLAGS.feature_upsample,Downsample = FLAGS.downsample_mod)
+
 
     # Configure Wandb Training
     # Weight&Bias Tracking Experiment
@@ -93,6 +94,7 @@ def main():
         "Training mode": "Binary_Non_Contrative_SSL",
         "DataAugmentation_types": "SimCLR_Inception_Croping_image_mask",
         "Dataset": "ImageNet1k",
+        "Speratation Features Upsampling Method": FLAGS.feature_upsample,
         "object_backgroud_feature_Dsamp_method": FLAGS.downsample_mod,
 
         "IMG_SIZE": FLAGS.image_size,
@@ -108,7 +110,7 @@ def main():
 
     }
 
-    wandb.init(project="heuristic_attention_representation_learning_v1",
+    wandb.init(project=FLAGS.wandb_project_name,name = FLAGS.wandb_run_name,mode = FLAGS.wandb_mod,
                sync_tensorboard=True, config=configs)
 
     # Training Configuration

@@ -4,6 +4,7 @@ from config.absl_mock import Mock_Flag
 def read_cfg(mod="non_contrastive"):
     flags = Mock_Flag()
     base_cfg()
+    wandb_set()
 
     if(mod == "non_contrastive"):
         non_contrastive_cfg()
@@ -29,7 +30,7 @@ def base_cfg():
     'image size.')
 
     flags.DEFINE_integer(
-    'SEED', 26,
+    'SEED', 26,#40, 26
     'random seed use for shuffle data Generate two same image ds_one & ds_two')
 
     flags.DEFINE_integer(
@@ -76,6 +77,20 @@ def base_cfg():
     'val_label', "ILSVRC2012_validation_ground_truth.txt",
     'val_label.')
 
+def wandb_set():
+    flags = Mock_Flag()
+    flags.DEFINE_string(
+        "wandb_project_name","heuristic_attention_representation_learning_v1",
+        "set the project name for wandb."
+    )
+    flags.DEFINE_string(
+        "wandb_run_name","test",
+        "set the run name for wandb."
+    )
+    flags.DEFINE_enum(
+    'wandb_mod', 'run', ['run', 'dryrun '],
+    'update the to the wandb server or not')
+
 def Linear_Evaluation():
     flags = Mock_Flag()
     flags.DEFINE_enum(
@@ -104,7 +119,7 @@ def Learning_Rate_Optimizer_and_Training_Strategy():
         'Initial learning rate per batch size of 256.')
 
     flags.DEFINE_integer(
-        'warmup_epochs', 10,  # Configure BYOL and SimCLR
+        'warmup_epochs', 15, # 15, 20 # Configure BYOL and SimCLR --> Consider change this
         'warmup epoch steps for Cosine Decay learning rate schedule.')
 
 
@@ -168,6 +183,7 @@ def Encoder():
 def Projection_and_Prediction_head():
     
     flags = Mock_Flag() 
+    
     flags.DEFINE_enum(
     'proj_head_mode', 'nonlinear', ['none', 'linear', 'nonlinear'],
     'How the head projection is done.')
@@ -175,18 +191,18 @@ def Projection_and_Prediction_head():
         # Projection & Prediction head  (Consideration the project out dim smaller than Represenation)
 
     flags.DEFINE_integer(
-        'proj_out_dim', 256,
+        'proj_out_dim', 512,
         'Number of head projection dimension.')
 
     flags.DEFINE_integer(
-        'prediction_out_dim', 256,
+        'prediction_out_dim', 512,
         'Number of head projection dimension.')
 
     flags.DEFINE_boolean(
         'reduce_linear_dimention', True,  # Consider use it when Project head layers > 2
         'Reduce the parameter of Projection in middel layers.')
     flags.DEFINE_integer(
-        'up_scale', 2048,  # scaling the Encoder output 2048 --> 4096
+        'up_scale', 4096,  # scaling the Encoder output 2048 --> 4096
         'Upscale the Dense Unit of Non-Contrastive Framework')
 
     flags.DEFINE_boolean(
@@ -214,6 +230,11 @@ def Projection_and_Prediction_head():
         'downsample_mod', 'space_to_depth', ['space_to_depth', 'maxpooling','averagepooling'],
         'How the head upsample is done.')
 
+    flags.DEFINE_boolean(
+        'feature_upsample',False,
+        'encoder out put do the upsample or mask do the downsample'
+    )
+
 def Configure_Model_Training():
     # Self-Supervised training and Supervised training mode
     flags = Mock_Flag() 
@@ -234,7 +255,7 @@ def Configure_Model_Training():
         'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
 
     flags.DEFINE_enum(
-        'non_contrast_binary_loss', 'sum_symetrize_l2_loss_object_backg', [
+        'non_contrast_binary_loss', 'sum_symetrize_l2_loss_object_backg', [ "byol_harry_loss",
             'Original_loss_add_contrast_level_object', 'sum_symetrize_l2_loss_object_backg', 'original_add_backgroud'],
         'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
 
@@ -264,7 +285,7 @@ def Configure_Saving_and_Restore_Model():
     # Saving Model
     flags = Mock_Flag()
     flags.DEFINE_string(
-        'model_dir', "./model_ckpt/resnet_byol/project_2048/",
+        'model_dir', "./model_ckpt/resnet_byol/project_512_v2",
         'Model directory for training.')
 
     flags.DEFINE_integer(
@@ -439,7 +460,7 @@ def contrastive_cfg():
                     'Whether to finetune supervised head while pretraining.')
 
     flags.DEFINE_enum(
-        'aggregate_loss', 'contrastive', [
+        'aggregate_loss', 'contrastive_supervised', [
             'contrastive', 'contrastive_supervised', ],
         'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
 
@@ -526,5 +547,7 @@ def contrastive_cfg():
         'checkpoint_steps', 10,
         'Number of steps between checkpoints/summaries. If provided, overrides '
         'checkpoint_epochs.')
+
+    # Helper function to save and resore model.
 
     # Helper function to save and resore model.

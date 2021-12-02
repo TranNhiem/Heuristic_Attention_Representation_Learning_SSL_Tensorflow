@@ -4,6 +4,7 @@ from config.absl_mock import Mock_Flag
 def read_cfg(mod="non_contrastive"):
     flags = Mock_Flag()
     base_cfg()
+    wandb_set()
 
     if(mod == "non_contrastive"):
         non_contrastive_cfg()
@@ -75,6 +76,20 @@ def base_cfg():
     flags.DEFINE_string(
     'val_label', "ILSVRC2012_validation_ground_truth.txt",
     'val_label.')
+
+def wandb_set():
+    flags = Mock_Flag()
+    flags.DEFINE_string(
+        "wandb_project_name","heuristic_attention_representation_learning_v1",
+        "set the project name for wandb."
+    )
+    flags.DEFINE_string(
+        "wandb_run_name","test",
+        "set the run name for wandb."
+    )
+    flags.DEFINE_enum(
+    'wandb_mod', 'run', ['run', 'dryrun '],
+    'update the to the wandb server or not')
 
 def Linear_Evaluation():
     flags = Mock_Flag()
@@ -168,6 +183,7 @@ def Encoder():
 def Projection_and_Prediction_head():
     
     flags = Mock_Flag() 
+
     flags.DEFINE_enum(
     'proj_head_mode', 'nonlinear', ['none', 'linear', 'nonlinear'],
     'How the head projection is done.')
@@ -175,7 +191,7 @@ def Projection_and_Prediction_head():
         # Projection & Prediction head  (Consideration the project out dim smaller than Represenation)
 
     flags.DEFINE_integer(
-        'proj_out_dim', 512,
+        'proj_out_dim', 256,
         'Number of head projection dimension.')
 
     flags.DEFINE_integer(
@@ -186,7 +202,7 @@ def Projection_and_Prediction_head():
         'reduce_linear_dimention', True,  # Consider use it when Project head layers > 2
         'Reduce the parameter of Projection in middel layers.')
     flags.DEFINE_integer(
-        'up_scale', 4096,  # scaling the Encoder output 2048 --> 4096
+        'up_scale', 2048,  # scaling the Encoder output 2048 --> 4096
         'Upscale the Dense Unit of Non-Contrastive Framework')
 
     flags.DEFINE_boolean(
@@ -214,6 +230,11 @@ def Projection_and_Prediction_head():
         'downsample_mod', 'space_to_depth', ['space_to_depth', 'maxpooling','averagepooling'],
         'How the head upsample is done.')
 
+    flags.DEFINE_boolean(
+        'feature_upsample',False,
+        'encoder out put do the upsample or mask do the downsample'
+    )
+
 def Configure_Model_Training():
     # Self-Supervised training and Supervised training mode
     flags = Mock_Flag() 
@@ -234,7 +255,7 @@ def Configure_Model_Training():
         'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
 
     flags.DEFINE_enum(
-        'non_contrast_binary_loss', 'sum_symetrize_l2_loss_object_backg', [
+        'non_contrast_binary_loss', 'sum_symetrize_l2_loss_object_backg', [ "byol_harry_loss",
             'Original_loss_add_contrast_level_object', 'sum_symetrize_l2_loss_object_backg', 'original_add_backgroud'],
         'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
 
@@ -290,9 +311,7 @@ def Configure_Saving_and_Restore_Model():
 
     flags.DEFINE_integer(
         'checkpoint_steps', 10,
-        'Number of steps between checkpoints/summaries. If provided, overrides '
-        'checkpoint_epochs.')
-
+        'Number of steps between checkpoints/summaries. If provided, overrides checkpoint_epochs.')
 
 def non_contrastive_cfg():
     Linear_Evaluation()
@@ -301,6 +320,19 @@ def non_contrastive_cfg():
     Projection_and_Prediction_head()
     Configure_Model_Training()
     Configure_Saving_and_Restore_Model()
+    visualization()
+
+def visualization():
+    flags = Mock_Flag()
+    flags.DEFINE_boolean("visualize",
+        True,"visualize the feature map or not"
+    )
+    flags.DEFINE_integer("visualize_epoch",
+        1,"Number of every epoch to save the feature map"
+    )
+    flags.DEFINE_string("visualize_dir",
+        "/visualize","path of the visualize feature map saved"
+    )
 
 def contrastive_cfg():
     
@@ -526,5 +558,7 @@ def contrastive_cfg():
         'checkpoint_steps', 10,
         'Number of steps between checkpoints/summaries. If provided, overrides '
         'checkpoint_epochs.')
+
+    # Helper function to save and resore model.
 
     # Helper function to save and resore model.
