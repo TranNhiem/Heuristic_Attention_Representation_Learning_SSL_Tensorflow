@@ -119,7 +119,7 @@ def Learning_Rate_Optimizer_and_Training_Strategy():
         'Initial learning rate per batch size of 256.')
 
     flags.DEFINE_integer(
-        'warmup_epochs', 15, # 15, 20 # Configure BYOL and SimCLR --> Consider change this
+        'warmup_epochs', 10, # 15, 20 # Configure BYOL and SimCLR --> Consider change this
         'warmup epoch steps for Cosine Decay learning rate schedule.')
 
 
@@ -191,11 +191,11 @@ def Projection_and_Prediction_head():
         # Projection & Prediction head  (Consideration the project out dim smaller than Represenation)
 
     flags.DEFINE_integer(
-        'proj_out_dim', 512,
+        'proj_out_dim', 256,
         'Number of head projection dimension.')
 
     flags.DEFINE_integer(
-        'prediction_out_dim', 512,
+        'prediction_out_dim', 256,
         'Number of head projection dimension.')
 
     flags.DEFINE_boolean(
@@ -285,7 +285,7 @@ def Configure_Saving_and_Restore_Model():
     # Saving Model
     flags = Mock_Flag()
     flags.DEFINE_string(
-        'model_dir', "./model_ckpt/resnet_byol/project_512_v2",
+        'model_dir', "./model_ckpt/resnet_byol/larsw_GC/",
         'Model directory for training.')
 
     flags.DEFINE_integer(
