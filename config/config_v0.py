@@ -314,6 +314,18 @@ def Configure_Saving_and_Restore_Model():
         'Number of steps between checkpoints/summaries. If provided, overrides '
         'checkpoint_epochs.')
 
+def visualization():
+    flags = Mock_Flag()
+    flags.DEFINE_boolean("visualize",
+        False,"visualize the feature map or not"
+    )
+    flags.DEFINE_integer("visualize_epoch",
+        1,"Number of every epoch to save the feature map"
+    )
+    flags.DEFINE_string("visualize_dir",
+        "/visualize","path of the visualize feature map saved"
+    )
+    
 def non_contrastive_cfg():
     Linear_Evaluation()
     Learning_Rate_Optimizer_and_Training_Strategy()
@@ -321,6 +333,9 @@ def non_contrastive_cfg():
     Projection_and_Prediction_head()
     Configure_Model_Training()
     Configure_Saving_and_Restore_Model()
+    visualization()
+
+
 
 def contrastive_cfg():
     
