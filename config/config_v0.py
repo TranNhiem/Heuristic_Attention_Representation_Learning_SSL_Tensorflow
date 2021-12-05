@@ -314,7 +314,6 @@ def Configure_Saving_and_Restore_Model():
         'Number of steps between checkpoints/summaries. If provided, overrides '
         'checkpoint_epochs.')
 
-
 def non_contrastive_cfg():
     Linear_Evaluation()
     Learning_Rate_Optimizer_and_Training_Strategy()
