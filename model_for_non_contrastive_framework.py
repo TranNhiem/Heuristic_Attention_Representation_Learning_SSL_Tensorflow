@@ -847,8 +847,9 @@ class Binary_online_model(tf.keras.models.Model):
                                           , training=training)
             back, _ = self.projection_head(self.downsample_layear(back,self.magnification)
                                           , training=training)
-            self.visualize.plot_feature_map("obj",obj)
-            self.visualize.plot_feature_map("back",obj)
+            if FLAGS.visualize:                              
+                self.visualize.plot_feature_map("obj",obj)
+                self.visualize.plot_feature_map("back",obj)
 
         projection_head_outputs, supervised_head_inputs = self.projection_head(self.downsample_layear(feature_map_upsample,self.magnification)
                                                                                , training=training)
@@ -941,8 +942,9 @@ class Binary_target_model(tf.keras.models.Model):
             obj, back = self.indexer([feature_map_upsample, mask])
             obj, _ = self.projection_head(self.downsample_layear(obj,self.magnification), training=training)
             back, _ = self.projection_head(self.downsample_layear(back,self.magnification), training=training)
-            self.visualize.plot_feature_map("obj",obj)
-            self.visualize.plot_feature_map("back",obj)
+            if FLAGS.visualize:
+                self.visualize.plot_feature_map("obj",obj)
+                self.visualize.plot_feature_map("back",obj)
 
         projection_head_outputs, supervised_head_inputs = self.projection_head(self.downsample_layear(feature_map_upsample,self.magnification), training=training)
 
