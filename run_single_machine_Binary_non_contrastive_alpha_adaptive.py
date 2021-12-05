@@ -344,6 +344,7 @@ def main():
 
                 total_loss = 0.0
                 num_batches = 0
+                
                 if epoch +1 <= 15: 
                     alpha=0.5
                 elif epoch + 1 <= 35: 
@@ -386,6 +387,7 @@ def main():
                 # Wandb Configure for Visualize the Model Training
                 wandb.log({
                     "epochs": epoch+1,
+                    "train/alpha_value": alpha,
                     "train_contrast_loss": contrast_loss_metric.result(),
                     "train_contrast_acc": contrast_acc_metric.result(),
                     "train_contrast_acc_entropy": contrast_entropy_metric.result(),
@@ -393,7 +395,7 @@ def main():
                     "train/total_loss": epoch_loss,
                     "train/supervised_loss":    supervised_loss_metric.result(),
                     "train/supervised_acc": supervised_acc_metric.result(), 
-                    "train/alpha_value": alpha,
+                   
                 })
                 for metric in all_metrics:
                     metric.reset_states()
