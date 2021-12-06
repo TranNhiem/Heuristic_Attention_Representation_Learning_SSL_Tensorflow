@@ -84,11 +84,11 @@ def wandb_set():
         "set the project name for wandb."
     )
     flags.DEFINE_string(
-        "wandb_run_name","Harry background sontrastive loss test",
+        "wandb_run_name","Harry test the bigger output for encoder(14*14)",
         "set the run name for wandb."
     )
     flags.DEFINE_enum(
-    'wandb_mod', 'dryrun', ['run', 'dryrun'],
+    'wandb_mod', 'run', ['run', 'dryrun'],
     'update the to the wandb server or not')
 
 def Linear_Evaluation():
@@ -260,7 +260,7 @@ def Configure_Model_Training():
         'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
 
     flags.DEFINE_enum(
-        'non_contrast_binary_loss', 'byol_harry_loss', [ "byol_harry_loss",
+        'non_contrast_binary_loss', 'sum_symetrize_l2_loss_object_backg', [ "byol_harry_loss",
             'Original_loss_add_contrast_level_object', 'sum_symetrize_l2_loss_object_backg', 'original_add_backgroud'],
         'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
 
