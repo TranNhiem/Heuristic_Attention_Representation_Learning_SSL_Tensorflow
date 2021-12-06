@@ -12,7 +12,7 @@ from learning_rate_optimizer import WarmUpAndCosineDecay
 import metrics
 from helper_functions import *
 from byol_simclr_imagenet_data_harry import imagenet_dataset_single_machine
-from self_supervised_losses import byol_symetrize_loss, symetrize_l2_loss_object_level_whole_image, sum_symetrize_l2_loss_object_backg
+from self_supervised_losses import byol_symetrize_loss, symetrize_l2_loss_object_level_whole_image, sum_symetrize_l2_loss_object_backg, sum_symetrize_l2_loss_object_backg_add_original
 import model_for_non_contrastive_framework as all_model
 import objective as obj_lib
 from imutils import paths
@@ -183,7 +183,7 @@ def main():
                 online_model, optimizer.iterations, optimizer)
 
             # Scale loss  --> Aggregating all Gradients
-            def distributed_loss(o1, o2, b1, b2):
+            def distributed_loss(o1, o2, b1, b2, f1 = None, f2 = None):
                 if FLAGS.non_contrast_binary_loss == 'original_add_backgroud':
                     ob1 = tf.concat([o1, b1], axis=0)
                     ob2 = tf.concat([o2, b2], axis=0)
@@ -196,6 +196,10 @@ def main():
                     # each GPU loss per_replica batch loss
                     per_example_loss, logits_ab, labels = sum_symetrize_l2_loss_object_backg(
                         o1, o2, b1, b2,  alpha=FLAGS.alpha, temperature=FLAGS.temperature)
+
+                elif FLAGS.non_contrast_binary_loss == 'sum_symetrize_l2_loss_object_backg_add_original':
+                    per_example_loss, logits_ab, labels = sum_symetrize_l2_loss_object_backg_add_original(
+                        o1, o2, b1, b2, f1, f2, alpha=FLAGS.alpha, temperature=FLAGS.temperature)
 
                 # total sum loss //Global batch_size
                 loss = tf.reduce_sum(per_example_loss) * \

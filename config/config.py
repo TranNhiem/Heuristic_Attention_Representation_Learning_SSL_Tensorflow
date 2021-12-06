@@ -56,12 +56,12 @@ def base_cfg():
 
     flags.DEFINE_string(
     #'train_path', "/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/ILSVRC2012_img_train",
-    'train_path', '/data1/1K_New/train/',
+    'train_path', '/data1/share/1K_New/train/',
     'Train dataset path.')
 
     flags.DEFINE_string(
     # 'val_path',"/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/val",
-    'val_path', "/data1/1K_New/val/",
+    'val_path', "/data1/share/1K_New/val/",
     'Validaion dataset path.')
 
     # Mask_folder should locate in location and same level of train folder
@@ -84,7 +84,7 @@ def wandb_set():
         "set the project name for wandb."
     )
     flags.DEFINE_string(
-        "wandb_run_name","Harry test the bigger output for encoder(14*14)",
+        "wandb_run_name","Harry_test_bigger_output_encoder(14*14)_mask_resize",
         "set the run name for wandb."
     )
     flags.DEFINE_enum(
@@ -181,8 +181,12 @@ def Encoder():
         'If it is bigger than 0, it will enable SE.')
 
     flags.DEFINE_enum(
-        "Middle_layer_output",3,[0,1,2,3,4,5],
+        "Middle_layer_output",4,[0,1,2,3,4],
         "Get the feature map from middle layer,0 is mean don't get the middle layer feature map"
+    )
+    flags.DEFINE_boolean(
+        "original_loss_stop_gradient",True,
+        "Stop gradient with the encoder middle layer."
     )
 
 def Projection_and_Prediction_head():
@@ -207,7 +211,7 @@ def Projection_and_Prediction_head():
         'reduce_linear_dimention', True,  # Consider use it when Project head layers > 2
         'Reduce the parameter of Projection in middel layers.')
     flags.DEFINE_integer(
-        'up_scale', 2048,  # scaling the Encoder output 2048 --> 4096
+        'up_scale', 4096,  # scaling the Encoder output 2048 --> 4096
         'Upscale the Dense Unit of Non-Contrastive Framework')
 
     flags.DEFINE_boolean(
@@ -260,7 +264,7 @@ def Configure_Model_Training():
         'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
 
     flags.DEFINE_enum(
-        'non_contrast_binary_loss', 'sum_symetrize_l2_loss_object_backg', [ "byol_harry_loss",
+        'non_contrast_binary_loss', 'sum_symetrize_l2_loss_object_backg_add_original', [ "byol_harry_loss","sum_symetrize_l2_loss_object_backg_add_original",
             'Original_loss_add_contrast_level_object', 'sum_symetrize_l2_loss_object_backg', 'original_add_backgroud'],
         'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
 

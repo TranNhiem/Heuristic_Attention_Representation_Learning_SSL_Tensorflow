@@ -573,6 +573,23 @@ def sum_symetrize_l2_loss_object_backg(o_1, o_2, b_1, b_2, alpha, temperature):
     # ,whole_image_logits ,lables_image,
     return total_loss, object_logits,  lables_object
 
+def sum_symetrize_l2_loss_object_backg_add_original(o_1, o_2, b_1, b_2,img_1, img_2, alpha, temperature):
+
+    '''
+    Noted this Design
+
+    1. The contrasting
+        Similarity between object_1 and object_2, background_1 and background_2
+    3. Scaling Alpha value shound be for weighted loss between object and backgroud
+    '''
+    img_loss, img_logits, img_object = byol_symetrize_loss(img_1, img_2, temperature=temperature)
+    object_loss, object_logits, lables_object = byol_symetrize_loss(o_1, o_2,temperature=temperature)
+    backg_loss, backg_logits, lables_back= byol_symetrize_loss(b_1, b_2,temperature=temperature)
+    #total_loss = (alpha * object_loss + (1-alpha)*backg_loss)/2
+    total_loss = (alpha * object_loss + (1-alpha)*backg_loss) + img_loss
+    # ,whole_image_logits ,lables_image,
+    return total_loss, img_logits, img_object
+
 
 '''Loss 2 SimSiam Model'''
 # Asymetric LOSS

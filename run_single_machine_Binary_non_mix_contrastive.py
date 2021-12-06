@@ -184,11 +184,6 @@ def main(argv):
 
             # Scale loss  --> Aggregating all Gradients
             def distributed_loss(o1, o2, b1, b2):
-                
-                print(o1.shape)
-                print(o2.shape)
-                print(b1.shape)
-                print(b2.shape)
                 per_example_loss, logits_ab, labels = byol_harry_loss(o1, o2, b1, b2,  alpha=FLAGS.alpha, temperature=FLAGS.temperature)
 
                 # total sum loss //Global batch_size

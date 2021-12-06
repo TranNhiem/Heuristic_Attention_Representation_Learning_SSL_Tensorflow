@@ -787,7 +787,7 @@ class Binary_online_model(tf.keras.models.Model):
 
     def __init__(self, num_classes, Backbone="Resnet", Upsample = True,Downsample = "maxpooling", **kwargs):
         super(Binary_online_model, self).__init__(**kwargs)
-        self.Upsample = Upsample
+        self.Upsample = FLAGS.feature_upsample
         self.magnification = 1
         # Encoder
         if Backbone == "Resnet":
@@ -886,7 +886,7 @@ class Binary_target_model(tf.keras.models.Model):
     def __init__(self, num_classes, Backbone="Resnet", Upsample = True,Downsample = "maxpooling",  **kwargs):
         super(Binary_target_model, self).__init__(**kwargs)
         
-        self.Upsample = Upsample
+        self.Upsample = FLAGS.feature_upsample
         self.magnification = 1
         # Encoder
         if Backbone == "Resnet":

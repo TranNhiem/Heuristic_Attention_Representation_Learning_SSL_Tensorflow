@@ -25,6 +25,7 @@ class Visualize:
             fig, ax = plt.subplots(1,d)
             for j in range(d):
                 f = features[i,:,:,j]
+                print(type(f))
                 proto_tensor = tf.make_tensor_proto(f)
                 f = tf.make_ndarray(proto_tensor)
                 ax[j].imshow(f)
