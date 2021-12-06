@@ -175,7 +175,11 @@ def Encoder():
     flags.DEFINE_float(
         'sk_ratio', 0.,
         'If it is bigger than 0, it will enable SK. Recommendation: 0.0625.')
-
+    flags.DEFINE_enum(
+        "Middle_layer_output",0,[0,1,2,3,4,5],
+        "Get the feature map from middle layer,0 is mean don't get the middle layer feature map"
+    )
+    
     flags.DEFINE_float(
         'se_ratio', 0.,
         'If it is bigger than 0, it will enable SE.')
