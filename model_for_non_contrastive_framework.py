@@ -828,6 +828,7 @@ class Binary_online_model(tf.keras.models.Model):
                              f'(got input shape {inputs.shape})')
 
         # Base network forward pass
+        org_feature_map = None
         if FLAGS.Middle_layer_output == 0:
             feature_map = self.encoder(inputs, training=training)
         else:
@@ -854,7 +855,11 @@ class Binary_online_model(tf.keras.models.Model):
             back, _ = self.projection_head(self.downsample_layear(back,self.magnification)
                                           , training=training)
 
-        projection_head_outputs, supervised_head_inputs = self.projection_head(self.downsample_layear(feature_map_upsample,self.magnification)
+        if org_feature_map != None:
+            projection_head_outputs, supervised_head_inputs = self.projection_head(self.globalaveragepooling(org_feature_map)
+                                                            , training=training)
+        else:
+            projection_head_outputs, supervised_head_inputs = self.projection_head(self.downsample_layear(feature_map_upsample,self.magnification)
                                                                                , training=training)
 
         if FLAGS.train_mode == 'finetune':
@@ -927,6 +932,7 @@ class Binary_target_model(tf.keras.models.Model):
                              f'(got input shape {inputs.shape})')
 
         # Base network forward pass
+        org_feature_map = None
         if FLAGS.Middle_layer_output == 0:
             feature_map = self.encoder(inputs, training=training)
         else:
@@ -953,9 +959,12 @@ class Binary_target_model(tf.keras.models.Model):
             #     self.visualize.plot_feature_map("obj",obj)
             #     self.visualize.plot_feature_map("back",obj)
 
-        projection_head_outputs, supervised_head_inputs = self.projection_head(self.downsample_layear(feature_map_upsample,self.magnification), training=training)
-
-
+        if org_feature_map != None:
+            projection_head_outputs, supervised_head_inputs = self.projection_head(self.globalaveragepooling(org_feature_map)
+                                                            , training=training)
+        else:
+            projection_head_outputs, supervised_head_inputs = self.projection_head(self.downsample_layear(feature_map_upsample,self.magnification)
+                                                                               , training=training)
         if FLAGS.train_mode == 'finetune':
             supervised_head_outputs = self.supervised_head(
                 supervised_head_inputs, training)

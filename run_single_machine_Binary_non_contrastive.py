@@ -253,7 +253,7 @@ def main():
                         else:
                             # Compute Contrastive Loss model
                             loss, logits_o_ab, labels = distributed_loss(
-                                obj_1, obj_2,  backg_1, backg_2)
+                                obj_1, obj_2,  backg_1, backg_2, proj_head_output_1, proj_head_output_2)
 
                         if loss is None:
                             loss = loss
