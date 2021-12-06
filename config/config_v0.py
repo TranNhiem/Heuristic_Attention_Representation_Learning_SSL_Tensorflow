@@ -152,7 +152,7 @@ def Learning_Rate_Optimizer_and_Training_Strategy():
         'momentum', 0.9,
         'Momentum parameter.')
 
-    flags.DEFINE_float('weight_decay', 1e-5, 'Amount of weight decay to use.')
+    flags.DEFINE_float('weight_decay', 1e-7, 'Amount of weight decay to use.')
 
 def Encoder():
     flags = Mock_Flag() 
