@@ -184,7 +184,6 @@ def main():
 
             # Scale loss  --> Aggregating all Gradients
             def distributed_loss(o1, o2, b1, b2):
-
                 if FLAGS.non_contrast_binary_loss == 'original_add_backgroud':
                     ob1 = tf.concat([o1, b1], axis=0)
                     ob2 = tf.concat([o2, b2], axis=0)
