@@ -84,11 +84,11 @@ def wandb_set():
         "set the project name for wandb."
     )
     flags.DEFINE_string(
-        "wandb_run_name","Harry_test_bigger_output_encoder(14*14)_mask_resize",
+        "wandb_run_name","Harry_test_bigger_output_encoder(14*14)_mask_resize_add_org_loss",
         "set the run name for wandb."
     )
     flags.DEFINE_enum(
-    'wandb_mod', 'run', ['run', 'dryrun'],
+    'wandb_mod', 'run', ['dryrun', 'dryrun'],
     'update the to the wandb server or not')
 
 def Linear_Evaluation():
