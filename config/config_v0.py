@@ -179,7 +179,7 @@ def Encoder():
         "Middle_layer_output",0,[0,1,2,3,4,5],
         "Get the feature map from middle layer,0 is mean don't get the middle layer feature map"
     )
-    
+
     flags.DEFINE_float(
         'se_ratio', 0.,
         'If it is bigger than 0, it will enable SE.')
@@ -289,7 +289,7 @@ def Configure_Saving_and_Restore_Model():
     # Saving Model
     flags = Mock_Flag()
     flags.DEFINE_string(
-        'model_dir', "./model_ckpt/resnet_byol/larsw_GC/",
+        'model_dir', "./model_ckpt/resnet_byol/larsw/",
         'Model directory for training.')
 
     flags.DEFINE_integer(
