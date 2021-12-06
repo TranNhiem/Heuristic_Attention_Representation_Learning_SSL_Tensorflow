@@ -43,6 +43,8 @@ class imagenet_dataset_single_machine():
         self.label, self.class_name = self.get_label(train_label)
         numeric_train_cls = []
         numeric_val_cls = []
+        print("train_path:",train_path)
+        print("val_path:",val_path)
 
         if train_path is None and val_path is None:
             raise ValueError(f'The train_path and val_path is None, please cheeek')

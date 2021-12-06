@@ -84,11 +84,11 @@ def wandb_set():
         "set the project name for wandb."
     )
     flags.DEFINE_string(
-        "wandb_run_name","test",
+        "wandb_run_name","Harry background sontrastive loss test",
         "set the run name for wandb."
     )
     flags.DEFINE_enum(
-    'wandb_mod', 'run', ['run', 'dryrun '],
+    'wandb_mod', 'dryrun', ['run', 'dryrun'],
     'update the to the wandb server or not')
 
 def Linear_Evaluation():
@@ -180,6 +180,11 @@ def Encoder():
         'se_ratio', 0.,
         'If it is bigger than 0, it will enable SE.')
 
+    flags.DEFINE_enum(
+        "Middle_layer_output",3,[0,1,2,3,4,5],
+        "Get the feature map from middle layer,0 is mean don't get the middle layer feature map"
+    )
+
 def Projection_and_Prediction_head():
     
     flags = Mock_Flag() 
@@ -255,13 +260,13 @@ def Configure_Model_Training():
         'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
 
     flags.DEFINE_enum(
-        'non_contrast_binary_loss', 'sum_symetrize_l2_loss_object_backg', [ "byol_harry_loss",
+        'non_contrast_binary_loss', 'byol_harry_loss', [ "byol_harry_loss",
             'Original_loss_add_contrast_level_object', 'sum_symetrize_l2_loss_object_backg', 'original_add_backgroud'],
         'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
 
     flags.DEFINE_float(
         # Alpha Weighted loss (Objec & Background) [binary_mask_nt_xent_object_backgroud_sum_loss]
-        'alpha', 0.99,
+        'alpha', 0.5,
         'Alpha value is configuration the weighted of Object and Background in Model Total Loss.'
     )
     flags.DEFINE_float(

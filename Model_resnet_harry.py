@@ -573,6 +573,7 @@ class Resnet(tf.keras.models.Model):  # pylint: disable=missing-docstring
                  **kwargs):
         super(Resnet, self).__init__(**kwargs)
         self.data_format = data_format
+
         if dropblock_keep_probs is None:
             dropblock_keep_probs = [None] * 4
         if not isinstance(dropblock_keep_probs,
@@ -719,12 +720,16 @@ class Resnet(tf.keras.models.Model):  # pylint: disable=missing-docstring
         for layer in self.initial_conv_relu_max_pool:
             inputs = layer(inputs, training=training)
 
+        Middle_output = None
         for i, layer in enumerate(self.block_groups):
             if FLAGS.train_mode == 'finetune' and FLAGS.fine_tune_after_block == i:
                 inputs = tf.stop_gradient(inputs)
             inputs = layer(inputs, training=training)
+
+            if FLAGS.Middle_layer_output == i+1:
+                Middle_output = inputs
         # print(inputs.shape)
-        if FLAGS.train_mode == 'finetune' and FLAGS.fine_tune_after_block == 4:
+        if FLAGS.train_mode == 'finetune' and FLAGS.fine_tune_after_block == i:
             inputs = tf.stop_gradient(inputs)
         # if self.data_format == 'channels_last':
         #   inputs = tf.reduce_mean(inputs, [1, 2])
@@ -732,7 +737,11 @@ class Resnet(tf.keras.models.Model):  # pylint: disable=missing-docstring
         #   inputs = tf.reduce_mean(inputs, [2, 3])
         # print(inputs.shape)
         inputs = tf.identity(inputs, 'final_avg_pool')
-        return inputs
+        if FLAGS.Middle_layer_output == 0:
+            return inputs
+        else:
+            Middle_output = tf.identity(Middle_output, 'final_avg_pool')
+            return inputs,Middle_output
 
 
 def resnet(resnet_depth,

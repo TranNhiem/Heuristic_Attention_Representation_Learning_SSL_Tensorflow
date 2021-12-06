@@ -31,7 +31,7 @@ if gpus:
     except RuntimeError as e:
         print(e)
 
-from config.config_v0 import read_cfg
+from config.config import read_cfg
 read_cfg()
 from config.absl_mock import Mock_Flag
 flag = Mock_Flag()
@@ -222,9 +222,13 @@ def main():
                 images_mask_two, lable_2,  = ds_two  # lable_two
 
                 with tf.GradientTape(persistent=True) as tape:
-
                     obj_1, backg_1,  proj_head_output_1, supervised_head_output_1 = online_model(
                         [images_mask_one[0], tf.expand_dims(images_mask_one[1], axis=-1)], training=True)
+
+                    # from visualize import Visualize
+                    # VVV = Visualize(1,FLAGS.visualize_dir)
+                    # VVV.plot_feature_map(1,feature_map_upsample)
+                    
                     # Vector Representation from Online encoder go into Projection head again
                     obj_1 = prediction_model(obj_1, training=True)
                     backg_1 = prediction_model(backg_1, training=True)

@@ -787,11 +787,11 @@ class Binary_online_model(tf.keras.models.Model):
 
     def __init__(self, num_classes, Backbone="Resnet", Upsample = True,Downsample = "maxpooling", **kwargs):
         super(Binary_online_model, self).__init__(**kwargs)
-        self.visualize = Visualize(FLAGS.visualize_epoch,FLAGS.visualize_dir)
         self.Upsample = Upsample
         self.magnification = 1
         # Encoder
         if Backbone == "Resnet":
+            print(FLAGS.resnet_depth)
             self.encoder = resnet_modify(resnet_depth=FLAGS.resnet_depth,
                                          width_multiplier=FLAGS.width_multiplier)
         else:
@@ -828,7 +828,13 @@ class Binary_online_model(tf.keras.models.Model):
                              f'(got input shape {inputs.shape})')
 
         # Base network forward pass
-        feature_map = self.encoder(inputs, training=training)
+        if FLAGS.Middle_layer_output == 0:
+            feature_map = self.encoder(inputs, training=training)
+        else:
+            org_feature_map, feature_map = self.encoder(inputs, training=training)
+            print("Middle output size : ",feature_map.shape)
+
+
         if self.Upsample:
             # Pixel shuffle
             self.magnification = mask.shape[1]/feature_map.shape[1]
@@ -847,9 +853,6 @@ class Binary_online_model(tf.keras.models.Model):
                                           , training=training)
             back, _ = self.projection_head(self.downsample_layear(back,self.magnification)
                                           , training=training)
-            if FLAGS.visualize:                              
-                self.visualize.plot_feature_map("obj",obj)
-                self.visualize.plot_feature_map("back",obj)
 
         projection_head_outputs, supervised_head_inputs = self.projection_head(self.downsample_layear(feature_map_upsample,self.magnification)
                                                                                , training=training)
@@ -866,7 +869,7 @@ class Binary_online_model(tf.keras.models.Model):
             supervised_head_outputs = self.supervised_head(
                 tf.stop_gradient(supervised_head_inputs), training)
 
-            return obj, back, projection_head_outputs, supervised_head_outputs
+            return obj, back, projection_head_outputs, supervised_head_outputs#,feature_map_upsample
 
         else:
             return obj, back, projection_head_outputs, None
@@ -882,12 +885,12 @@ class Binary_target_model(tf.keras.models.Model):
 
     def __init__(self, num_classes, Backbone="Resnet", Upsample = True,Downsample = "maxpooling",  **kwargs):
         super(Binary_target_model, self).__init__(**kwargs)
-        self.visualize = Visualize(FLAGS.visualize_epoch,FLAGS.visualize_dir)
         
         self.Upsample = Upsample
         self.magnification = 1
         # Encoder
         if Backbone == "Resnet":
+            print(FLAGS.resnet_depth)
             self.encoder = resnet_modify(resnet_depth=FLAGS.resnet_depth,
                                          width_multiplier=FLAGS.width_multiplier)
         else:
@@ -924,7 +927,11 @@ class Binary_target_model(tf.keras.models.Model):
                              f'(got input shape {inputs.shape})')
 
         # Base network forward pass
-        feature_map = self.encoder(inputs, training=training)
+        if FLAGS.Middle_layer_output == 0:
+            feature_map = self.encoder(inputs, training=training)
+        else:
+            org_feature_map, feature_map = self.encoder(inputs, training=training)
+            print("Middle output size : ",feature_map.shape)
 
         # Pixel shuffle
         if self.Upsample:
@@ -942,9 +949,9 @@ class Binary_target_model(tf.keras.models.Model):
             obj, back = self.indexer([feature_map_upsample, mask])
             obj, _ = self.projection_head(self.downsample_layear(obj,self.magnification), training=training)
             back, _ = self.projection_head(self.downsample_layear(back,self.magnification), training=training)
-            if FLAGS.visualize:
-                self.visualize.plot_feature_map("obj",obj)
-                self.visualize.plot_feature_map("back",obj)
+            # if FLAGS.visualize:
+            #     self.visualize.plot_feature_map("obj",obj)
+            #     self.visualize.plot_feature_map("back",obj)
 
         projection_head_outputs, supervised_head_inputs = self.projection_head(self.downsample_layear(feature_map_upsample,self.magnification), training=training)
 
