@@ -799,6 +799,10 @@ class Binary_online_model(tf.keras.models.Model):
 
         # Projcetion head
         self.projection_head = ProjectionHead()
+        if FLAGS.Middle_layer_output == 0:
+            self.full_image_projection_head = self.projection_head
+        else:
+            self.full_image_projection_head = ProjectionHead()
 
         self.indexer = Indexer()
 
@@ -856,8 +860,9 @@ class Binary_online_model(tf.keras.models.Model):
                                           , training=training)
 
         if org_feature_map != None:
-            projection_head_outputs, supervised_head_inputs = self.projection_head(self.globalaveragepooling(org_feature_map)
-                                                            , training=training)
+            org_feature_map = self.globalaveragepooling(org_feature_map)
+            print(org_feature_map.shape)
+            projection_head_outputs, supervised_head_inputs = self.full_image_projection_head(org_feature_map, training=training)
         else:
             projection_head_outputs, supervised_head_inputs = self.projection_head(self.downsample_layear(feature_map_upsample,self.magnification)
                                                                                , training=training)
@@ -903,6 +908,10 @@ class Binary_target_model(tf.keras.models.Model):
 
         # Projcetion head
         self.projection_head = ProjectionHead()
+        if FLAGS.Middle_layer_output == 0:
+            self.full_image_projection_head = self.projection_head
+        else:
+            self.full_image_projection_head = ProjectionHead()
 
         self.indexer = Indexer()
 
@@ -960,8 +969,9 @@ class Binary_target_model(tf.keras.models.Model):
             #     self.visualize.plot_feature_map("back",obj)
 
         if org_feature_map != None:
-            projection_head_outputs, supervised_head_inputs = self.projection_head(self.globalaveragepooling(org_feature_map)
-                                                            , training=training)
+            org_feature_map = self.globalaveragepooling(org_feature_map)
+            print(org_feature_map.shape)
+            projection_head_outputs, supervised_head_inputs = self.full_image_projection_head(org_feature_map, training=training)
         else:
             projection_head_outputs, supervised_head_inputs = self.projection_head(self.downsample_layear(feature_map_upsample,self.magnification)
                                                                                , training=training)

@@ -56,12 +56,12 @@ def base_cfg():
 
     flags.DEFINE_string(
     #'train_path', "/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/ILSVRC2012_img_train",
-    'train_path', '/data1/share/1K_New/train/',
+    'train_path', '/data1/1K_New/train/',
     'Train dataset path.')
 
     flags.DEFINE_string(
     # 'val_path',"/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/val",
-    'val_path', "/data1/share/1K_New/val/",
+    'val_path', "/data1/1K_New/val/",
     'Validaion dataset path.')
 
     # Mask_folder should locate in location and same level of train folder
@@ -88,7 +88,7 @@ def wandb_set():
         "set the run name for wandb."
     )
     flags.DEFINE_enum(
-    'wandb_mod', 'dryrun', ['run', 'dryrun'],
+    'wandb_mod', 'run', ['run', 'dryrun'],
     'update the to the wandb server or not')
 
 def Linear_Evaluation():
