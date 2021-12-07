@@ -46,7 +46,7 @@ def base_cfg():
     'Validaion_Batch_size.')
 
     flags.DEFINE_integer(
-    'train_epochs', 50,
+    'train_epochs', 100,
     'Number of epochs to train for.')
 
     flags.DEFINE_integer(
