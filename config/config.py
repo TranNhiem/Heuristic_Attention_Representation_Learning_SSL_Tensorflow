@@ -244,7 +244,7 @@ def Projection_and_Prediction_head():
         'How the head upsample is done.')
 
     flags.DEFINE_integer(
-        'downsample_magnification', 2,
+        'downsample_magnification', 1,
         'How the downsample magnification.')
 
     flags.DEFINE_boolean(
