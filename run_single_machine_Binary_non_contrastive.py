@@ -89,7 +89,6 @@ def main():
     # Configure Wandb Training
     # Weight&Bias Tracking Experiment
     configs = {
-
         "Model_Arch": "ResNet50",
         "Training mode": "Binary_Non_Contrative_SSL",
         "DataAugmentation_types": "SimCLR_Inception_Croping_image_mask",
@@ -120,7 +119,9 @@ def main():
 
     if FLAGS.mode == "eval":
         # can choose different min_interval
+        print("eval")
         for ckpt in tf.train.checkpoints_iterator(FLAGS.model_dir, min_interval_secs=15):
+            print(ckpt)
             result = perform_evaluation(
                 online_model, val_ds, eval_steps, ckpt, strategy)
             # global_step from ckpt
@@ -228,15 +229,10 @@ def main():
                     obj_1, backg_1,  proj_head_output_1, supervised_head_output_1 = online_model(
                         [images_mask_one[0], tf.expand_dims(images_mask_one[1], axis=-1)], training=True)
 
-                    # from visualize import Visualize
-                    # VVV = Visualize(1,FLAGS.visualize_dir)
-                    # VVV.plot_feature_map(1,feature_map_upsample)
-                    
                     # Vector Representation from Online encoder go into Projection head again
                     obj_1 = prediction_model(obj_1, training=True)
                     backg_1 = prediction_model(backg_1, training=True)
-                    proj_head_output_1 = prediction_model(
-                        proj_head_output_1, training=True)
+                    proj_head_output_1 = prediction_model(proj_head_output_1, training=True)
 
                     obj_2, backg_2, proj_head_output_2, supervised_head_output_2 = target_model(
                         [images_mask_two[0], tf.expand_dims(images_mask_two[1], axis=-1)], training=True)

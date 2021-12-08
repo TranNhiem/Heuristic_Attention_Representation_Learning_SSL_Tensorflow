@@ -879,7 +879,7 @@ class Binary_online_model(tf.keras.models.Model):
             supervised_head_outputs = self.supervised_head(
                 tf.stop_gradient(supervised_head_inputs), training)
 
-            return obj, back, projection_head_outputs, supervised_head_outputs#,feature_map_upsample
+            return obj, back, projection_head_outputs, supervised_head_outputs #,feature_map_upsample
 
         else:
             return obj, back, projection_head_outputs, None
