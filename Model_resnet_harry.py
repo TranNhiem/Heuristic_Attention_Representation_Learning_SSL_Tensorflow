@@ -730,8 +730,7 @@ class Resnet(tf.keras.models.Model):  # pylint: disable=missing-docstring
                 Middle_output = inputs
                 if FLAGS.original_loss_stop_gradient:
                     inputs = tf.stop_gradient(inputs)
-        # print(inputs.shape)
-        if FLAGS.train_mode == 'finetune' and FLAGS.fine_tune_after_block == i:
+        if FLAGS.train_mode == 'finetune' and FLAGS.fine_tune_after_block == 4:
             inputs = tf.stop_gradient(inputs)
         # if self.data_format == 'channels_last':
         #   inputs = tf.reduce_mean(inputs, [1, 2])

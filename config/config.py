@@ -88,7 +88,7 @@ def wandb_set():
         "set the run name for wandb."
     )
     flags.DEFINE_enum(
-    'wandb_mod', 'run', ['run', 'dryrun'],
+    'wandb_mod', 'dryrun', ['run', 'dryrun'],
     'update the to the wandb server or not')
 
 def Linear_Evaluation():
