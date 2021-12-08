@@ -778,7 +778,8 @@ class Downsample_Layear(tf.keras.layers.Layer):
             x = self.avergepooling(x)
             x = self.flatten(x)
         else:
-            x = tf.nn.space_to_depth(x,k)
+            if k != 1:
+                x = tf.nn.space_to_depth(x, k)
             x = self.globalaveragepooling(x)
         return x
 
