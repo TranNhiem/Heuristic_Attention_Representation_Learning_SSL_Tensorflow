@@ -264,7 +264,7 @@ def Configure_Model_Training():
         'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
 
     flags.DEFINE_enum(
-        'non_contrast_binary_loss', 'sum_symetrize_l2_loss_object_backg_add_original', [ "byol_harry_loss","sum_symetrize_l2_loss_object_backg_add_original",
+        'non_contrast_binary_loss', 'sum_symetrize_l2_loss_object_backg', [ "byol_harry_loss","sum_symetrize_l2_loss_object_backg_add_original",
             'Original_loss_add_contrast_level_object', 'sum_symetrize_l2_loss_object_backg', 'original_add_backgroud'],
         'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
 
