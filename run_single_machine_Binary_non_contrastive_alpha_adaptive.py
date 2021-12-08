@@ -345,11 +345,11 @@ def main():
                 total_loss = 0.0
                 num_batches = 0
                 
-                if epoch +1 <= 15: 
+                if epoch +1 <= 55: 
                     alpha=0.5
-                elif epoch + 1 <= 35: 
+                elif epoch + 1 <= 80: 
                     alpha= 0.7
-                elif epoch + 1 <= 50: 
+                elif epoch + 1 <= 100: 
                     alpha = 0.9
                 # elif epoch + 1 <=50 : 
                 #     alpha=0.97
