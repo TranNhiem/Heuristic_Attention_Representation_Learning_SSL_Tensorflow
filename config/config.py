@@ -84,11 +84,11 @@ def wandb_set():
         "set the project name for wandb."
     )
     flags.DEFINE_string(
-        "wandb_run_name","Harry_test_bigger_output_encoder(28*28)_mask_resize_downsmaple_maxpool",
+        "wandb_run_name","Harry_test_bigger_output_encoder(14*14)_mask_resize_add_orgloss(no stop_gradient)",
         "set the run name for wandb."
     )
     flags.DEFINE_enum(
-    'wandb_mod', 'run', ['run', 'dryrun'],
+    'wandb_mod', 'dryrun', ['run', 'dryrun'],
     'update the to the wandb server or not')
 
 def Linear_Evaluation():
@@ -181,7 +181,7 @@ def Encoder():
         'If it is bigger than 0, it will enable SE.')
 
     flags.DEFINE_enum(
-        "Middle_layer_output",3,[0,1,2,3,4],
+        "Middle_layer_output",4,[0,1,2,3,4],
         '''Get the feature map from middle layer,0 is mean don't get the middle layer feature map
         4 : 14*14 output
         3 : 28 *28 output
@@ -243,6 +243,10 @@ def Projection_and_Prediction_head():
         'downsample_mod', 'space_to_depth', ['space_to_depth', 'maxpooling','averagepooling'],
         'How the head upsample is done.')
 
+    flags.DEFINE_integer(
+        'downsample_magnification', 2,
+        'How the downsample magnification.')
+
     flags.DEFINE_boolean(
         'feature_upsample',False,
         'encoder out put do the upsample or mask do the downsample'
@@ -268,7 +272,7 @@ def Configure_Model_Training():
         'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
 
     flags.DEFINE_enum(
-        'non_contrast_binary_loss', 'sum_symetrize_l2_loss_object_backg', [ "byol_harry_loss","sum_symetrize_l2_loss_object_backg_add_original",
+        'non_contrast_binary_loss', 'sum_symetrize_l2_loss_object_backg_add_original', [ "byol_harry_loss","sum_symetrize_l2_loss_object_backg_add_original",
             'Original_loss_add_contrast_level_object', 'sum_symetrize_l2_loss_object_backg', 'original_add_backgroud'],
         'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
 

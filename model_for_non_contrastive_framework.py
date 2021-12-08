@@ -763,14 +763,15 @@ class Downsample_Layear(tf.keras.layers.Layer):
         super(Downsample_Layear, self).__init__(**kwargs)
         self.mod = mod
         self.globalaveragepooling = tf.keras.layers.GlobalAveragePooling2D()
-        self.maxpooling = tf.keras.layers.MaxPooling2D()
-        self.avergepooling = tf.keras.layers.AveragePooling2D()
+        self.maxpooling = tf.keras.layers.MaxPooling2D(pool_size = (2,2), strides = FLAGS.downsample_magnification)
+        self.avergepooling = tf.keras.layers.AveragePooling2D(pool_size = (2,2), strides = FLAGS.downsample_magnification)
         self.flatten = tf.keras.layers.Flatten()
 
-    def call(self,x,k=2):
-        if k == 1:
-            x = self.globalaveragepooling(x)
-        elif self.mod == "maxpooling":
+    def call(self,x,k=1):
+        # if k == 1:
+        #     x = self.globalaveragepooling(x)
+        # el
+        if self.mod == "maxpooling":
             x = self.maxpooling(x)
             x = self.flatten(x)
         elif self.mod == "averagepooling":
@@ -846,6 +847,7 @@ class Binary_online_model(tf.keras.models.Model):
             feature_map_upsample = tf.nn.depth_to_space(
                 feature_map, self.magnification)  # PixelShuffle
         else:
+            self.magnification = FLAGS.downsample_magnification
             feature_map_upsample = feature_map
 
         #print("feature_map_upsample", feature_map_upsample.shape)
@@ -860,7 +862,7 @@ class Binary_online_model(tf.keras.models.Model):
                                           , training=training)
 
         if org_feature_map != None and FLAGS.non_contrast_binary_loss == "sum_symetrize_l2_loss_object_backg_add_original":
-            org_feature_map = self.globalaveragepooling(org_feature_map)
+            org_feature_map = self.downsample_layear(org_feature_map,self.magnification)
             print(org_feature_map.shape)
             projection_head_outputs, supervised_head_inputs = self.full_image_projection_head(org_feature_map, training=training)
         else:
@@ -955,6 +957,7 @@ class Binary_target_model(tf.keras.models.Model):
             feature_map_upsample = tf.nn.depth_to_space(
                 feature_map, self.magnification)  # PixelShuffle
         else:
+            self.magnification = FLAGS.downsample_magnification
             feature_map_upsample = feature_map
         #print("feature_map_upsample", feature_map_upsample.shape)
 
@@ -969,7 +972,7 @@ class Binary_target_model(tf.keras.models.Model):
             #     self.visualize.plot_feature_map("back",obj)
 
         if org_feature_map != None and FLAGS.non_contrast_binary_loss == "sum_symetrize_l2_loss_object_backg_add_original":
-            org_feature_map = self.globalaveragepooling(org_feature_map)
+            org_feature_map = self.downsample_layear(org_feature_map,self.magnification)
             print(org_feature_map.shape)
             projection_head_outputs, supervised_head_inputs = self.full_image_projection_head(org_feature_map, training=training)
         else:
