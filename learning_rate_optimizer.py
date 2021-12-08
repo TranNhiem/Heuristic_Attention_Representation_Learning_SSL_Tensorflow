@@ -45,12 +45,13 @@ in SimCLR & BYOL with warmup steps =10
 
 
 
+from  lars_optimizer import LARSOptimizer as LARS_optimzer
 import tensorflow.keras.backend as K
 import numpy as np
 import math
 import tensorflow as tf
 import tensorflow_addons as tfa
-from  lars_optimizer import LARSOptimizer as LARS_optimzer
+from math import floor, cos, pi
 def get_centralized_gradients(optimizer, loss, params):
     """Compute the centralized gradients.
 
@@ -140,13 +141,14 @@ def get_train_steps(num_examples, train_epochs, gloabl_batch_size, train_steps=N
 ********************************************
 Training Configure
 ********************************************
-1. Learning Rate
+1. Warmup Cosine Decay Learning Rate with 1 cycle 
     + particular implementation : Scale Learning Rate Linearly with Batch_SIZE 
     (Warmup: Learning Implementation, and Cosine Anealing + Linear scaling)
    
     # optional not implement yet
     + Schedule Learning with Constrain-Update during training
 
+2. 
 '''
 # Implementation form SimCLR paper (Linear Scale and Sqrt Scale)
 # Debug and Visualization
@@ -202,6 +204,19 @@ class WarmUpAndCosineDecay(tf.keras.optimizers.schedules.LearningRateSchedule):
                                      cosine_decay(step - warmup_steps))
 
             return learning_rate
+
+
+class cosineAnealing_cycle(tf.keras.optimizers.schedules.LearningRateSchedule):
+
+    def __init__(self, n_epochs, n_cycles, lrate_max, verbose=0):
+        self.epochs = n_epochs
+        self.cycles = n_cycles
+        self.lr_max = lrate_max  # Maximum peak learning rate
+        self.lrates = list()
+
+    def cosine_annealing(self, epoch, n_epochs, n_cycles, lr_max):
+        epochs_per_cycle = floor(n_epochs/n_cycles)
+        pass
 
 
 '''
