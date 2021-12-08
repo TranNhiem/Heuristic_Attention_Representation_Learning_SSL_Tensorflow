@@ -182,7 +182,11 @@ def Encoder():
 
     flags.DEFINE_enum(
         "Middle_layer_output",4,[0,1,2,3,4],
-        "Get the feature map from middle layer,0 is mean don't get the middle layer feature map"
+        '''Get the feature map from middle layer,0 is mean don't get the middle layer feature map
+        4 : 14*14 output
+        3 : 28 *28 output
+        2 : 56*56 output
+        1 : unsupported now'''
     )
     flags.DEFINE_boolean(
         "original_loss_stop_gradient",True,
@@ -264,7 +268,7 @@ def Configure_Model_Training():
         'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
 
     flags.DEFINE_enum(
-        'non_contrast_binary_loss', 'sum_symetrize_l2_loss_object_backg', [ "byol_harry_loss","sum_symetrize_l2_loss_object_backg_add_original",
+        'non_contrast_binary_loss', 'sum_symetrize_l2_loss_object_backg_add_original', [ "byol_harry_loss","sum_symetrize_l2_loss_object_backg_add_original",
             'Original_loss_add_contrast_level_object', 'sum_symetrize_l2_loss_object_backg', 'original_add_backgroud'],
         'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
 

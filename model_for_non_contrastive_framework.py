@@ -859,7 +859,7 @@ class Binary_online_model(tf.keras.models.Model):
             back, _ = self.projection_head(self.downsample_layear(back,self.magnification)
                                           , training=training)
 
-        if org_feature_map != None:
+        if org_feature_map != None and FLAGS.non_contrast_binary_loss == "sum_symetrize_l2_loss_object_backg_add_original":
             org_feature_map = self.globalaveragepooling(org_feature_map)
             print(org_feature_map.shape)
             projection_head_outputs, supervised_head_inputs = self.full_image_projection_head(org_feature_map, training=training)
@@ -968,7 +968,7 @@ class Binary_target_model(tf.keras.models.Model):
             #     self.visualize.plot_feature_map("obj",obj)
             #     self.visualize.plot_feature_map("back",obj)
 
-        if org_feature_map != None:
+        if org_feature_map != None and FLAGS.non_contrast_binary_loss == "sum_symetrize_l2_loss_object_backg_add_original":
             org_feature_map = self.globalaveragepooling(org_feature_map)
             print(org_feature_map.shape)
             projection_head_outputs, supervised_head_inputs = self.full_image_projection_head(org_feature_map, training=training)
