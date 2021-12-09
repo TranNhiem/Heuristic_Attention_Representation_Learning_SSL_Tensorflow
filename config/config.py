@@ -112,8 +112,12 @@ def Linear_Evaluation():
 
 def Learning_Rate_Optimizer_and_Training_Strategy():
     flags = Mock_Flag() 
-    # Learning Rate Scheudle
-
+    ## Learning Rate Strategies 
+    flags.DEFINE_enum(
+        'lr_strategies', 'warmup_cos_lr', ['warmup_cos_lr', 'cos_annealing_restart', 'warmup_cos_annealing_restart'],
+        'Different strategies for lr rate'
+    )
+    # Warmup Cosine Learning Rate Scheudle Configure
     flags.DEFINE_float(
         'base_lr', 0.5,
         'Initial learning rate per batch size of 256.')
@@ -126,6 +130,13 @@ def Learning_Rate_Optimizer_and_Training_Strategy():
     flags.DEFINE_enum(
         'lr_rate_scaling', 'linear', ['linear', 'sqrt', 'no_scale', ],
         'How to scale the learning rate as a function of batch size.')
+    
+    #  Cosine Annelaing Restart Learning Rate Scheudle Configure
+    
+    flags.DEFINE_float(
+        'number_cycles_equal_step', 2.0, 
+        'Number of cycle for learning rate If Cycle steps is equal'
+    )
 
     # Optimizer
     # Same the Original SimClRV2 training Configure
