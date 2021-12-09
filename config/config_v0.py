@@ -308,7 +308,7 @@ def Configure_Saving_and_Restore_Model():
     # Saving Model
     flags = Mock_Flag()
     flags.DEFINE_string(
-        'model_dir', "./model_ckpt/resnet_byol/larsw_100/",
+        'model_dir', "./model_ckpt/resnet_byol/cosine_restart/",
         'Model directory for training.')
 
     flags.DEFINE_integer(
