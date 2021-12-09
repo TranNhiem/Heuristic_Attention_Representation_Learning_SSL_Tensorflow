@@ -155,7 +155,7 @@ def main():
                 # Control ititial Learning Rate Values (Next step equal to previous steps)
                 m_mul = 1.0,
                 alpha = 0.0,  # Final values of learning rate
-                first_decay_steps = float(train_steps) /(FLAGS.number_cycles* t_mul)
+                first_decay_steps = train_steps /int(FLAGS.number_cycles* t_mul)
                 lr_schedule = CosineAnnealingDecayRestarts(
                     base_lr, first_decay_steps, train_global_batch, scale_lr, t_mul=t_mul, m_mul=m_mul, alpha=alpha)
 
