@@ -56,12 +56,12 @@ def base_cfg():
 
     flags.DEFINE_string(
     #'train_path', "/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/ILSVRC2012_img_train",
-    'train_path', '/data1/1K_New/train',
+    'train_path', '/data1/share/1K_New/train',
     'Train dataset path.')
 
     flags.DEFINE_string(
     # 'val_path',"/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/val",
-    'val_path','/data1/1K_New/val',
+    'val_path','/data1/share/1K_New/val',
     'Validaion dataset path.')
 
     # Mask_folder should locate in location and same level of train folder
@@ -84,7 +84,7 @@ def wandb_set():
         "set the project name for wandb."
     )
     flags.DEFINE_string(
-        "wandb_run_name","Harry_test_bigger_output_encoder(14*14)_mask_resize_alpha_adaptive",
+        "wandb_run_name","Harry_test_bigger_output_encoder(14*14)_mask_resize_add_orgloss_alpha_weight_loss_adaptive",
         "set the run name for wandb."
     )
     flags.DEFINE_enum(
@@ -112,12 +112,8 @@ def Linear_Evaluation():
 
 def Learning_Rate_Optimizer_and_Training_Strategy():
     flags = Mock_Flag() 
-    ## Learning Rate Strategies 
-    flags.DEFINE_enum(
-        'lr_strategies', 'warmup_cos_lr', ['warmup_cos_lr', 'cos_annealing_restart', 'warmup_cos_annealing_restart'],
-        'Different strategies for lr rate'
-    )
-    # Warmup Cosine Learning Rate Scheudle Configure
+    # Learning Rate Scheudle
+
     flags.DEFINE_float(
         'base_lr', 0.5,
         'Initial learning rate per batch size of 256.')
@@ -130,13 +126,6 @@ def Learning_Rate_Optimizer_and_Training_Strategy():
     flags.DEFINE_enum(
         'lr_rate_scaling', 'linear', ['linear', 'sqrt', 'no_scale', ],
         'How to scale the learning rate as a function of batch size.')
-    
-    #  Cosine Annelaing Restart Learning Rate Scheudle Configure
-    
-    flags.DEFINE_float(
-        'number_cycles_equal_step', 2.0, 
-        'Number of cycle for learning rate If Cycle steps is equal'
-    )
 
     # Optimizer
     # Same the Original SimClRV2 training Configure
@@ -283,7 +272,7 @@ def Configure_Model_Training():
         'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
 
     flags.DEFINE_enum(
-        'non_contrast_binary_loss', 'sum_symetrize_l2_loss_object_backg', [ "byol_harry_loss","sum_symetrize_l2_loss_object_backg_add_original",
+        'non_contrast_binary_loss', 'sum_symetrize_l2_loss_object_backg_add_original', [ "byol_harry_loss","sum_symetrize_l2_loss_object_backg_add_original",
             'Original_loss_add_contrast_level_object', 'sum_symetrize_l2_loss_object_backg', 'original_add_backgroud'],
         'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
 
