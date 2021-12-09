@@ -32,10 +32,7 @@ if gpus:
     except RuntimeError as e:
         print(e)
 
-<<<<<<< HEAD
-=======
 from config.config_for_add_orgloss import read_cfg
->>>>>>> 77c239b87d5d9ac8a5b79be8d75f7c5e69ecfffc
 read_cfg()
 flag = Mock_Flag()
 FLAGS = flag.FLAGS
