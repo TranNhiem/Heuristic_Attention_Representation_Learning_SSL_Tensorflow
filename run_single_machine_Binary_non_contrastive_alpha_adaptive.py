@@ -350,13 +350,13 @@ def main():
                 
                 if epoch +1 <= 20:
                     alpha=0.5
-                    weight_loss = 0.5
+                    weight_loss = 0.7
                 elif epoch + 1 <= 40:
                     alpha= 0.7
                     weight_loss = 0.7
                 elif epoch + 1 <= 50:
                     alpha = 0.9
-                    weight_loss = 0.9
+                    weight_loss = 0.7
                 # elif epoch + 1 <=50 : 
                 #     alpha=0.97
 

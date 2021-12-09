@@ -84,7 +84,7 @@ def wandb_set():
         "set the project name for wandb."
     )
     flags.DEFINE_string(
-        "wandb_run_name","Harry_test_bigger_output_encoder(14*14)_mask_resize_add_orgloss_alpha_weight_loss_adaptive",
+        "wandb_run_name","Harry_test_bigger_output_encoder(14*14)_mask_resize_add_orgloss_alpha_adaptive_weight_loss_0.7",
         "set the run name for wandb."
     )
     flags.DEFINE_enum(
