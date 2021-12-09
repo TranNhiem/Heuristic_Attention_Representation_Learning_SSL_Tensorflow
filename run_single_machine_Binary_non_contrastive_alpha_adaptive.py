@@ -1,3 +1,4 @@
+from config.config_for_add_orgloss import read_cfg
 from config.absl_mock import Mock_Flag
 from config.config_v0 import read_cfg
 import os
@@ -32,7 +33,6 @@ if gpus:
     except RuntimeError as e:
         print(e)
 
-from config.config_for_add_orgloss import read_cfg
 read_cfg()
 flag = Mock_Flag()
 FLAGS = flag.FLAGS
@@ -155,20 +155,10 @@ def main():
                 # Control ititial Learning Rate Values (Next step equal to previous steps)
                 m_mul = 1.0,
                 alpha = 0.0,  # Final values of learning rate
-                '''Attention Number_cycle will Correct when t_mul=1'''
-
-                if t_mul == 1:
-                    number_cycle = 2
-                    first_decay_steps = num_train_examples/FLAGS.number_cycles_equal_step
-                elif t_mul > 1:
-                    first_decay_steps = num_train_examples / \
-                        (FLAGS.number_cycles_equal_step * t_mul)
-
-                #first_decay_steps= num_train_examples/FLAGS.number_cycles_equal_step
-                first_decay_steps = num_train_examples/number_cycle
-
+                first_decay_steps = train_steps / \
+                    (FLAGS.number_cycles_equal_step * t_mul)
                 lr_schedule = CosineAnnealingDecayRestarts(
-                    base_lr, first_decay_steps, scale_lr, t_mul=t_mul, m_mul=m_mul, alpha=alpha)
+                    base_lr, first_decay_steps, train_global_batch, scale_lr, t_mul=t_mul, m_mul=m_mul, alpha=alpha)
 
             # Current Implement the Mixpercision optimizer
             optimizer = all_model.build_optimizer(lr_schedule)
@@ -208,7 +198,7 @@ def main():
                 online_model, optimizer.iterations, optimizer)
 
             # Scale loss  --> Aggregating all Gradients
-            def distributed_loss(o1, o2, b1, b2, f1 = None, f2 = None, alpha = 0.5, weight = 0.5):
+            def distributed_loss(o1, o2, b1, b2, f1=None, f2=None, alpha=0.5, weight=0.5):
 
                 if FLAGS.non_contrast_binary_loss == 'original_add_backgroud':
                     ob1 = tf.concat([o1, b1], axis=0)
@@ -274,7 +264,7 @@ def main():
                         else:
                             # Compute Contrastive Loss model
                             loss, logits_o_ab, labels = distributed_loss(
-                                obj_1, obj_2,  backg_1, backg_2, proj_head_output_1, proj_head_output_2,alpha, weight_loss)
+                                obj_1, obj_2,  backg_1, backg_2, proj_head_output_1, proj_head_output_2, alpha, weight_loss)
 
                         if loss is None:
                             loss = loss
@@ -373,22 +363,23 @@ def main():
 
                 total_loss = 0.0
                 num_batches = 0
-                
-                if epoch +1 <= 20:
-                    alpha=0.5
+
+                if epoch + 1 <= 20:
+                    alpha = 0.5
                     weight_loss = 0.5
                 elif epoch + 1 <= 40:
-                    alpha= 0.7
+                    alpha = 0.7
                     weight_loss = 0.7
                 elif epoch + 1 <= 50:
                     alpha = 0.9
                     weight_loss = 0.9
-                # elif epoch + 1 <=50 : 
+                # elif epoch + 1 <=50 :
                 #     alpha=0.97
 
                 for _, (ds_one, ds_two) in enumerate(train_ds):
-                
-                    total_loss += distributed_train_step(ds_one, ds_two, alpha, weight_loss)
+
+                    total_loss += distributed_train_step(
+                        ds_one, ds_two, alpha, weight_loss)
                     num_batches += 1
 
                     # Update weight of Target Encoder Every Step
