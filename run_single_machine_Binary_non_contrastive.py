@@ -151,11 +151,14 @@ def main():
                 base_lr = FLAGS.base_lr
                 scale_lr = FLAGS.lr_rate_scaling
                 # Control cycle of next step base of Previous step (2 times more steps)
-                t_mul = 1.0,
+                t_mul = 1.0
                 # Control ititial Learning Rate Values (Next step equal to previous steps)
-                m_mul = 1.0,
-                alpha = 0.0,  # Final values of learning rate
-                first_decay_steps = train_steps /int(FLAGS.number_cycles* t_mul)
+                m_mul = 1.0
+                alpha = 0.0 # Final values of learning rate
+                print(FLAGS.number_cycles)
+                first_decay_steps = train_steps/(FLAGS.number_cycles* t_mul)
+                print(first_decay_steps)
+
                 lr_schedule = CosineAnnealingDecayRestarts(
                     base_lr, first_decay_steps, train_global_batch, scale_lr, t_mul=t_mul, m_mul=m_mul, alpha=alpha)
 
