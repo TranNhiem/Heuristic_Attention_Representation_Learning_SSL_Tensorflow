@@ -1,3 +1,5 @@
+from config.absl_mock import Mock_Flag
+from config.config_v0 import read_cfg
 import os
 import json
 import math
@@ -8,7 +10,7 @@ from absl import logging
 # from absl import app
 
 import tensorflow as tf
-from learning_rate_optimizer import WarmUpAndCosineDecay
+from learning_rate_optimizer import WarmUpAndCosineDecay, CosineAnnealingDecayRestarts
 import metrics
 from helper_functions import *
 from byol_simclr_imagenet_data_harry import imagenet_dataset_single_machine
@@ -30,11 +32,10 @@ if gpus:
     except RuntimeError as e:
         print(e)
 
-from config.config_v0 import read_cfg
 read_cfg()
-from config.absl_mock import Mock_Flag
 flag = Mock_Flag()
 FLAGS = flag.FLAGS
+
 
 def main():
     # if len(argv) > 1:
@@ -61,7 +62,7 @@ def main():
 
     train_steps = FLAGS.eval_steps or int(
         num_train_examples * FLAGS.train_epochs // train_global_batch)*2
-      
+
     eval_steps = FLAGS.eval_steps or int(
         math.ceil(num_eval_examples / val_global_batch))
 
@@ -69,8 +70,7 @@ def main():
 
     checkpoint_steps = (FLAGS.checkpoint_steps or (
         FLAGS.checkpoint_epochs * epoch_steps))
-    
-    
+
     logging.info("# Subset_training class %d", FLAGS.num_classes)
     logging.info('# train examples: %d', num_train_examples)
     logging.info('# train_steps: %d', train_steps)
@@ -79,10 +79,11 @@ def main():
 
     # Configure the Encoder Architecture.
     with strategy.scope():
-        online_model = all_model.Binary_online_model(FLAGS.num_classes,Upsample = FLAGS.feature_upsample,Downsample = FLAGS.downsample_mod)
+        online_model = all_model.Binary_online_model(
+            FLAGS.num_classes, Upsample=FLAGS.feature_upsample, Downsample=FLAGS.downsample_mod)
         prediction_model = all_model.prediction_head_model()
-        target_model = all_model.Binary_target_model(FLAGS.num_classes,Upsample = FLAGS.feature_upsample,Downsample = FLAGS.downsample_mod)
-
+        target_model = all_model.Binary_target_model(
+            FLAGS.num_classes, Upsample=FLAGS.feature_upsample, Downsample=FLAGS.downsample_mod)
 
     # Configure Wandb Training
     # Weight&Bias Tracking Experiment
@@ -91,7 +92,7 @@ def main():
         "Model_Arch": "ResNet50",
         "Training mode": "Binary_Non_Contrative_SSL",
         "DataAugmentation_types": "SimCLR_Inception_Croping_image_mask",
-        "Speratation Features Upsampling Method": FLAGS.feature_upsample, 
+        "Speratation Features Upsampling Method": FLAGS.feature_upsample,
         "Dataset": "ImageNet1k",
         "object_backgroud_feature_Dsamp_method": FLAGS.downsample_mod,
 
@@ -102,14 +103,14 @@ def main():
         "Temperature": FLAGS.temperature,
         "Optimizer": FLAGS.optimizer,
         "SEED": FLAGS.SEED,
-        "Subset_dataset": FLAGS.num_classes, 
-      
+        "Subset_dataset": FLAGS.num_classes,
+
         "Loss configure": FLAGS.aggregate_loss,
         "Loss type": FLAGS.non_contrast_binary_loss,
 
     }
 
-    wandb.init(project=FLAGS.wandb_project_name,name = FLAGS.wandb_run_name,mode = FLAGS.wandb_mod,
+    wandb.init(project=FLAGS.wandb_project_name, name=FLAGS.wandb_run_name, mode=FLAGS.wandb_mod,
                sync_tensorboard=True, config=configs)
 
     # Training Configuration
@@ -135,14 +136,38 @@ def main():
         with strategy.scope():
 
             # Configure the learning rate
-            base_lr = FLAGS.base_lr
-            scale_lr = FLAGS.lr_rate_scaling
-            warmup_epochs = FLAGS.warmup_epochs
-            train_epochs = FLAGS.train_epochs
-            
-            lr_schedule = WarmUpAndCosineDecay(
-                base_lr, train_global_batch, num_train_examples, scale_lr, warmup_epochs,
-                train_epochs=train_epochs, train_steps=train_steps)
+            if FLAGS.lr_strategies == "warmup_cos_lr":
+                base_lr = FLAGS.base_lr
+                scale_lr = FLAGS.lr_rate_scaling
+                warmup_epochs = FLAGS.warmup_epochs
+                train_epochs = FLAGS.train_epochs
+
+                lr_schedule = WarmUpAndCosineDecay(
+                    base_lr, train_global_batch, num_train_examples, scale_lr, warmup_epochs,
+                    train_epochs=train_epochs, train_steps=train_steps)
+
+            elif FLAGS.lr_strategies == "cos_annealing_restart":
+                base_lr = FLAGS.base_lr
+                scale_lr = FLAGS.lr_rate_scaling
+                # Control cycle of next step base of Previous step (2 times more steps)
+                t_mul = 1.0,
+                # Control ititial Learning Rate Values (Next step equal to previous steps)
+                m_mul = 1.0,
+                alpha = 0.0,  # Final values of learning rate
+                '''Attention Number_cycle will Correct when t_mul=1'''
+
+                if t_mul == 1:
+                    number_cycle = 2
+                    first_decay_steps = num_train_examples/FLAGS.number_cycles_equal_step
+                elif t_mul > 1:
+                    first_decay_steps = num_train_examples / \
+                        (FLAGS.number_cycles_equal_step * t_mul)
+
+                #first_decay_steps= num_train_examples/FLAGS.number_cycles_equal_step
+                first_decay_steps = num_train_examples/number_cycle
+
+                lr_schedule = CosineAnnealingDecayRestarts(
+                    base_lr, first_decay_steps, scale_lr, t_mul=t_mul, m_mul=m_mul, alpha=alpha)
 
             # Current Implement the Mixpercision optimizer
             optimizer = all_model.build_optimizer(lr_schedule)
@@ -344,19 +369,18 @@ def main():
 
                 total_loss = 0.0
                 num_batches = 0
-                
-                if epoch +1 <= 55: 
-                    alpha=0.5
-                elif epoch + 1 <= 80: 
-                    alpha= 0.7
-                elif epoch + 1 <= 100: 
+
+                if epoch + 1 <= 55:
+                    alpha = 0.5
+                elif epoch + 1 <= 80:
+                    alpha = 0.7
+                elif epoch + 1 <= 100:
                     alpha = 0.9
-                # elif epoch + 1 <=50 : 
+                # elif epoch + 1 <=50 :
                 #     alpha=0.97
 
-
                 for _, (ds_one, ds_two) in enumerate(train_ds):
-                
+
                     total_loss += distributed_train_step(ds_one, ds_two, alpha)
                     num_batches += 1
 
@@ -394,8 +418,8 @@ def main():
                     "train/weight_decay": weight_decay_metric.result(),
                     "train/total_loss": epoch_loss,
                     "train/supervised_loss":    supervised_loss_metric.result(),
-                    "train/supervised_acc": supervised_acc_metric.result(), 
-                   
+                    "train/supervised_acc": supervised_acc_metric.result(),
+
                 })
                 for metric in all_metrics:
                     metric.reset_states()

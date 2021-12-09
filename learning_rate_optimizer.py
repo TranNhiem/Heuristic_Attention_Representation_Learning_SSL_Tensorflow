@@ -212,7 +212,7 @@ class CosineAnnealingDecayRestarts(tf.keras.optimizers.schedules.LearningRateSch
     SGDR: Stochastic Gradient Descent with Warm Restarts.
     """
 
-    def __init__(self, initial_learning_rate, first_decay_steps,
+    def __init__(self, initial_learning_rate, first_decay_steps, scale_lr,
                  # Control cycle of next step base of Previous step (2 times more steps)
                  t_mul=2.0,
                  # Control ititial Learning Rate Values (Next step equal to previous steps)
@@ -239,12 +239,25 @@ class CosineAnnealingDecayRestarts(tf.keras.optimizers.schedules.LearningRateSch
         self._t_mul = t_mul
         self._m_mul = m_mul
         self.alpha = alpha
+        self.learning_rate_scale = scale_lr,
         self.name = name
 
     def __call__(self, step):
         with tf.name_scope(self.name or "SGDRDecay") as name:
+
+            if self.learning_rate_scale == 'linear':
+                scaled_lr = self.base_learning_rate * self.Batch_size / 256.
+            elif self.learning_rate_scale == 'sqrt':
+                scaled_lr = self.base_learning_rate * \
+                    math.sqrt(self.Batch_size)
+            elif self.learning_rate_scale == 'no_scale':
+                scaled_lr = self.base_learning_rate
+            else:
+                raise ValueError('Unknown learning rate scaling {}'.format(
+                    self.learning_rate_scale))
+
             initial_learning_rate = tf.convert_to_tensor(
-                self.initial_learning_rate, name="initial_learning_rate")
+                scaled_lr, name="initial_scale_learning_rate")
             dtype = initial_learning_rate.dtype
             first_decay_steps = tf.cast(self.first_decay_steps, dtype)
             alpha = tf.cast(self.alpha, dtype)
