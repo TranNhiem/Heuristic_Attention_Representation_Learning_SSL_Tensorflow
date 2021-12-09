@@ -8,7 +8,7 @@ from absl import logging
 # from absl import app
 
 import tensorflow as tf
-from learning_rate_optimizer import WarmUpAndCosineDecay
+from learning_rate_optimizer import WarmUpAndCosineDecay, CosineAnnealingDecayRestarts
 import metrics
 from helper_functions import *
 from byol_simclr_imagenet_data_harry import imagenet_dataset_single_machine
@@ -31,7 +31,7 @@ if gpus:
     except RuntimeError as e:
         print(e)
 
-from config.config import read_cfg
+from config.config_v0 import read_cfg
 read_cfg()
 from config.absl_mock import Mock_Flag
 flag = Mock_Flag()

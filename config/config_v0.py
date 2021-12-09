@@ -118,7 +118,7 @@ def Learning_Rate_Optimizer_and_Training_Strategy():
     flags = Mock_Flag()
     # Learning Rate Strategies
     flags.DEFINE_enum(
-        'lr_strategies', 'warmup_cos_lr', [
+        'lr_strategies', 'cos_annealing_restart', [
             'warmup_cos_lr', 'cos_annealing_restart', 'warmup_cos_annealing_restart'],
         'Different strategies for lr rate'
     )

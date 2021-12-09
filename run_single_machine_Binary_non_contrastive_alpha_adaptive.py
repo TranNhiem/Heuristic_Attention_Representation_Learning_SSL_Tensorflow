@@ -1,6 +1,6 @@
 from config.config_for_add_orgloss import read_cfg
 from config.absl_mock import Mock_Flag
-from config.config_v0 import read_cfg
+
 import os
 import json
 import math
@@ -32,7 +32,8 @@ if gpus:
         print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPU")
     except RuntimeError as e:
         print(e)
-
+        
+from config.config_v0 import read_cfg
 read_cfg()
 flag = Mock_Flag()
 FLAGS = flag.FLAGS
