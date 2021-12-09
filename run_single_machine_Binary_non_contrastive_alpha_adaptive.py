@@ -12,7 +12,7 @@ from learning_rate_optimizer import WarmUpAndCosineDecay
 import metrics
 from helper_functions import *
 from byol_simclr_imagenet_data_harry import imagenet_dataset_single_machine
-from self_supervised_losses import byol_symetrize_loss, symetrize_l2_loss_object_level_whole_image, sum_symetrize_l2_loss_object_backg
+from self_supervised_losses import byol_symetrize_loss, symetrize_l2_loss_object_level_whole_image, sum_symetrize_l2_loss_object_backg, sum_symetrize_l2_loss_object_backg_add_original
 import model_for_non_contrastive_framework as all_model
 import objective as obj_lib
 from imutils import paths
@@ -30,7 +30,7 @@ if gpus:
     except RuntimeError as e:
         print(e)
 
-from config.config_v0 import read_cfg
+from config.config_for_add_orgloss import read_cfg
 read_cfg()
 from config.absl_mock import Mock_Flag
 flag = Mock_Flag()
@@ -182,7 +182,7 @@ def main():
                 online_model, optimizer.iterations, optimizer)
 
             # Scale loss  --> Aggregating all Gradients
-            def distributed_loss(o1, o2, b1, b2, alpha):
+            def distributed_loss(o1, o2, b1, b2, f1 = None, f2 = None, alpha = 0.5, weight = 0.5):
 
                 if FLAGS.non_contrast_binary_loss == 'original_add_backgroud':
                     ob1 = tf.concat([o1, b1], axis=0)
@@ -196,6 +196,9 @@ def main():
                     # each GPU loss per_replica batch loss
                     per_example_loss, logits_ab, labels = sum_symetrize_l2_loss_object_backg(
                         o1, o2, b1, b2,  alpha=alpha, temperature=FLAGS.temperature)
+                elif FLAGS.non_contrast_binary_loss == 'sum_symetrize_l2_loss_object_backg_add_original':
+                    per_example_loss, logits_ab, labels = sum_symetrize_l2_loss_object_backg_add_original(
+                        o1, o2, b1, b2, f1, f2, alpha=alpha, temperature=FLAGS.temperature, weight_loss=weight)
 
                 # total sum loss //Global batch_size
                 loss = tf.reduce_sum(per_example_loss) * \
@@ -214,7 +217,7 @@ def main():
                 return loss, logits_o_ab, labels
 
             @tf.function
-            def train_step(ds_one, ds_two, alpha):
+            def train_step(ds_one, ds_two, alpha, weight_loss):
 
                 # Get the data from
                 images_mask_one, lable_1, = ds_one  # lable_one
@@ -245,7 +248,7 @@ def main():
                         else:
                             # Compute Contrastive Loss model
                             loss, logits_o_ab, labels = distributed_loss(
-                                obj_1, obj_2,  backg_1, backg_2, alpha)
+                                obj_1, obj_2,  backg_1, backg_2, proj_head_output_1, proj_head_output_2,alpha, weight_loss)
 
                         if loss is None:
                             loss = loss
@@ -345,19 +348,22 @@ def main():
                 total_loss = 0.0
                 num_batches = 0
                 
-                if epoch +1 <= 55: 
+                if epoch +1 <= 20:
                     alpha=0.5
-                elif epoch + 1 <= 80: 
+                    weight_loss = 0.5
+                elif epoch + 1 <= 40:
                     alpha= 0.7
-                elif epoch + 1 <= 100: 
+                    weight_loss = 0.7
+                elif epoch + 1 <= 50:
                     alpha = 0.9
+                    weight_loss = 0.9
                 # elif epoch + 1 <=50 : 
                 #     alpha=0.97
 
 
                 for _, (ds_one, ds_two) in enumerate(train_ds):
                 
-                    total_loss += distributed_train_step(ds_one, ds_two, alpha)
+                    total_loss += distributed_train_step(ds_one, ds_two, alpha, weight_loss)
                     num_batches += 1
 
                     # Update weight of Target Encoder Every Step
@@ -388,6 +394,7 @@ def main():
                 wandb.log({
                     "epochs": epoch+1,
                     "train/alpha_value": alpha,
+                    "train/weight_loss_value": weight_loss,
                     "train_contrast_loss": contrast_loss_metric.result(),
                     "train_contrast_acc": contrast_acc_metric.result(),
                     "train_contrast_acc_entropy": contrast_entropy_metric.result(),
