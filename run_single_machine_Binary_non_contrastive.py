@@ -137,14 +137,28 @@ def main():
         with strategy.scope():
 
             # Configure the learning rate
-            base_lr = FLAGS.base_lr
-            scale_lr = FLAGS.lr_rate_scaling
-            warmup_epochs = FLAGS.warmup_epochs
-            train_epochs = FLAGS.train_epochs
-            
-            lr_schedule = WarmUpAndCosineDecay(
-                base_lr, train_global_batch, num_train_examples, scale_lr, warmup_epochs,
-                train_epochs=train_epochs, train_steps=train_steps)
+            if FLAGS.lr_strategies == "warmup_cos_lr":
+                base_lr = FLAGS.base_lr
+                scale_lr = FLAGS.lr_rate_scaling
+                warmup_epochs = FLAGS.warmup_epochs
+                train_epochs = FLAGS.train_epochs
+
+                lr_schedule = WarmUpAndCosineDecay(
+                    base_lr, train_global_batch, num_train_examples, scale_lr, warmup_epochs,
+                    train_epochs=train_epochs, train_steps=train_steps)
+
+            elif FLAGS.lr_strategies == "cos_annealing_restart":
+                base_lr = FLAGS.base_lr
+                scale_lr = FLAGS.lr_rate_scaling
+                # Control cycle of next step base of Previous step (2 times more steps)
+                t_mul = 1.0,
+                # Control ititial Learning Rate Values (Next step equal to previous steps)
+                m_mul = 1.0,
+                alpha = 0.0,  # Final values of learning rate
+                first_decay_steps = train_steps / \
+                    (FLAGS.number_cycles_equal_step * t_mul)
+                lr_schedule = CosineAnnealingDecayRestarts(
+                    base_lr, first_decay_steps, train_global_batch, scale_lr, t_mul=t_mul, m_mul=m_mul, alpha=alpha)
 
             # Current Implement the Mixpercision optimizer
             optimizer = all_model.build_optimizer(lr_schedule)
