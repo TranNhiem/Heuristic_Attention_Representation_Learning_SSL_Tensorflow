@@ -20,20 +20,21 @@ class Visualize:
 
     def plot_feature_map(self,epoch,features):
         b,h,w,d= features.shape
+        square = 10
         print(b,d,h,w)
-        for i in range(b):
-            fig, ax = plt.subplots(1,d)
-            for j in range(d):
-                f = features[i,:,:,j]
-                print(type(f))
-                #Sf = f.eval(session=tf.compat.v1.Session())
-                f = f.numpy()
-                print(type(f))
-            # proto_tensor = tf.make_tensor_proto(f)
-            # f = tf.make_ndarray(proto_tensor)
-                ax[j].imshow(f)
-            plt.savefig(os.path.join(self.visualize_dir,str(epoch)+"_"+str(i)+".png"))
-            print("save in : ",os.path.join(self.visualize_dir,str(epoch)+"_"+str(i)+".png"))
+        ix = 1
+        for i in range(square):
+            for j in range(square):
+                ax = plt.subplot(square, square, ix)
+                f = features[0,:,:,ix-1]
+                f = np.resize(f,(100,100))
+                ax.set_xticks([])
+                ax.set_yticks([])
+                # plot filter channel in grayscale
+                plt.imshow(f, cmap='gray')
+                ix += 1
+        plt.savefig(os.path.join(self.visualize_dir,str(epoch)+".png"))
+        print("save in : ",os.path.join(self.visualize_dir,str(epoch)+".png"))
 
 
 from config.config import read_cfg
@@ -43,7 +44,6 @@ flag = Mock_Flag()
 FLAGS = flag.FLAGS
 
 if __name__ == '__main__':
-    print()
     from helper_functions import *
     from byol_simclr_imagenet_data_harry import imagenet_dataset_single_machine
     import model_for_non_contrastive_framework as all_model

@@ -793,7 +793,6 @@ class Binary_online_model(tf.keras.models.Model):
         self.magnification = 1
         # Encoder
         if Backbone == "Resnet":
-            print(FLAGS.resnet_depth)
             self.encoder = resnet_modify(resnet_depth=FLAGS.resnet_depth,
                                          width_multiplier=FLAGS.width_multiplier)
         else:
@@ -840,6 +839,7 @@ class Binary_online_model(tf.keras.models.Model):
         else:
             org_feature_map, feature_map = self.encoder(inputs, training=training)
             print("Middle output size : ",feature_map.shape)
+            # return feature_map
 
 
         if self.Upsample:
@@ -850,6 +850,8 @@ class Binary_online_model(tf.keras.models.Model):
         else:
             self.magnification = FLAGS.downsample_magnification
             feature_map_upsample = feature_map
+            if FLAGS.visualize:
+                return feature_map
 
         #print("feature_map_upsample", feature_map_upsample.shape)
 
@@ -871,6 +873,7 @@ class Binary_online_model(tf.keras.models.Model):
                                                                                , training=training)
 
         if FLAGS.train_mode == 'finetune':
+            print(supervised_head_inputs)
             supervised_head_outputs = self.supervised_head(
                 supervised_head_inputs, training)
             return None, None, None, supervised_head_outputs
@@ -898,12 +901,10 @@ class Binary_target_model(tf.keras.models.Model):
 
     def __init__(self, num_classes, Backbone="Resnet", Upsample = True,Downsample = "maxpooling",  **kwargs):
         super(Binary_target_model, self).__init__(**kwargs)
-        
         self.Upsample = FLAGS.feature_upsample
         self.magnification = 1
         # Encoder
         if Backbone == "Resnet":
-            print(FLAGS.resnet_depth)
             self.encoder = resnet_modify(resnet_depth=FLAGS.resnet_depth,
                                          width_multiplier=FLAGS.width_multiplier)
         else:
@@ -950,6 +951,8 @@ class Binary_target_model(tf.keras.models.Model):
         else:
             org_feature_map, feature_map = self.encoder(inputs, training=training)
             print("Middle output size : ",feature_map.shape)
+            if FLAGS.visualize:
+                return feature_map
 
         # Pixel shuffle
         if self.Upsample:
