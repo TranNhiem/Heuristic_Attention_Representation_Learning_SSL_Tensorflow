@@ -373,16 +373,6 @@ def main():
 
                 total_loss = 0.0
                 num_batches = 0
-<<<<<<< HEAD
-
-                if epoch + 1 <= 55:
-                    alpha = 0.5
-                elif epoch + 1 <= 80:
-                    alpha = 0.7
-                elif epoch + 1 <= 100:
-                    alpha = 0.9
-                # elif epoch + 1 <=50 :
-=======
                 
                 if epoch +1 <= 20:
                     alpha=0.5
@@ -394,17 +384,11 @@ def main():
                     alpha = 0.9
                     weight_loss = 0.9
                 # elif epoch + 1 <=50 : 
->>>>>>> 77c239b87d5d9ac8a5b79be8d75f7c5e69ecfffc
                 #     alpha=0.97
 
                 for _, (ds_one, ds_two) in enumerate(train_ds):
-<<<<<<< HEAD
-
-                    total_loss += distributed_train_step(ds_one, ds_two, alpha)
-=======
                 
                     total_loss += distributed_train_step(ds_one, ds_two, alpha, weight_loss)
->>>>>>> 77c239b87d5d9ac8a5b79be8d75f7c5e69ecfffc
                     num_batches += 1
 
                     # Update weight of Target Encoder Every Step
