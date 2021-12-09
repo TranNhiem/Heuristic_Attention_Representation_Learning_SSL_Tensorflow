@@ -137,7 +137,7 @@ def Learning_Rate_Optimizer_and_Training_Strategy():
 
     #  Cosine Annelaing Restart Learning Rate Scheudle Configure
     flags.DEFINE_float(
-        'number_cycles_equal_step', 2.0,
+        'number_cycles', 2.0,
         'Number of cycle for learning rate If Cycle steps is equal'
     )
 
