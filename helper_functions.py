@@ -151,6 +151,7 @@ def _restore_latest_or_from_pretrain(checkpoint_manager):
         # the object graph. Those are lazily initialized. To suppress the warning
         # in that case we specify `expect_partial`.
         logging.info('Restoring from %s', latest_ckpt)
+        print("Successful loading checkpt")
         checkpoint_manager.checkpoint.restore(latest_ckpt).expect_partial()
 
     elif FLAGS.train_mode == 'finetune':

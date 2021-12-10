@@ -56,7 +56,9 @@ def base_cfg():
 
     flags.DEFINE_string(
     #'train_path', "/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/ILSVRC2012_img_train",
-    'train_path', './imagenet_1k_tiny/imagenet_1k_tiny/Image/train',
+        #./imagenet_1k_tiny/imagenet_1k_tiny/Image/train
+        #/data1/1K_New/train
+    'train_path', '/data1/1K_New/train',
     'Train dataset path.')
 
     flags.DEFINE_string(
@@ -192,7 +194,7 @@ def Encoder():
         'If it is bigger than 0, it will enable SE.')
 
     flags.DEFINE_enum(
-        "Middle_layer_output",3,[0,1,2,3,4],
+        "Middle_layer_output",0,[0,1,2,3,4],
         '''Get the feature map from middle layer,0 is mean don't get the middle layer feature map
         4 : 14*14 output
         3 : 28 *28 output
@@ -313,7 +315,7 @@ def Configure_Saving_and_Restore_Model():
     # Saving Model
     flags = Mock_Flag()
     flags.DEFINE_string(
-        'model_dir', "./model_ckpt/resnet_byol/",
+        'model_dir', "./model_ckpt/resnet_byol/cosine_restart/",
         'Model directory for training.')
 
     flags.DEFINE_integer(
@@ -329,7 +331,7 @@ def Configure_Saving_and_Restore_Model():
 
     # Restore model weights only, but not global step and optimizer states
     flags.DEFINE_string(
-        'checkpoint', None,
+        'checkpoint', r"./model_ckpt/resnet_byol/larsw_GC/",
         'Loading from the given checkpoint for fine-tuning if a finetuning '
         'checkpoint does not already exist in model_dir.')
 

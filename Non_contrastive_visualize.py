@@ -8,6 +8,8 @@ from absl import logging
 # from absl import app
 
 import tensorflow as tf
+
+from helper_functions import _restore_latest_or_from_pretrain
 from learning_rate_optimizer import WarmUpAndCosineDecay
 import metrics
 from helper_functions import *
@@ -22,7 +24,8 @@ from config.absl_mock import Mock_Flag
 flag = Mock_Flag()
 FLAGS = flag.FLAGS
 flag.save_config("visualize"+".cfg")
-
+import os
+os.environ["CUDA_DEVICE_ORDER"]="0"
 def main():
 
     strategy = tf.distribute.MirroredStrategy()
@@ -104,10 +107,14 @@ def main():
     # Restore checkpoint if available.
     checkpoint_manager = try_restore_from_checkpoint(
         online_model, optimizer.iterations, optimizer)
+
+    _restore_latest_or_from_pretrain(checkpoint_manager)
+
     for i, (image, label) in enumerate(val_ds):
         #print("out put ",online_model.predict(image))
         # online_model.compile(optimizer='adam', loss='mse')
         import matplotlib.pyplot as plt
+        print(type(image))
         plt.imshow(image[0])
         plt.savefig(os.path.join(FLAGS.visualize_dir,"img" + ".png"))
 
