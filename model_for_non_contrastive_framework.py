@@ -838,9 +838,13 @@ class Binary_online_model(tf.keras.models.Model):
             feature_map = self.encoder(inputs, training=training)
         else:
             org_feature_map, feature_map = self.encoder(inputs, training=training)
+
             print("Middle output size : ",feature_map.shape)
-            # return feature_map
+            # return feature_map '9
         if FLAGS.visualize:
+            # from visualize import Visualize
+            # V = Visualize(1, FLAGS.visualize_dir)
+            # V.plot_feature_map("test", feature_map)
             return feature_map
 
         if self.Upsample:
