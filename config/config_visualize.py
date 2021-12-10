@@ -192,7 +192,7 @@ def Encoder():
         'If it is bigger than 0, it will enable SE.')
 
     flags.DEFINE_enum(
-        "Middle_layer_output",4,[0,1,2,3,4],
+        "Middle_layer_output",3,[0,1,2,3,4],
         '''Get the feature map from middle layer,0 is mean don't get the middle layer feature map
         4 : 14*14 output
         3 : 28 *28 output

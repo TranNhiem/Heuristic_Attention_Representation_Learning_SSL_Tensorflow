@@ -104,32 +104,36 @@ def main():
     # Restore checkpoint if available.
     checkpoint_manager = try_restore_from_checkpoint(
         online_model, optimizer.iterations, optimizer)
-    print(online_model.layers[0].name)
-    for i, (image, label) in enumerate(val_ds):
-        #print("out put ",online_model.predict(image))
-        online_model.compile(optimizer='adam', loss='mse')
-        import keract
-        # activations = keract.get_activations(online_model, image)
-        # keract.display_heatmaps(activations, image, save=True)
-
-        V = Visualize(1,FLAGS.visualize_dir)
-        V.plot_feature_map("28_28_1024",online_model.predict(image))
-        break
-            # out = image
-            # for i,layer in enumerate(online_model.layers):
-            #     out = online_model.get_layer(layer.name)(out)
-            #     print(image.shape)
-            #     print(label.shape)
-            #     if i == 0:
-            #         print(out)
-            #         break
-
-
-        #
-        # online_model.layers
-        # for l in online_model.layers:
-        #     print(l)
-        #
+    print(online_model.layers[0].layers[0].layers)
+    # for i, (image, label) in enumerate(val_ds):
+    #     #print("out put ",online_model.predict(image))
+    #     online_model.compile(optimizer='adam', loss='mse')
+    #     import matplotlib.pyplot as plt
+    #     plt.imshow(image[0])
+    #     plt.savefig(os.path.join(FLAGS.visualize_dir,"img" + ".png"))
+    #
+    #     # import keract
+    #     # activations = keract.get_activations(online_model, image)
+    #     # keract.display_heatmaps(activations, image, save=True)
+    #
+    #     V = Visualize(1,FLAGS.visualize_dir)
+    #     V.plot_feature_map("28_28_512_baseline",online_model.predict(image))
+    #     break
+    #         # out = image
+    #         # for i,layer in enumerate(online_model.layers):
+    #         #     out = online_model.get_layer(layer.name)(out)
+    #         #     print(image.shape)
+    #         #     print(label.shape)
+    #         #     if i == 0:
+    #         #         print(out)
+    #         #         break
+    #
+    #
+    #     #
+    #     # online_model.layers
+    #     # for l in online_model.layers:
+    #     #     print(l)
+    #     #
 
 
 

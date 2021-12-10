@@ -244,6 +244,7 @@ class IdentityLayer(tf.keras.layers.Layer):
 
     def call(self, inputs, training):
         return tf.identity(inputs)
+
 class SK_Conv2D(tf.keras.layers.Layer):  # pylint: disable=invalid-name
     """Selective kernel convolutional layer (https://arxiv.org/abs/1903.06586)."""
 
