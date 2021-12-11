@@ -33,16 +33,14 @@ if gpus:
     except RuntimeError as e:
         print(e)
 
-from config.config_v0 import read_cfg
+from config.config import read_cfg
 read_cfg()
 flag = Mock_Flag()
 FLAGS = flag.FLAGS
+flag.save_config("./config/Harry_test_encoder_output_(14_14_2048)_alpha_adaptive.cfg")
 
 
 def main():
-    # if len(argv) > 1:
-    #     raise app.UsageError('Too many command-line arguments.')
-
     # Preparing dataset
     # Imagenet path prepare localy
     strategy = tf.distribute.MirroredStrategy()
@@ -221,17 +219,6 @@ def main():
                     (1./train_global_batch)
                 return loss, logits_ab, labels
 
-            def distributed_Orginal_add_Binary_non_contrast_loss(x1, x2, v1, v2, img_1, img_2,):
-                #Optional [binary_mask_nt_xent_object_backgroud_sum_loss, binary_mask_nt_xent_object_backgroud_sum_loss_v1]
-                per_example_loss, logits_o_ab, labels = symetrize_l2_loss_object_level_whole_image(
-                    x1, x2, v1, v2, img_1, img_2,  weight_loss=FLAGS.weighted_loss, temperature=FLAGS.temperature)
-
-                # total sum loss //Global batch_size
-                loss = tf.reduce_sum(per_example_loss) * \
-                    (1./train_global_batch)
-
-                return loss, logits_o_ab, labels
-
             @tf.function
             def train_step(ds_one, ds_two, alpha, weight_loss):
 
@@ -364,18 +351,16 @@ def main():
                 total_loss = 0.0
                 num_batches = 0
 
-                if epoch + 1 <= 20:
+                if epoch + 1 <= 0.7*FLAGS.train_epochs:
                     alpha = 0.5
                     weight_loss = 0.5
-                elif epoch + 1 <= 40:
+                elif epoch + 1 <= 0.9*FLAGS.train_epochs:
                     alpha = 0.7
                     weight_loss = 0.7
-                elif epoch + 1 <= 50:
+                else:
                     alpha = 0.9
                     weight_loss = 0.9
-                # elif epoch + 1 <=50 :
-                #     alpha=0.97
-
+                print("Epoch",epoch,"...")
                 for _, (ds_one, ds_two) in enumerate(train_ds):
 
                     total_loss += distributed_train_step(
@@ -416,17 +401,22 @@ def main():
                     "train_contrast_acc_entropy": contrast_entropy_metric.result(),
                     "train/weight_decay": weight_decay_metric.result(),
                     "train/total_loss": epoch_loss,
-                    "train/supervised_loss":    supervised_loss_metric.result(),
+                    "train/supervised_loss": supervised_loss_metric.result(),
                     "train/supervised_acc": supervised_acc_metric.result(),
-
+                    "encoder output size" : "14*14*2048"
                 })
                 for metric in all_metrics:
                     metric.reset_states()
+                print(epoch)
+                print(metric)
                 # Saving Entire Model
-                if epoch + 1 == 50:
-                    save_ = './model_ckpt/resnet_byol/binary_encoder_resnet50_mlp_run_1' + \
-                        str(epoch) + ".h5"
-                    online_model.save_weights(save_)
+                if (epoch+1) % 10 == 0:
+                    save_encoder = os.path.join(FLAGS.model_dir, "encoder_model_" + str(epoch) + ".h5")
+                    save_online_model = os.path.join(FLAGS.model_dir, "online_model_" + str(epoch) + ".h5")
+                    save_target_model = os.path.join(FLAGS.model_dir, "target_model_" + str(epoch) + ".h5")
+                    online_model.encoder.save_weights(save_encoder)
+                    online_model.save_weights(save_online_model)
+                    target_model.save_weights(save_target_model)
 
             logging.info('Training Complete ...')
 

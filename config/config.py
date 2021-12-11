@@ -46,7 +46,7 @@ def base_cfg():
     'Validaion_Batch_size.')
 
     flags.DEFINE_integer(
-    'train_epochs', 50,
+    'train_epochs', 100,
     'Number of epochs to train for.')
 
     flags.DEFINE_integer(
@@ -56,12 +56,12 @@ def base_cfg():
 
     flags.DEFINE_string(
     #'train_path', "/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/ILSVRC2012_img_train",
-    'train_path', '/data1/1K_New/train',
+    'train_path', '/data1/share/1K_New/train',
     'Train dataset path.')
 
     flags.DEFINE_string(
     # 'val_path',"/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/val",
-    'val_path','/data1/1K_New/val',
+    'val_path','/data1/share/1K_New/val',
     'Validaion dataset path.')
 
     # Mask_folder should locate in location and same level of train folder
@@ -84,11 +84,11 @@ def wandb_set():
         "set the project name for wandb."
     )
     flags.DEFINE_string(
-        "wandb_run_name","Harry_test_bigger_output_encoder(14*14)_mask_resize_alpha_adaptive",
+        "wandb_run_name","Harry_test_encoder_output_(28*28*2048)_alpha_adaptive",
         "set the run name for wandb."
     )
     flags.DEFINE_enum(
-    'wandb_mod', 'run', ['run', 'dryrun'],
+    'wandb_mod', 'dryrun', ['run', 'dryrun'],
     'update the to the wandb server or not')
 
 def Linear_Evaluation():
@@ -192,7 +192,7 @@ def Encoder():
         'If it is bigger than 0, it will enable SE.')
 
     flags.DEFINE_enum(
-        "Middle_layer_output",4,[0,1,2,3,4],
+        "Middle_layer_output",0,[0,1,2,3,4],
         '''Get the feature map from middle layer,0 is mean don't get the middle layer feature map
         4 : 14*14 output
         3 : 28 *28 output
@@ -202,6 +202,14 @@ def Encoder():
     flags.DEFINE_boolean(
         "original_loss_stop_gradient",False,
         "Stop gradient with the encoder middle layer."
+    )
+    flags.DEFINE_dict(
+        "Encoder_block_strides",{'1':2,'2':1,'3':2,'4':1,'5':1},
+        "control the part of the every block stride, it can control the out put size of feature map"
+    )
+    flags.DEFINE_dict(
+        "Encoder_block_channel_output",{'1':1,'2':1,'3':1,'4':1,'5':1},
+        "control the part of the every block channel output.,"
     )
 
 def Projection_and_Prediction_head():
@@ -353,7 +361,7 @@ def non_contrastive_cfg():
 def visualization():
     flags = Mock_Flag()
     flags.DEFINE_boolean("visualize",
-        True,"visualize the feature map or not"
+        False,"visualize the feature map or not"
     )
     flags.DEFINE_integer("visualize_epoch",
         1,"Number of every epoch to save the feature map"

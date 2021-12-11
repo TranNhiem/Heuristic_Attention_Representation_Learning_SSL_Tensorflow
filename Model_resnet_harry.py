@@ -561,8 +561,6 @@ class BlockGroup(tf.keras.layers.Layer):  # pylint: disable=missing-docstring
         return tf.identity(inputs, self._name)
 
 class Resnet(tf.keras.models.Model):  # pylint: disable=missing-docstring
-    #Larer = tf.keras.layers.Layer
-    #Model = tf.keras.models.Model
     def __init__(self,
                  block_fn,
                  layers,
@@ -658,10 +656,10 @@ class Resnet(tf.keras.models.Model):  # pylint: disable=missing-docstring
 
         self.block_groups.append(
             BlockGroup(
-                filters=64 * width_multiplier,
+                filters=64 * width_multiplier * FLAGS.Encoder_block_channel_output['2'],
                 block_fn=block_fn,
                 blocks=layers[0],
-                strides=1,
+                strides=FLAGS.Encoder_block_strides['2'],
                 name='block_group1',
                 data_format=data_format,
                 dropblock_keep_prob=dropblock_keep_probs[0],
@@ -673,10 +671,10 @@ class Resnet(tf.keras.models.Model):  # pylint: disable=missing-docstring
 
         self.block_groups.append(
             BlockGroup(
-                filters=128 * width_multiplier,
+                filters=128 * width_multiplier* FLAGS.Encoder_block_channel_output['3'],
                 block_fn=block_fn,
                 blocks=layers[1],
-                strides=2,
+                strides=FLAGS.Encoder_block_strides['3'],
                 name='block_group2',
                 data_format=data_format,
                 dropblock_keep_prob=dropblock_keep_probs[1],
@@ -688,10 +686,10 @@ class Resnet(tf.keras.models.Model):  # pylint: disable=missing-docstring
 
         self.block_groups.append(
             BlockGroup(
-                filters=256 * width_multiplier,
+                filters=256 * width_multiplier* FLAGS.Encoder_block_channel_output['4'],
                 block_fn=block_fn,
                 blocks=layers[2],
-                strides=2,
+                strides=FLAGS.Encoder_block_strides['4'],
                 name='block_group3',
                 data_format=data_format,
                 dropblock_keep_prob=dropblock_keep_probs[2],
@@ -703,10 +701,10 @@ class Resnet(tf.keras.models.Model):  # pylint: disable=missing-docstring
 
         self.block_groups.append(
             BlockGroup(
-                filters=512 * width_multiplier,
+                filters=512 * width_multiplier* FLAGS.Encoder_block_channel_output['5'],
                 block_fn=block_fn,
                 blocks=layers[3],
-                strides=2,
+                strides=FLAGS.Encoder_block_strides['5'],
                 name='block_group4',
                 data_format=data_format,
                 dropblock_keep_prob=dropblock_keep_probs[3],
@@ -735,13 +733,8 @@ class Resnet(tf.keras.models.Model):  # pylint: disable=missing-docstring
 
         if FLAGS.train_mode == 'finetune' and FLAGS.fine_tune_after_block == 4:
             inputs = tf.stop_gradient(inputs)
-        # if self.data_format == 'channels_last':
-        #   inputs = tf.reduce_mean(inputs, [1, 2])
-        # else:
-        #   inputs = tf.reduce_mean(inputs, [2, 3])
-        # print(inputs.shape)
         inputs = tf.identity(inputs, 'final_avg_pool')
-        if FLAGS.Middle_layer_output == 0:
+        if Middle_output == None:
             return inputs
         else:
             Middle_output = tf.identity(Middle_output, 'final_avg_pool')

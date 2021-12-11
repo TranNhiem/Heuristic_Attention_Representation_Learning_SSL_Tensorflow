@@ -836,10 +836,9 @@ class Binary_online_model(tf.keras.models.Model):
         org_feature_map = None
         if FLAGS.Middle_layer_output == 0:
             feature_map = self.encoder(inputs, training=training)
+            print("feature_map output size : ", feature_map.shape)
         else:
             org_feature_map, feature_map = self.encoder(inputs, training=training)
-
-            print("Middle output size : ",feature_map.shape)
             # return feature_map '9
         if FLAGS.visualize:
             # from visualize import Visualize

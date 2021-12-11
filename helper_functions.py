@@ -101,7 +101,6 @@ def save(model, global_step):
 
 # Restore the checkpoint forom the file
 
-
 def try_restore_from_checkpoint(model, global_step, optimizer):
     """Restores the latest ckpt if it exists, otherwise check FLAGS.checkpoint."""
     checkpoint = tf.train.Checkpoint(
@@ -111,13 +110,13 @@ def try_restore_from_checkpoint(model, global_step, optimizer):
         directory=FLAGS.model_dir,
         max_to_keep=FLAGS.keep_checkpoint_max)
     latest_ckpt = checkpoint_manager.latest_checkpoint
-
     if latest_ckpt:
         # Restore model weights, global step, optimizer states
         logging.info('Restoring from latest checkpoint: %s', latest_ckpt)
         checkpoint_manager.checkpoint.restore(latest_ckpt).expect_partial()
 
     elif FLAGS.checkpoint:
+        print("in")
         # Restore model weights only, but not global step and optimizer states
         logging.info('Restoring from given checkpoint: %s', FLAGS.checkpoint)
         checkpoint_manager2 = tf.train.CheckpointManager(
@@ -128,6 +127,7 @@ def try_restore_from_checkpoint(model, global_step, optimizer):
             FLAGS.checkpoint).expect_partial()
 
     if FLAGS.zero_init_logits_layer:
+        print("in2")
         model = checkpoint_manager2.checkpoint.model
         output_layer_parameters = model.supervised_head.trainable_weights
         logging.info('Initializing output layer parameters %s to zero',
@@ -145,7 +145,7 @@ def _restore_latest_or_from_pretrain(checkpoint_manager):
     checkpoint_manager: tf.traiin.CheckpointManager.
     """
     latest_ckpt = checkpoint_manager.latest_checkpoint
-
+    print(latest_ckpt)
     if latest_ckpt:
         # The model is not build yet so some variables may not be available in
         # the object graph. Those are lazily initialized. To suppress the warning
@@ -173,7 +173,6 @@ def _restore_latest_or_from_pretrain(checkpoint_manager):
             x.assign(tf.zeros_like(x))
 
 # Perform Testing Step Here
-
 
 def perform_evaluation(model, val_ds, val_steps, ckpt, strategy):
     """Perform evaluation.--> Only Inference to measure the pretrain model representation"""
