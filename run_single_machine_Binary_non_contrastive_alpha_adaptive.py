@@ -37,7 +37,7 @@ from config.config import read_cfg
 read_cfg()
 flag = Mock_Flag()
 FLAGS = flag.FLAGS
-flag.save_config("./config/Harry_test_encoder_output_(14_14_2048)_alpha_adaptive.cfg")
+flag.save_config("./config/Harry_test_encoder_output_(28_28_2048)_alpha_adaptive.cfg")
 
 
 def main():
