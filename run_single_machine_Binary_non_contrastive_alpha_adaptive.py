@@ -410,7 +410,7 @@ def main():
                 print(epoch)
                 print(metric)
                 # Saving Entire Model
-                if (epoch+1) % 10 == 0:
+                if (epoch+1) % 20 == 0:
                     save_encoder = os.path.join(FLAGS.model_dir, "encoder_model_" + str(epoch) + ".h5")
                     save_online_model = os.path.join(FLAGS.model_dir, "online_model_" + str(epoch) + ".h5")
                     save_target_model = os.path.join(FLAGS.model_dir, "target_model_" + str(epoch) + ".h5")
