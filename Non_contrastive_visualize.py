@@ -33,84 +33,21 @@ def main():
     val_global_batch = FLAGS.val_batch_size * strategy.num_replicas_in_sync
 
     train_dataset = imagenet_dataset_single_machine(img_size=FLAGS.image_size, train_batch=train_global_batch,  val_batch=val_global_batch,
-                                                    strategy=strategy, train_path=FLAGS.train_path,
-                                                    val_path=FLAGS.val_path,
-                                                    mask_path=FLAGS.mask_path, bi_mask=True,
+                                                    strategy=strategy, train_path=r'D:\OneDrive\鴻海\SSL\Modify_code\imagenet_1k_tiny\imagenet_1k_tiny\Image\train',
+                                                    val_path=None,
+                                                    mask_path=FLAGS.mask_path, bi_mask=False,
                                                     train_label=FLAGS.train_label, val_label=FLAGS.val_label,
                                                     subset_class_num=FLAGS.num_classes)
-
-    train_ds = train_dataset.simclr_inception_style_crop_image_mask()
 
     val_ds = train_dataset.supervised_validation()
 
     num_train_examples, num_eval_examples = train_dataset.get_data_size()
-
-    train_steps = FLAGS.eval_steps or int(
-        num_train_examples * FLAGS.train_epochs // train_global_batch)*2
-      
-    eval_steps = FLAGS.eval_steps or int(
-        math.ceil(num_eval_examples / val_global_batch))
-
-    epoch_steps = int(round(num_train_examples / train_global_batch))
-
-    checkpoint_steps = (FLAGS.checkpoint_steps or (
-        FLAGS.checkpoint_epochs * epoch_steps))
-
-    # Configure the Encoder Architecture.
-    online_model = all_model.Binary_online_model(FLAGS.num_classes,Upsample = FLAGS.feature_upsample,Downsample = FLAGS.downsample_mod)
-    prediction_model = all_model.prediction_head_model()
-    target_model = all_model.Binary_target_model(FLAGS.num_classes,Upsample = FLAGS.feature_upsample,Downsample = FLAGS.downsample_mod)
-
-    # Configure the learning rate
-    base_lr = FLAGS.base_lr
-    scale_lr = FLAGS.lr_rate_scaling
-    warmup_epochs = FLAGS.warmup_epochs
-    train_epochs = FLAGS.train_epochs
-
-    lr_schedule = WarmUpAndCosineDecay(
-        base_lr, train_global_batch, num_train_examples, scale_lr, warmup_epochs,
-        train_epochs=train_epochs, train_steps=train_steps)
-
-    # Current Implement the Mixpercision optimizer
-    optimizer = all_model.build_optimizer(lr_schedule)
-
-    # Build tracking metrics
-    all_metrics = []
-    # Linear classfiy metric
-    weight_decay_metric = tf.keras.metrics.Mean('train/weight_decay')
-    total_loss_metric = tf.keras.metrics.Mean('train/total_loss')
-    all_metrics.extend([weight_decay_metric, total_loss_metric])
-
-    if FLAGS.train_mode == 'pretrain':
-        # for contrastive metrics
-        contrast_loss_metric = tf.keras.metrics.Mean(
-            'train/non_contrast_loss')
-        contrast_acc_metric = tf.keras.metrics.Mean(
-            "train/non_contrast_acc")
-        contrast_entropy_metric = tf.keras.metrics.Mean(
-            'train/non_contrast_entropy')
-        all_metrics.extend(
-            [contrast_loss_metric, contrast_acc_metric, contrast_entropy_metric])
-
-    if FLAGS.train_mode == 'finetune' or FLAGS.lineareval_while_pretraining:
-        logging.info(
-            "Apllying pre-training and Linear evaluation at the same time")
-        # Fine-tune architecture metrics
-        supervised_loss_metric = tf.keras.metrics.Mean(
-            'train/supervised_loss')
-        supervised_acc_metric = tf.keras.metrics.Mean(
-            'train/supervised_acc')
-        all_metrics.extend(
-            [supervised_loss_metric, supervised_acc_metric])
-
-    # Check and restore Ckpt if it available
-    # Restore checkpoint if available.
-    checkpoint_manager = try_restore_from_checkpoint(
-        online_model, optimizer.iterations, optimizer)
-
-    # _restore_latest_or_from_pretrain(checkpoint_manager)
-
-
+    from Model_resnet_harry import resnet
+    model = resnet(resnet_depth=FLAGS.resnet_depth, width_multiplier=FLAGS.width_multiplier)
+    model.build((224,224,3))
+    from tensorflow.keras.models import load_model
+    model.built = True
+    model=model.load_weights(r'D:\OneDrive\鴻海\SSL\Modify_code\model_ckpt\target_model_89.h5')
     for i, (image, label) in enumerate(val_ds):
         #print("out put ",online_model.predict(image))
         # online_model.compile(optimizer='adam', loss='mse')
@@ -120,7 +57,7 @@ def main():
         plt.savefig(os.path.join(FLAGS.visualize_dir,"img" + ".png"))
 
         V = Visualize(1,FLAGS.visualize_dir)
-        V.plot_feature_map("28_28_512_baseline",online_model.predict(image))
+        V.plot_feature_map("28_28_512_baseline",model.predict(image))
         break
 
 

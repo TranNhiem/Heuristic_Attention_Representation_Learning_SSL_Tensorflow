@@ -244,14 +244,14 @@ def main():
                     if proj_head_output_1 is not None:
 
                         # Compute Contrastive Loss model
-                        if FLAGS.non_contrast_binary_loss == 'Original_loss_add_contrast_level_object':
-                            loss, logits_o_ab, labels = distributed_Orginal_add_Binary_non_contrast_loss(obj_1, obj_2,  backg_1, backg_2,
-                                                                                                         proj_head_output_1, proj_head_output_2)
-
-                        else:
-                            # Compute Contrastive Loss model
-                            loss, logits_o_ab, labels = distributed_loss(
-                                obj_1, obj_2,  backg_1, backg_2, proj_head_output_1, proj_head_output_2, alpha, weight_loss)
+                        # if FLAGS.non_contrast_binary_loss == 'Original_loss_add_contrast_level_object':
+                        #     loss, logits_o_ab, labels = distributed_Orginal_add_Binary_non_contrast_loss(obj_1, obj_2,  backg_1, backg_2,
+                        #                                                                                  proj_head_output_1, proj_head_output_2)
+                        #
+                        # else:
+                        #     # Compute Contrastive Loss model
+                        loss, logits_o_ab, labels = distributed_loss(
+                            obj_1, obj_2,  backg_1, backg_2, proj_head_output_1, proj_head_output_2, alpha, weight_loss)
 
                         if loss is None:
                             loss = loss
