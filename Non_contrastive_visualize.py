@@ -44,15 +44,16 @@ def main():
     num_train_examples, num_eval_examples = train_dataset.get_data_size()
     from Model_resnet_harry import resnet
     model = resnet(resnet_depth=FLAGS.resnet_depth, width_multiplier=FLAGS.width_multiplier)
-    model.build((224,224,3))
+    model.build((1,224,224,3))
     from tensorflow.keras.models import load_model
     model.built = True
-    model=model.load_weights(r'D:\OneDrive\鴻海\SSL\Modify_code\model_ckpt\target_model_89.h5')
+    model.load_weights(r'D:\OneDrive\鴻海\SSL\Modify_code\model_ckpt\encoder_model_99.h5')
+    print(model)
     for i, (image, label) in enumerate(val_ds):
         #print("out put ",online_model.predict(image))
         # online_model.compile(optimizer='adam', loss='mse')
         import matplotlib.pyplot as plt
-        print(type(image))
+        print(image.shape)
         plt.imshow(image[0])
         plt.savefig(os.path.join(FLAGS.visualize_dir,"img" + ".png"))
 
