@@ -38,11 +38,11 @@ def base_cfg():
     'random seed for spliting data the same for all the run with the same validation dataset.')
 
     flags.DEFINE_integer(
-    'train_batch_size', 200,
+    'train_batch_size', 128,
     'Train batch_size .')
 
     flags.DEFINE_integer(
-    'val_batch_size', 200,
+    'val_batch_size', 128,
     'Validaion_Batch_size.')
 
     flags.DEFINE_integer(

@@ -37,7 +37,7 @@ from config.config_7_7_512 import read_cfg
 read_cfg()
 flag = Mock_Flag()
 FLAGS = flag.FLAGS
-flag.save_config("./config/Harry_test_resnet18_output_(28_28_512)_alpha_adaptive.cfg")
+flag.save_config("./config/Harry_test_resnet18_output_(14_14_512)_alpha_adaptive.cfg")
 
 if not os.path.isdir(FLAGS.model_dir):
     os.mkdir(FLAGS.model_dir)
