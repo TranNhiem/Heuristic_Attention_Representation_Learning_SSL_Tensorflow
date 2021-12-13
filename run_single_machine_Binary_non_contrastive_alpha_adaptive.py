@@ -33,12 +33,14 @@ if gpus:
     except RuntimeError as e:
         print(e)
 
-from config.config import read_cfg
+from config.config_7_7_512 import read_cfg
 read_cfg()
 flag = Mock_Flag()
 FLAGS = flag.FLAGS
-flag.save_config("./config/Harry_test_encoder_output_(28_28_2048)_alpha_adaptive.cfg")
+flag.save_config("./config/Harry_test_resnet18_output_(28_28_512)_alpha_adaptive.cfg")
 
+if not os.path.isdir(FLAGS.model_dir):
+    os.mkdir(FLAGS.model_dir)
 
 def main():
     # Preparing dataset
@@ -427,5 +429,4 @@ def main():
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
-
     main()
