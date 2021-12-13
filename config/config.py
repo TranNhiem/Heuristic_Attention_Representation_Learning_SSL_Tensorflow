@@ -204,7 +204,7 @@ def Encoder():
         "Stop gradient with the encoder middle layer."
     )
     flags.DEFINE_dict(
-        "Encoder_block_strides",{'1':2,'2':1,'3':2,'4':1,'5':1},
+        "Encoder_block_strides",{'1':2,'2':1,'3':1,'4':1,'5':1},
         "control the part of the every block stride, it can control the out put size of feature map"
     )
     flags.DEFINE_dict(
