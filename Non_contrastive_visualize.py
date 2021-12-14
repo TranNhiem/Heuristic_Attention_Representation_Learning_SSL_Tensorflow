@@ -23,7 +23,7 @@ read_cfg()
 from config.absl_mock import Mock_Flag
 flag = Mock_Flag()
 FLAGS = flag.FLAGS
-flag.save_config("visualize"+".cfg")
+
 import os
 os.environ["CUDA_DEVICE_ORDER"]="0"
 def main():
@@ -46,8 +46,8 @@ def main():
     model = resnet(resnet_depth=FLAGS.resnet_depth, width_multiplier=FLAGS.width_multiplier)
     model.build((1,224,224,3))
     from tensorflow.keras.models import load_model
-    # model.built = True
-    # model.load_weights(r'D:\OneDrive\鴻海\SSL\Modify_code\model_ckpt\encoder_model_99.h5')
+    model.built = True
+    model.load_weights(r'D:\OneDrive\鴻海\SSL\Modify_code\model_ckpt\encoder_model_19.h5')
     print(model)
     for i, (image, label) in enumerate(val_ds):
         #print("out put ",online_model.predict(image))
@@ -58,7 +58,7 @@ def main():
         plt.savefig(os.path.join(FLAGS.visualize_dir,"img" + ".png"))
 
         V = Visualize(1,FLAGS.visualize_dir)
-        V.plot_feature_map("14_14_2048_random",model.predict(image))
+        V.plot_feature_map("28_28_1024_19",model.predict(image))
         break
 
 if __name__ == '__main__':
