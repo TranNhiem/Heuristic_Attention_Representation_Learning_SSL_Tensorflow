@@ -84,7 +84,7 @@ def wandb_set():
         "set the project name for wandb."
     )
     flags.DEFINE_string(
-        "wandb_run_name","Harry_test_restnet18_output_(7*7*1024)_alpha_adaptive",
+        "wandb_run_name","Harry_test_restnet18_output_(7*7*512_baseline)_alpha_adaptive",
         "set the run name for wandb."
     )
     flags.DEFINE_enum(
