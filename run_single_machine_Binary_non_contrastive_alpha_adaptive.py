@@ -1,3 +1,4 @@
+from config.config_7_7_512_original_binary_loss import read_cfg
 from config.config_for_add_orgloss import read_cfg
 from config.absl_mock import Mock_Flag
 
@@ -33,14 +34,15 @@ if gpus:
     except RuntimeError as e:
         print(e)
 
-from config.config_7_7_512_original_binary_loss import read_cfg
 read_cfg()
 flag = Mock_Flag()
 FLAGS = flag.FLAGS
-flag.save_config("./config/Harry_test_resnet18_output_(7_7_1024)_alpha_adaptive.cfg")
+flag.save_config(
+    "./config/Harry_test_resnet18_output_(7_7_1024)_alpha_adaptive.cfg")
 
 if not os.path.isdir(FLAGS.model_dir):
     os.mkdir(FLAGS.model_dir)
+
 
 def main():
     # Preparing dataset
@@ -156,7 +158,7 @@ def main():
                 # Control ititial Learning Rate Values (Next step equal to previous steps)
                 m_mul = 1.0
                 alpha = 0.0  # Final values of learning rate
-                first_decay_steps = train_steps /(FLAGS.number_cycles* t_mul)
+                first_decay_steps = train_steps / (FLAGS.number_cycles * t_mul)
                 lr_schedule = CosineAnnealingDecayRestarts(
                     base_lr, first_decay_steps, train_global_batch, scale_lr, t_mul=t_mul, m_mul=m_mul, alpha=alpha)
 
@@ -360,7 +362,7 @@ def main():
                 else:
                     alpha = 0.9
                     weight_loss = 0.9
-                print("Epoch",epoch,"...")
+                print("Epoch", epoch, "...")
                 for _, (ds_one, ds_two) in enumerate(train_ds):
 
                     total_loss += distributed_train_step(
@@ -403,7 +405,7 @@ def main():
                     "train/total_loss": epoch_loss,
                     "train/supervised_loss": supervised_loss_metric.result(),
                     "train/supervised_acc": supervised_acc_metric.result(),
-                    "encoder output size" : "14*14*2048"
+                    "encoder output size": "14*14*2048"
                 })
                 for metric in all_metrics:
                     metric.reset_states()
@@ -411,9 +413,12 @@ def main():
                 print(metric)
                 # Saving Entire Model
                 if (epoch+1) % 20 == 0:
-                    save_encoder = os.path.join(FLAGS.model_dir, "encoder_model_" + str(epoch) + ".h5")
-                    save_online_model = os.path.join(FLAGS.model_dir, "online_model_" + str(epoch) + ".h5")
-                    save_target_model = os.path.join(FLAGS.model_dir, "target_model_" + str(epoch) + ".h5")
+                    save_encoder = os.path.join(
+                        FLAGS.model_dir, "encoder_model_" + str(epoch) + ".h5")
+                    save_online_model = os.path.join(
+                        FLAGS.model_dir, "online_model_" + str(epoch) + ".h5")
+                    save_target_model = os.path.join(
+                        FLAGS.model_dir, "target_model_" + str(epoch) + ".h5")
                     online_model.encoder.save_weights(save_encoder)
                     online_model.save_weights(save_online_model)
                     target_model.save_weights(save_target_model)
