@@ -56,12 +56,12 @@ def base_cfg():
 
     flags.DEFINE_string(
     #'train_path', "/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/ILSVRC2012_img_train",
-    'train_path', '/data1/1K_New/train',
+    'train_path', '/ai07_4TB/1K_New/train',
     'Train dataset path.')
 
     flags.DEFINE_string(
     # 'val_path',"/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/val",
-    'val_path','/data1/1K_New/val',
+    'val_path','/ai07_4TB/1K_New/val',
     'Validaion dataset path.')
 
     # Mask_folder should locate in location and same level of train folder
@@ -84,7 +84,7 @@ def wandb_set():
         "set the project name for wandb."
     )
     flags.DEFINE_string(
-        "wandb_run_name","Harry_test_restnet18_output_(7*7*1024)_alpha_adaptive",
+        "wandb_run_name","Harry_test_restnet18_output_(7*7*512)_alpha_adaptive_add_original_loss",
         "set the run name for wandb."
     )
     flags.DEFINE_enum(
@@ -208,7 +208,7 @@ def Encoder():
         "control the part of the every block stride, it can control the out put size of feature map"
     )
     flags.DEFINE_dict(
-        "Encoder_block_channel_output",{'1':2,'2':2,'3':2,'4':2,'5':2},
+        "Encoder_block_channel_output",{'1':1,'2':1,'3':1,'4':1,'5':1},
         "control the part of the every block channel output.,"
     )
 
@@ -291,7 +291,7 @@ def Configure_Model_Training():
         'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
 
     flags.DEFINE_enum(
-        'non_contrast_binary_loss', 'sum_symetrize_l2_loss_object_backg', [ "byol_harry_loss","sum_symetrize_l2_loss_object_backg_add_original",
+        'non_contrast_binary_loss', 'sum_symetrize_l2_loss_object_backg_add_original', [ "byol_harry_loss","sum_symetrize_l2_loss_object_backg_add_original",
             'Original_loss_add_contrast_level_object', 'sum_symetrize_l2_loss_object_backg', 'original_add_backgroud'],
         'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
 
@@ -321,7 +321,7 @@ def Configure_Saving_and_Restore_Model():
     # Saving Model
     flags = Mock_Flag()
     flags.DEFINE_string(
-        'model_dir', "./model_ckpt/resnet_byol/7_7_1024",
+        'model_dir', "./model_ckpt/resnet_byol/7_7_512_add_original_loss",
         'Model directory for training.')
 
     flags.DEFINE_integer(

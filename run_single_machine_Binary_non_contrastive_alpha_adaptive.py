@@ -349,10 +349,8 @@ def main():
             global_step = optimizer.iterations
 
             for epoch in range(FLAGS.train_epochs):
-
                 total_loss = 0.0
                 num_batches = 0
-
                 if epoch + 1 <= 0.7*FLAGS.train_epochs:
                     alpha = 0.5
                     weight_loss = 0.5

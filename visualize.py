@@ -31,7 +31,7 @@ class Visualize:
                 f_min = np.min(f)
                 print(f_max,f_min)
                 f = (((f-f_min)/(f_max-f_min))*255.0).astype(np.uint8)
-                f = np.resize(f,(100,100))
+                # f = np.resize(f,(100,100))
                 ax.set_xticks([])
                 ax.set_yticks([])
                 # plot filter channel in grayscale

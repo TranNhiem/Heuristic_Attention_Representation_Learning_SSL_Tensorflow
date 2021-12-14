@@ -47,7 +47,7 @@ def main():
     model.build((1,224,224,3))
     from tensorflow.keras.models import load_model
     # model.built = True
-    model.load_weights(r'D:\OneDrive\鴻海\SSL\Modify_code\model_ckpt\encoder_model_99.h5')
+    # model.load_weights(r'D:\OneDrive\鴻海\SSL\Modify_code\model_ckpt\encoder_model_99.h5')
     print(model)
     for i, (image, label) in enumerate(val_ds):
         #print("out put ",online_model.predict(image))
@@ -58,7 +58,7 @@ def main():
         plt.savefig(os.path.join(FLAGS.visualize_dir,"img" + ".png"))
 
         V = Visualize(1,FLAGS.visualize_dir)
-        V.plot_feature_map("14_14_2048_no_weight",model.predict(image))
+        V.plot_feature_map("14_14_2048_random",model.predict(image))
         break
 
 if __name__ == '__main__':
