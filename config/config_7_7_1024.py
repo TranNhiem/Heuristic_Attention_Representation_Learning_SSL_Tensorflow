@@ -208,7 +208,7 @@ def Encoder():
         "control the part of the every block stride, it can control the out put size of feature map"
     )
     flags.DEFINE_dict(
-        "Encoder_block_channel_output",{'1':1,'2':1,'3':1,'4':1,'5':1},
+        "Encoder_block_channel_output",{'1':2,'2':2,'3':2,'4':2,'5':2},
         "control the part of the every block channel output.,"
     )
 
