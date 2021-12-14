@@ -33,7 +33,7 @@ if gpus:
     except RuntimeError as e:
         print(e)
 
-from config.config_7_7_1024 import read_cfg
+from config.config_7_7_512_original_binary_loss import read_cfg
 read_cfg()
 flag = Mock_Flag()
 FLAGS = flag.FLAGS
