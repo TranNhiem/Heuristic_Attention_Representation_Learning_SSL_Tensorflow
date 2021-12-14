@@ -1,5 +1,5 @@
 
-from config.config_7_7_512_original_binary_loss import read_cfg
+from config.config_14_14_512_original_binary_loss import read_cfg
 #from config.config_for_add_orgloss import read_cfg
 from config.absl_mock import Mock_Flag
 
