@@ -1,3 +1,4 @@
+
 from config.config_7_7_512_original_binary_loss import read_cfg
 from config.config_for_add_orgloss import read_cfg
 from config.absl_mock import Mock_Flag
@@ -33,12 +34,11 @@ if gpus:
         print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPU")
     except RuntimeError as e:
         print(e)
-
 read_cfg()
 flag = Mock_Flag()
 FLAGS = flag.FLAGS
 flag.save_config(
-    "./config/Harry_test_resnet18_output_(7_7_1024)_alpha_adaptive.cfg")
+    "./config/Harry_test_resnet18_output_(7_7_512)_original_binary_loss_adpative_schedule.cfg")
 
 if not os.path.isdir(FLAGS.model_dir):
     os.mkdir(FLAGS.model_dir)
@@ -428,7 +428,6 @@ def main():
         if FLAGS.mode == 'train_then_eval':
             perform_evaluation(online_model, val_ds, eval_steps,
                                checkpoint_manager.latest_checkpoint, strategy)
-
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
