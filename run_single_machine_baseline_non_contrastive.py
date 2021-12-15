@@ -356,7 +356,7 @@ def main():
                         FLAGS.model_dir, "online_model_" + str(epoch) + ".h5")
                     save_target_model = os.path.join(
                         FLAGS.model_dir, "target_model_" + str(epoch) + ".h5")
-                    online_model.encoder.save_weights(save_encoder)
+                    online_model.resnet_model.save_weights(save_encoder)
                     online_model.save_weights(save_online_model)
                     target_model.save_weights(save_target_model)
 

@@ -48,7 +48,7 @@ def main():
     from tensorflow.keras.models import load_model
     model.built = True
     model.load_weights(r'D:\OneDrive\鴻海\SSL\Modify_code\model_ckpt\encoder_model_19.h5')
-    print(model)
+    model.summary()
     for i, (image, label) in enumerate(val_ds):
         #print("out put ",online_model.predict(image))
         # online_model.compile(optimizer='adam', loss='mse')
