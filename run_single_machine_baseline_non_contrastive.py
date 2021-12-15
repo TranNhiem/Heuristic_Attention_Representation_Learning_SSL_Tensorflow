@@ -35,6 +35,8 @@ from config.absl_mock import Mock_Flag
 flag = Mock_Flag()
 FLAGS = flag.FLAGS
 
+if not os.path.isdir(FLAGS.model_dir):
+    os.mkdir(FLAGS.model_dir)
 
 def main():
     # if len(argv) > 1:
@@ -346,10 +348,16 @@ def main():
                 for metric in all_metrics:
                     metric.reset_states()
                 # Saving Entire Model
-                if epoch + 1 == 50:
-                    save_ = './model_ckpt/resnet_byol/baseline_encoder_resnet50_mlp' + \
-                        str(epoch) + ".h5"
-                    online_model.save_weights(save_)
+                if (epoch+1) % 20 == 0:
+                    save_encoder = os.path.join(
+                        FLAGS.model_dir, "encoder_model_" + str(epoch) + ".h5")
+                    save_online_model = os.path.join(
+                        FLAGS.model_dir, "online_model_" + str(epoch) + ".h5")
+                    save_target_model = os.path.join(
+                        FLAGS.model_dir, "target_model_" + str(epoch) + ".h5")
+                    online_model.encoder.save_weights(save_encoder)
+                    online_model.save_weights(save_online_model)
+                    target_model.save_weights(save_target_model)
 
             logging.info('Training Complete ...')
 
