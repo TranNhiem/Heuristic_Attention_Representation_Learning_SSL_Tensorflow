@@ -36,7 +36,7 @@ flag = Mock_Flag()
 FLAGS = flag.FLAGS
 
 if not os.path.isdir(FLAGS.model_dir):
-    os.mkdir(FLAGS.model_dir)
+    os.makedirs(FLAGS.model_dir)
 
 def main():
     # if len(argv) > 1:
