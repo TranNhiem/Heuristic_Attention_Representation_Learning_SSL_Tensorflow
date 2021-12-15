@@ -114,7 +114,7 @@ def main():
     }
 
     wandb.init(project=FLAGS.wandb_project_name, name=FLAGS.wandb_run_name, mode=FLAGS.wandb_mod,
-               sync_tensorboard=True, config=configs, resume=True)
+               sync_tensorboard=True, config=configs, resume="allow", id = "mbguhojn")
 
     # Training Configuration
     # *****************************************************************
