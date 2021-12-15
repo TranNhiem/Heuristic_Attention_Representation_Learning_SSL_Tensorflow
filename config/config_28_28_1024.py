@@ -367,7 +367,7 @@ def visualization():
         1,"Number of every epoch to save the feature map"
     )
     flags.DEFINE_string("visualize_dir",
-        "/visualize","path of the visualize feature map saved"
+        "visualize","path of the visualize feature map saved"
     )
 
 def contrastive_cfg():

@@ -56,12 +56,12 @@ def base_cfg():
 
     flags.DEFINE_string(
     #'train_path', "/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/ILSVRC2012_img_train",
-    'train_path', '/ai07_4TB/1K_New/train',
+    'train_path', '/data1/1K_New/train',
     'Train dataset path.')
 
     flags.DEFINE_string(
     # 'val_path',"/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/val",
-    'val_path','/ai07_4TB/1K_New/val',
+    'val_path','/data1/1K_New/val',
     'Validaion dataset path.')
 
     # Mask_folder should locate in location and same level of train folder
@@ -84,7 +84,7 @@ def wandb_set():
         "set the project name for wandb."
     )
     flags.DEFINE_string(
-        "wandb_run_name","Harry_test_restnet18_output_(28*28*512)_alpha_adaptive",
+        "wandb_run_name","BNC_test_restnet18_output_(7*7*1024)_baseline",
         "set the run name for wandb."
     )
     flags.DEFINE_enum(
@@ -204,11 +204,11 @@ def Encoder():
         "Stop gradient with the encoder middle layer."
     )
     flags.DEFINE_dict(
-        "Encoder_block_strides",{'1':2,'2':1,'3':2,'4':1,'5':1},
+        "Encoder_block_strides",{'1':2,'2':1,'3':2,'4':2,'5':2},
         "control the part of the every block stride, it can control the out put size of feature map"
     )
     flags.DEFINE_dict(
-        "Encoder_block_channel_output",{'1':1,'2':1,'3':1,'4':1,'5':1},
+        "Encoder_block_channel_output",{'1':2,'2':2,'3':2,'4':2,'5':2},
         "control the part of the every block channel output.,"
     )
 
@@ -321,7 +321,7 @@ def Configure_Saving_and_Restore_Model():
     # Saving Model
     flags = Mock_Flag()
     flags.DEFINE_string(
-        'model_dir', "./model_ckpt/resnet_byol/28_28_512",
+        'model_dir', "/data1/resnet_byol/14*14*1024_baseline/",
         'Model directory for training.')
 
     flags.DEFINE_integer(

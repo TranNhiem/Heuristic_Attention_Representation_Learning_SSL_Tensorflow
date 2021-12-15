@@ -29,15 +29,18 @@ if gpus:
     except RuntimeError as e:
         print(e)
 
-from config.config_28_28_512_baseline import read_cfg
-read_cfg()
+from config.config_7_7_1024_baseline import read_cfg
 from config.absl_mock import Mock_Flag
+read_cfg()
+read_cfg()
 flag = Mock_Flag()
 FLAGS = flag.FLAGS
+if not os.path.isdir(FLAGS.model_dir):
+    print("creat : ",FLAGS.model_dir)
+    os.makedirs(FLAGS.model_dir)
 flag.save_config(os.path.join(FLAGS.model_dir,"config.cfg"))
 
-if not os.path.isdir(FLAGS.model_dir):
-    os.makedirs(FLAGS.model_dir)
+
 
 def main():
     # if len(argv) > 1:

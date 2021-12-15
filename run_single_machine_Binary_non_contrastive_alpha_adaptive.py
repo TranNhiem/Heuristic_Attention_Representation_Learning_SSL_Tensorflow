@@ -1,8 +1,6 @@
-from config.config_14_14_512_original_binary_loss import read_cfg
+from config.config_14_14_1024_original_binary_loss import read_cfg
 #from config.config_for_add_orgloss import read_cfg
 from config.absl_mock import Mock_Flag
-
-import os
 import json
 import math
 import wandb
@@ -33,13 +31,14 @@ if gpus:
         print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPU")
     except RuntimeError as e:
         print(e)
+
 read_cfg()
 flag = Mock_Flag()
 FLAGS = flag.FLAGS
-flag.save_config(os.path.join(FLAGS.model_dir,"config.cfg"))
-
 if not os.path.isdir(FLAGS.model_dir):
+    print("creat : ",FLAGS.model_dir)
     os.makedirs(FLAGS.model_dir)
+flag.save_config(os.path.join(FLAGS.model_dir,"config.cfg"))
 
 
 def main():

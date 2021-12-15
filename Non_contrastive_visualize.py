@@ -18,7 +18,7 @@ from self_supervised_losses import byol_symetrize_loss, symetrize_l2_loss_object
 import model_for_non_contrastive_framework as all_model
 from visualize import Visualize
 
-from config.config_visualize import read_cfg
+from config.config_56_56_512 import read_cfg
 read_cfg()
 from config.absl_mock import Mock_Flag
 flag = Mock_Flag()
@@ -47,7 +47,8 @@ def main():
     model.build((1,224,224,3))
     from tensorflow.keras.models import load_model
     model.built = True
-    model.load_weights(r'D:\OneDrive\鴻海\SSL\Modify_code\model_ckpt\encoder_model_19.h5')
+    weight_name = "56_56_512_binary"
+    model.load_weights(os.path.join("D:/SSL_weight",weight_name,"encoder_model_99.h5"))
     model.summary()
     for i, (image, label) in enumerate(val_ds):
         #print("out put ",online_model.predict(image))
@@ -58,7 +59,7 @@ def main():
         plt.savefig(os.path.join(FLAGS.visualize_dir,"img" + ".png"))
 
         V = Visualize(1,FLAGS.visualize_dir)
-        V.plot_feature_map("28_28_1024_19",model.predict(image))
+        V.plot_feature_map(weight_name,model.predict(image))
         break
 
 if __name__ == '__main__':

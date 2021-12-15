@@ -8,8 +8,6 @@ def read_cfg(mod="non_contrastive"):
 
     if(mod == "non_contrastive"):
         non_contrastive_cfg()
-    else:
-        contrastive_cfg()
 
 
 def base_cfg():
@@ -85,7 +83,7 @@ def wandb_set():
         "set the project name for wandb."
     )
     flags.DEFINE_string(
-        "wandb_run_name", "Harry_test_restnet18_output_(28*28*512)_alpha_adaptive_add_original_loss",
+        "wandb_run_name", "BNC_restnet18_output_(14*14*1024)_alpha_adaptive_add_original_loss",
         "set the run name for wandb."
     )
     flags.DEFINE_enum(
@@ -209,11 +207,12 @@ def Encoder():
         "Stop gradient with the encoder middle layer."
     )
     flags.DEFINE_dict(
-        "Encoder_block_strides", {'1': 2, '2': 1, '3': 2, '4': 1, '5': 1},
+        "Encoder_block_strides", {'1': 2, '2': 1, '3': 2, '4': 2, '5': 1},
         "control the part of the every block stride, it can control the out put size of feature map"
     )
     flags.DEFINE_dict(
-        "Encoder_block_channel_output", {'1': 1, '2': 1, '3': 1, '4': 1, '5': 1},
+        "Encoder_block_channel_output", {
+            '1': 2, '2': 2, '3': 2, '4': 2, '5': 2},
         "control the part of the every block channel output.,"
     )
 
@@ -330,7 +329,7 @@ def Configure_Saving_and_Restore_Model():
     # Saving Model
     flags = Mock_Flag()
     flags.DEFINE_string(
-        'model_dir', "./model_ckpt/resnet_byol/28_28_512_add_original_loss",
+        'model_dir', "./model_ckpt/resnet_byol/14_14_1024_add_original_loss",
         'Model directory for training.')
 
     flags.DEFINE_integer(
@@ -379,3 +378,4 @@ def visualization():
     flags.DEFINE_string("visualize_dir",
                         "visualize", "path of the visualize feature map saved"
                         )
+
