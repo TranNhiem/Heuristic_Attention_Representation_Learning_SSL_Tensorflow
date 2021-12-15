@@ -1,4 +1,4 @@
-from config.config_7_7_512_original_binary_loss import read_cfg
+from config.config_14_14_512_original_binary_loss import read_cfg
 #from config.config_for_add_orgloss import read_cfg
 from config.absl_mock import Mock_Flag
 
@@ -36,8 +36,7 @@ if gpus:
 read_cfg()
 flag = Mock_Flag()
 FLAGS = flag.FLAGS
-# flag.save_config(
-#     "./config/Harry_test_resnet18_output_(56_56_512)_original_binary_loss_adpative_schedule.cfg")
+flag.save_config(os.path.join(FLAGS.model_dir,"config.cfg"))
 
 if not os.path.isdir(FLAGS.model_dir):
     os.makedirs(FLAGS.model_dir)

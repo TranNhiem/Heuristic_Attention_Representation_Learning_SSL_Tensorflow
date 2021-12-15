@@ -34,6 +34,7 @@ read_cfg()
 from config.absl_mock import Mock_Flag
 flag = Mock_Flag()
 FLAGS = flag.FLAGS
+flag.save_config(os.path.join(FLAGS.model_dir,"config.cfg"))
 
 if not os.path.isdir(FLAGS.model_dir):
     os.makedirs(FLAGS.model_dir)
