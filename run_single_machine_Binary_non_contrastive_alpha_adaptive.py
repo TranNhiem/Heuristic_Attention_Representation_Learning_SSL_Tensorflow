@@ -40,7 +40,7 @@ FLAGS = flag.FLAGS
 #     "./config/Harry_test_resnet18_output_(56_56_512)_original_binary_loss_adpative_schedule.cfg")
 
 if not os.path.isdir(FLAGS.model_dir):
-    os.mkdir(FLAGS.model_dir)
+    os.makedirs(FLAGS.model_dir)
 
 
 def main():
@@ -114,7 +114,7 @@ def main():
     }
 
     wandb.init(project=FLAGS.wandb_project_name, name=FLAGS.wandb_run_name, mode=FLAGS.wandb_mod,
-               sync_tensorboard=True, config=configs, resume="allow", id = "32546dah")
+               sync_tensorboard=True, config=configs)
 
     # Training Configuration
     # *****************************************************************
