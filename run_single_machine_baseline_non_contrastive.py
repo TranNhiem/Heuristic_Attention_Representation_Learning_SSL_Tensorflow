@@ -29,10 +29,10 @@ if gpus:
     except RuntimeError as e:
         print(e)
 
-from config.config_28_28_1024_baseline import read_cfg
+from config.config_56_56_512_baseline import read_cfg
 from config.absl_mock import Mock_Flag
 read_cfg()
-read_cfg()
+
 flag = Mock_Flag()
 FLAGS = flag.FLAGS
 if not os.path.isdir(FLAGS.model_dir):
