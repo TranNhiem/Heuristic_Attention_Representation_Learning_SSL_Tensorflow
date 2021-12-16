@@ -84,7 +84,7 @@ def wandb_set():
         "set the project name for wandb."
     )
     flags.DEFINE_string(
-        "wandb_run_name","Harry_test_restnet18_output_(7*7*512_baseline)_alpha_adaptive",
+        "wandb_run_name","BNC_test_restnet18_output_(7*7*512)_baseline",
         "set the run name for wandb."
     )
     flags.DEFINE_enum(
@@ -321,7 +321,7 @@ def Configure_Saving_and_Restore_Model():
     # Saving Model
     flags = Mock_Flag()
     flags.DEFINE_string(
-        'model_dir', "./model_ckpt/resnet_byol/baseline_Res18/",
+        'model_dir', "/daata1/resnet_byol/7_7_512_baseline/",
         'Model directory for training.')
 
     flags.DEFINE_integer(
@@ -367,7 +367,7 @@ def visualization():
         1,"Number of every epoch to save the feature map"
     )
     flags.DEFINE_string("visualize_dir",
-        "/visualize","path of the visualize feature map saved"
+        "visualize","path of the visualize feature map saved"
     )
 
 def contrastive_cfg():
