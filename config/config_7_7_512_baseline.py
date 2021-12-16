@@ -321,7 +321,7 @@ def Configure_Saving_and_Restore_Model():
     # Saving Model
     flags = Mock_Flag()
     flags.DEFINE_string(
-        'model_dir', "/daata1/resnet_byol/7_7_512_baseline/",
+        'model_dir', "/data1/resnet_byol/7_7_512_baseline/",
         'Model directory for training.')
 
     flags.DEFINE_integer(
