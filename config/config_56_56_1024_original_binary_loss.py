@@ -85,7 +85,7 @@ def wandb_set():
         "set the project name for wandb."
     )
     flags.DEFINE_string(
-        "wandb_run_name", "Harry_test_restnet18_output_(56*56*512)_alpha_adaptive_add_original_loss",
+        "wandb_run_name", "BNC_restnet18_output_(56*56*1024)_alpha_adaptive_add_original_loss",
         "set the run name for wandb."
     )
     flags.DEFINE_enum(
@@ -213,7 +213,7 @@ def Encoder():
         "control the part of the every block stride, it can control the out put size of feature map"
     )
     flags.DEFINE_dict(
-        "Encoder_block_channel_output", {'1': 1, '2': 1, '3': 1, '4': 1, '5': 1},
+        "Encoder_block_channel_output", {'1': 2, '2': 2, '3': 2, '4': 2, '5': 2},
         "control the part of the every block channel output.,"
     )
 
