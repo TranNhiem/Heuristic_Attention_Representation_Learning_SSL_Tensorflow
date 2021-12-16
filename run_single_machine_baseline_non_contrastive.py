@@ -29,7 +29,7 @@ if gpus:
     except RuntimeError as e:
         print(e)
 
-from config.config_7_7_1024_baseline import read_cfg
+from config.config_14_14_1024_baseline import read_cfg
 from config.absl_mock import Mock_Flag
 read_cfg()
 read_cfg()
