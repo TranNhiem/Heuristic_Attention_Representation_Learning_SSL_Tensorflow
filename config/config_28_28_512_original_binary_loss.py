@@ -8,8 +8,6 @@ def read_cfg(mod="non_contrastive"):
 
     if(mod == "non_contrastive"):
         non_contrastive_cfg()
-    else:
-        contrastive_cfg()
 
 
 def base_cfg():
@@ -85,7 +83,7 @@ def wandb_set():
         "set the project name for wandb."
     )
     flags.DEFINE_string(
-        "wandb_run_name", "Harry_test_restnet18_output_(28*28*512)_alpha_adaptive_add_original_loss",
+        "wandb_run_name", "MNC_resnet18(28*28*512)_mask_original_loss_alpha_1",
         "set the run name for wandb."
     )
     flags.DEFINE_enum(
@@ -305,12 +303,12 @@ def Configure_Model_Training():
 
     flags.DEFINE_float(
         # Alpha Weighted loss (Objec & Background) [binary_mask_nt_xent_object_backgroud_sum_loss]
-        'alpha', 0.5,
+        'alpha', 1,
         'Alpha value is configuration the weighted of Object and Background in Model Total Loss.'
     )
     flags.DEFINE_float(
         # Weighted loss is the scaling term between  [weighted_loss]*Binary & [1-weighted_loss]*original contrastive loss)
-        'weighted_loss', 0.8,
+        'weighted_loss', 0.5,
         'weighted_loss value is configuration the weighted of original and Binary contrastive loss.'
     )
     # Fine Tuning configure
@@ -330,7 +328,7 @@ def Configure_Saving_and_Restore_Model():
     # Saving Model
     flags = Mock_Flag()
     flags.DEFINE_string(
-        'model_dir', "./model_ckpt/resnet_byol/28_28_512_add_original_loss",
+        'model_dir', "./model_ckpt/resnet_byol/MNC_resnet18(28_28_512)_mask_original_loss_alpha_1",
         'Model directory for training.')
 
     flags.DEFINE_integer(
