@@ -350,16 +350,16 @@ def main():
             for epoch in range(FLAGS.train_epochs):
                 total_loss = 0.0
                 num_batches = 0
-                alpha=1
-                # if epoch + 1 <= 0.7*FLAGS.train_epochs:
-                #     alpha = 0.5
-                #     weight_loss = 0.5
-                # elif epoch + 1 <= 0.9*FLAGS.train_epochs:
-                #     alpha = 0.7
-                #     weight_loss = 0.7
-                # else:
-                #     alpha = 0.9
-                #     weight_loss = 0.9
+                alpha=1.0
+                if epoch + 1 <= 0.7*FLAGS.train_epochs:
+                    #alpha = 0.5
+                    weight_loss = 0.5
+                elif epoch + 1 <= 0.9*FLAGS.train_epochs:
+                    #alpha = 0.7
+                    weight_loss = 0.7
+                else:
+                   # alpha = 0.9
+                    weight_loss = 0.9
                 print("Epoch", epoch, "...")
                 for _, (ds_one, ds_two) in enumerate(train_ds):
 
