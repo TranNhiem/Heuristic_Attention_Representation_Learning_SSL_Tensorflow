@@ -84,7 +84,7 @@ def wandb_set():
         "set the project name for wandb."
     )
     flags.DEFINE_string(
-        "wandb_run_name","BNC_test_restnet18_output_(7*7*512)_baseline",
+        "wandb_run_name","MNC_restnet18_output_(14*14*512)_alpha_1",
         "set the run name for wandb."
     )
     flags.DEFINE_enum(
@@ -204,7 +204,7 @@ def Encoder():
         "Stop gradient with the encoder middle layer."
     )
     flags.DEFINE_dict(
-        "Encoder_block_strides",{'1':2,'2':1,'3':2,'4':2,'5':2},
+        "Encoder_block_strides",{'1':2,'2':1,'3':2,'4':2,'5':1},
         "control the part of the every block stride, it can control the out put size of feature map"
     )
     flags.DEFINE_dict(
@@ -321,7 +321,7 @@ def Configure_Saving_and_Restore_Model():
     # Saving Model
     flags = Mock_Flag()
     flags.DEFINE_string(
-        'model_dir', "/data1/resnet_byol/7_7_512_baseline/",
+        'model_dir', "/data1/resnet_byol/7_7_512_alpha_1/",
         'Model directory for training.')
 
     flags.DEFINE_integer(
