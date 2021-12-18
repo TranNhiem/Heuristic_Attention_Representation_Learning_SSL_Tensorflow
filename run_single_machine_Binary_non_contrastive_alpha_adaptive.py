@@ -36,7 +36,7 @@ read_cfg()
 flag = Mock_Flag()
 FLAGS = flag.FLAGS
 if not os.path.isdir(FLAGS.model_dir):
-    print("creat : ",FLAGS.model_dir)
+    print("Creat the model dir: ",FLAGS.model_dir)
     os.makedirs(FLAGS.model_dir)
 flag.save_config(os.path.join(FLAGS.model_dir,"config.cfg"))
 
@@ -243,14 +243,6 @@ def main():
                     # Compute Contrastive Train Loss -->
                     loss = None
                     if proj_head_output_1 is not None:
-
-                        # Compute Contrastive Loss model
-                        # if FLAGS.non_contrast_binary_loss == 'Original_loss_add_contrast_level_object':
-                        #     loss, logits_o_ab, labels = distributed_Orginal_add_Binary_non_contrast_loss(obj_1, obj_2,  backg_1, backg_2,
-                        #                                                                                  proj_head_output_1, proj_head_output_2)
-                        #
-                        # else:
-                        #     # Compute Contrastive Loss model
                         loss, logits_o_ab, labels = distributed_loss(
                             obj_1, obj_2,  backg_1, backg_2, proj_head_output_1, proj_head_output_2, alpha, weight_loss)
 
@@ -360,6 +352,7 @@ def main():
                     alpha = 0.9
                     weight_loss = 0.9
                 print("Epoch", epoch, "...")
+
                 for _, (ds_one, ds_two) in enumerate(train_ds):
 
                     total_loss += distributed_train_step(
@@ -406,8 +399,6 @@ def main():
                 })
                 for metric in all_metrics:
                     metric.reset_states()
-                print(epoch)
-                print(metric)
                 # Saving Entire Model
                 if (epoch+1) % 20 == 0:
                     save_encoder = os.path.join(

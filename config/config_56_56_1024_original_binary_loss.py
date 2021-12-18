@@ -85,7 +85,7 @@ def wandb_set():
         "set the project name for wandb."
     )
     flags.DEFINE_string(
-        "wandb_run_name", "BNC_restnet18_output_(56*56*1024)_alpha_adaptive_add_original_loss",
+        "wandb_run_name", "Harry_test_restnet18_output_(56*56*1024)_alpha_adaptive_add_original_loss",
         "set the run name for wandb."
     )
     flags.DEFINE_enum(
@@ -330,7 +330,7 @@ def Configure_Saving_and_Restore_Model():
     # Saving Model
     flags = Mock_Flag()
     flags.DEFINE_string(
-        'model_dir', "./model_ckpt/resnet_byol/56_56_512_add_original_loss",
+        'model_dir', "./model_ckpt/resnet_byol/56_56_1024_add_original_loss",
         'Model directory for training.')
 
     flags.DEFINE_integer(

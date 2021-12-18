@@ -45,16 +45,21 @@ def main():
     from Model_resnet_harry import resnet
     model = resnet(resnet_depth=FLAGS.resnet_depth, width_multiplier=FLAGS.width_multiplier)
     model.build((1,224,224,3))
-    from tensorflow.keras.models import load_model
     model.built = True
     weight_name = "56_56_512_binary"
-    model.load_weights(os.path.join("D:/SSL_weight",weight_name,"encoder_model_99.h5"))
+    #model.load_weights(os.path.join("D:/SSL_weight",weight_name,"encoder_model_99.h5"))
     model.summary()
     for i, (image, label) in enumerate(val_ds):
-        #print("out put ",online_model.predict(image))
-        # online_model.compile(optimizer='adam', loss='mse')
+        # temp = model.layers[0](image)
+        # temp = model.layers[1](temp)
+        # temp = model.layers[2](temp)
+        temp = image
+        for i in range(5):
+            temp = model.layers[i](temp)
+        print(temp.shape)
         import matplotlib.pyplot as plt
         print(image.shape)
+
         plt.imshow(image[0])
         plt.savefig(os.path.join(FLAGS.visualize_dir,"img" + ".png"))
 

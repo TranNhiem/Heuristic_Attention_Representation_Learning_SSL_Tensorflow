@@ -1,15 +1,8 @@
-import os
-import json
-import math
-import wandb
-import random
-# from absl import flags
-from absl import logging
-# from absl import app
+from config.config_28_28_512 import read_cfg
 
-import tensorflow as tf
+import wandb
+
 from learning_rate_optimizer import WarmUpAndCosineDecay, CosineAnnealingDecayRestarts
-import metrics
 from helper_functions import *
 from byol_simclr_imagenet_data_harry import imagenet_dataset_single_machine
 from self_supervised_losses import byol_symetrize_loss, symetrize_l2_loss_object_level_whole_image, sum_symetrize_l2_loss_object_backg, sum_symetrize_l2_loss_object_backg_add_original
@@ -21,7 +14,6 @@ from wandb.keras import WandbCallback
 # Setting GPU
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if gpus:
-
     try:
         for gpu in gpus:
             tf.config.experimental.set_memory_growth(gpu, True)
@@ -31,17 +23,16 @@ if gpus:
     except RuntimeError as e:
         print(e)
 
-from config.config_v0 import read_cfg
 read_cfg()
-from config.absl_mock import Mock_Flag
 flag = Mock_Flag()
 FLAGS = flag.FLAGS
+if not os.path.isdir(FLAGS.model_dir):
+    print("Creat the model dir: ",FLAGS.model_dir)
+    os.makedirs(FLAGS.model_dir)
+flag.save_config(os.path.join(FLAGS.model_dir,"config.cfg"))
 
 
 def main():
-    # if len(argv) > 1:
-    #     raise app.UsageError('Too many command-line arguments.')
-
     # Preparing dataset
     # Imagenet path prepare localy
     strategy = tf.distribute.MirroredStrategy()
@@ -63,7 +54,7 @@ def main():
 
     train_steps = FLAGS.eval_steps or int(
         num_train_examples * FLAGS.train_epochs // train_global_batch)*2
-      
+
     eval_steps = FLAGS.eval_steps or int(
         math.ceil(num_eval_examples / val_global_batch))
 
@@ -71,8 +62,7 @@ def main():
 
     checkpoint_steps = (FLAGS.checkpoint_steps or (
         FLAGS.checkpoint_epochs * epoch_steps))
-    
-    
+
     logging.info("# Subset_training class %d", FLAGS.num_classes)
     logging.info('# train examples: %d', num_train_examples)
     logging.info('# train_steps: %d', train_steps)
@@ -80,19 +70,22 @@ def main():
     logging.info('# eval steps: %d', eval_steps)
 
     # Configure the Encoder Architecture.
-    online_model = all_model.Binary_online_model(FLAGS.num_classes,Upsample = FLAGS.feature_upsample,Downsample = FLAGS.downsample_mod)
-    prediction_model = all_model.prediction_head_model()
-    target_model = all_model.Binary_target_model(FLAGS.num_classes,Upsample = FLAGS.feature_upsample,Downsample = FLAGS.downsample_mod)
-
+    with strategy.scope():
+        online_model = all_model.Binary_online_model(
+            FLAGS.num_classes, Upsample=FLAGS.feature_upsample, Downsample=FLAGS.downsample_mod)
+        prediction_model = all_model.prediction_head_model()
+        target_model = all_model.Binary_target_model(
+            FLAGS.num_classes, Upsample=FLAGS.feature_upsample, Downsample=FLAGS.downsample_mod)
 
     # Configure Wandb Training
     # Weight&Bias Tracking Experiment
     configs = {
+
         "Model_Arch": "ResNet50",
         "Training mode": "Binary_Non_Contrative_SSL",
         "DataAugmentation_types": "SimCLR_Inception_Croping_image_mask",
-        "Dataset": "ImageNet1k",
         "Speratation Features Upsampling Method": FLAGS.feature_upsample,
+        "Dataset": "ImageNet1k",
         "object_backgroud_feature_Dsamp_method": FLAGS.downsample_mod,
 
         "IMG_SIZE": FLAGS.image_size,
@@ -102,13 +95,14 @@ def main():
         "Temperature": FLAGS.temperature,
         "Optimizer": FLAGS.optimizer,
         "SEED": FLAGS.SEED,
-        "Subset_dataset": FLAGS.num_classes, 
+        "Subset_dataset": FLAGS.num_classes,
+
         "Loss configure": FLAGS.aggregate_loss,
         "Loss type": FLAGS.non_contrast_binary_loss,
 
     }
 
-    wandb.init(project=FLAGS.wandb_project_name,name = FLAGS.wandb_run_name,mode = FLAGS.wandb_mod,
+    wandb.init(project=FLAGS.wandb_project_name, name=FLAGS.wandb_run_name, mode=FLAGS.wandb_mod,
                sync_tensorboard=True, config=configs)
 
     # Training Configuration
@@ -118,9 +112,7 @@ def main():
 
     if FLAGS.mode == "eval":
         # can choose different min_interval
-        print("eval")
         for ckpt in tf.train.checkpoints_iterator(FLAGS.model_dir, min_interval_secs=15):
-            print(ckpt)
             result = perform_evaluation(
                 online_model, val_ds, eval_steps, ckpt, strategy)
             # global_step from ckpt
@@ -150,14 +142,11 @@ def main():
                 base_lr = FLAGS.base_lr
                 scale_lr = FLAGS.lr_rate_scaling
                 # Control cycle of next step base of Previous step (2 times more steps)
-                t_mul = 1.0
+                t_mul = 2.0
                 # Control ititial Learning Rate Values (Next step equal to previous steps)
                 m_mul = 1.0
-                alpha = 0.0 # Final values of learning rate
-                print(FLAGS.number_cycles)
-                first_decay_steps = train_steps/(FLAGS.number_cycles* t_mul)
-                print(first_decay_steps)
-
+                alpha = 0.0  # Final values of learning rate
+                first_decay_steps = train_steps / (FLAGS.number_cycles * t_mul)
                 lr_schedule = CosineAnnealingDecayRestarts(
                     base_lr, first_decay_steps, train_global_batch, scale_lr, t_mul=t_mul, m_mul=m_mul, alpha=alpha)
 
@@ -199,7 +188,8 @@ def main():
                 online_model, optimizer.iterations, optimizer)
 
             # Scale loss  --> Aggregating all Gradients
-            def distributed_loss(o1, o2, b1, b2, f1 = None, f2 = None):
+            def distributed_loss(o1, o2, b1, b2, f1=None, f2=None, alpha=0.5, weight=0.5):
+
                 if FLAGS.non_contrast_binary_loss == 'original_add_backgroud':
                     ob1 = tf.concat([o1, b1], axis=0)
                     ob2 = tf.concat([o2, b2], axis=0)
@@ -211,43 +201,32 @@ def main():
 
                     # each GPU loss per_replica batch loss
                     per_example_loss, logits_ab, labels = sum_symetrize_l2_loss_object_backg(
-                        o1, o2, b1, b2,  alpha=FLAGS.alpha, temperature=FLAGS.temperature)
-
+                        o1, o2, b1, b2,  alpha=alpha, temperature=FLAGS.temperature)
                 elif FLAGS.non_contrast_binary_loss == 'sum_symetrize_l2_loss_object_backg_add_original':
                     per_example_loss, logits_ab, labels = sum_symetrize_l2_loss_object_backg_add_original(
-                        o1, o2, b1, b2, f1, f2, alpha=FLAGS.alpha, temperature=FLAGS.temperature)
+                        o1, o2, b1, b2, f1, f2, alpha=alpha, temperature=FLAGS.temperature, weight_loss=weight)
 
                 # total sum loss //Global batch_size
                 loss = tf.reduce_sum(per_example_loss) * \
                     (1./train_global_batch)
                 return loss, logits_ab, labels
 
-            def distributed_Orginal_add_Binary_non_contrast_loss(x1, x2, v1, v2, img_1, img_2,):
-                #Optional [binary_mask_nt_xent_object_backgroud_sum_loss, binary_mask_nt_xent_object_backgroud_sum_loss_v1]
-                per_example_loss, logits_o_ab, labels = symetrize_l2_loss_object_level_whole_image(
-                    x1, x2, v1, v2, img_1, img_2,  weight_loss=FLAGS.weighted_loss, temperature=FLAGS.temperature)
-
-                # total sum loss //Global batch_size
-                loss = tf.reduce_sum(per_example_loss) * \
-                    (1./train_global_batch)
-
-                return loss, logits_o_ab, labels
-
             @tf.function
-            def train_step(ds_one, ds_two):
+            def train_step(ds_one, ds_two, alpha, weight_loss):
 
                 # Get the data from
                 images_mask_one, lable_1, = ds_one  # lable_one
                 images_mask_two, lable_2,  = ds_two  # lable_two
 
                 with tf.GradientTape(persistent=True) as tape:
+
                     obj_1, backg_1,  proj_head_output_1, supervised_head_output_1 = online_model(
                         [images_mask_one[0], tf.expand_dims(images_mask_one[1], axis=-1)], training=True)
-
                     # Vector Representation from Online encoder go into Projection head again
                     obj_1 = prediction_model(obj_1, training=True)
                     backg_1 = prediction_model(backg_1, training=True)
-                    proj_head_output_1 = prediction_model(proj_head_output_1, training=True)
+                    proj_head_output_1 = prediction_model(
+                        proj_head_output_1, training=True)
 
                     obj_2, backg_2, proj_head_output_2, supervised_head_output_2 = target_model(
                         [images_mask_two[0], tf.expand_dims(images_mask_two[1], axis=-1)], training=True)
@@ -255,16 +234,8 @@ def main():
                     # Compute Contrastive Train Loss -->
                     loss = None
                     if proj_head_output_1 is not None:
-
-                        # Compute Contrastive Loss model
-                        if FLAGS.non_contrast_binary_loss == 'Original_loss_add_contrast_level_object':
-                            loss, logits_o_ab, labels = distributed_Orginal_add_Binary_non_contrast_loss(obj_1, obj_2,  backg_1, backg_2,
-                                                                                                         proj_head_output_1, proj_head_output_2)
-
-                        else:
-                            # Compute Contrastive Loss model
-                            loss, logits_o_ab, labels = distributed_loss(
-                                obj_1, obj_2,  backg_1, backg_2, proj_head_output_1, proj_head_output_2)
+                        loss, logits_o_ab, labels = distributed_loss(
+                            obj_1, obj_2,  backg_1, backg_2, proj_head_output_1, proj_head_output_2, alpha, weight_loss)
 
                         if loss is None:
                             loss = loss
@@ -327,9 +298,9 @@ def main():
 
                     # weight_decay_loss_scale = tf.nn.scale_regularization_loss(
                     #     weight_decay_loss)
-                    # # Under experiment Scale loss after adding Regularization and scaled by Batch_size
-                    # # weight_decay_loss = tf.nn.scale_regularization_loss(
-                    # #     weight_decay_loss)
+                    # Under experiment Scale loss after adding Regularization and scaled by Batch_size
+                    # weight_decay_loss = tf.nn.scale_regularization_loss(
+                    #     weight_decay_loss)
                     weight_decay_metric.update_state(weight_decay_loss)
                     loss += weight_decay_loss
                     total_loss_metric.update_state(loss)
@@ -352,21 +323,21 @@ def main():
                 return loss
 
             @tf.function
-            def distributed_train_step(ds_one, ds_two):
+            def distributed_train_step(ds_one, ds_two, alpha, weight_loss):
                 per_replica_losses = strategy.run(
-                    train_step, args=(ds_one, ds_two))
+                    train_step, args=(ds_one, ds_two, alpha, weight_loss))
                 return strategy.reduce(tf.distribute.ReduceOp.SUM, per_replica_losses,
                                        axis=None)
             global_step = optimizer.iterations
 
             for epoch in range(FLAGS.train_epochs):
-
                 total_loss = 0.0
                 num_batches = 0
-
+                print("Epoch", epoch, "...")
                 for _, (ds_one, ds_two) in enumerate(train_ds):
-                
-                    total_loss += distributed_train_step(ds_one, ds_two)
+
+                    total_loss += distributed_train_step(
+                        ds_one, ds_two, FLAGS.alpha, FLAGS.weighted_loss)
                     num_batches += 1
 
                     # Update weight of Target Encoder Every Step
@@ -396,28 +367,36 @@ def main():
                 # Wandb Configure for Visualize the Model Training
                 wandb.log({
                     "epochs": epoch+1,
+                    "train/alpha_value": FLAGS.alpha,
+                    "train/weight_loss_value": FLAGS.weighted_loss,
                     "train_contrast_loss": contrast_loss_metric.result(),
                     "train_contrast_acc": contrast_acc_metric.result(),
                     "train_contrast_acc_entropy": contrast_entropy_metric.result(),
                     "train/weight_decay": weight_decay_metric.result(),
                     "train/total_loss": epoch_loss,
-                    "train/supervised_loss":    supervised_loss_metric.result(),
-                    "train/supervised_acc": supervised_acc_metric.result()
+                    "train/supervised_loss": supervised_loss_metric.result(),
+                    "train/supervised_acc": supervised_acc_metric.result(),
+                    "encoder output size": "14*14*2048"
                 })
                 for metric in all_metrics:
                     metric.reset_states()
                 # Saving Entire Model
-                if epoch + 1 == 50:
-                    save_ = './model_ckpt/resnet_byol/binary_encoder_resnet50_mlp_run_1' + \
-                        str(epoch) + ".h5"
-                    online_model.save_weights(save_)
+                if (epoch+1) % 20 == 0:
+                    save_encoder = os.path.join(
+                        FLAGS.model_dir, "encoder_model_" + str(epoch) + ".h5")
+                    save_online_model = os.path.join(
+                        FLAGS.model_dir, "online_model_" + str(epoch) + ".h5")
+                    save_target_model = os.path.join(
+                        FLAGS.model_dir, "target_model_" + str(epoch) + ".h5")
+                    online_model.encoder.save_weights(save_encoder)
+                    online_model.save_weights(save_online_model)
+                    target_model.save_weights(save_target_model)
 
             logging.info('Training Complete ...')
 
         if FLAGS.mode == 'train_then_eval':
             perform_evaluation(online_model, val_ds, eval_steps,
                                checkpoint_manager.latest_checkpoint, strategy)
-
 
     # Pre-Training and Finetune
 if __name__ == '__main__':

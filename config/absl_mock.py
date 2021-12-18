@@ -60,6 +60,7 @@ class Mock_Flag(object):
         with open(file_name,"w") as f:
             for key in self.flag_spec.__dict__.keys():
                 f.write(key + " : " +str(self.flag_spec.__dict__[key])+"\n")
+        print("save the config in :",file_name)
     
 
 def local_test():
