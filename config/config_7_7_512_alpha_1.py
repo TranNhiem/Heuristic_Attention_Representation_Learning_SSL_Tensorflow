@@ -84,7 +84,7 @@ def wandb_set():
         "set the project name for wandb."
     )
     flags.DEFINE_string(
-        "wandb_run_name","BNC_test_restnet18_output_(7*7*512)_baseline",
+        "wandb_run_name","MNC_restnet18_output_(7*7*512)_alpha_1",
         "set the run name for wandb."
     )
     flags.DEFINE_enum(
@@ -321,7 +321,7 @@ def Configure_Saving_and_Restore_Model():
     # Saving Model
     flags = Mock_Flag()
     flags.DEFINE_string(
-        'model_dir', "/data1/resnet_byol/7_7_512_baseline/",
+        'model_dir', "/data1/resnet_byol/7_7_512_alpha_1/",
         'Model directory for training.')
 
     flags.DEFINE_integer(
