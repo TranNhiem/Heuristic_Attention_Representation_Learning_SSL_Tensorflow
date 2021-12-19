@@ -1,4 +1,4 @@
-from config.config_7_7_512_original_binary_loss import read_cfg
+from config.config_14_14_512_original_binary_loss import read_cfg
 #from config.config_for_add_orgloss import read_cfg
 from config.absl_mock import Mock_Flag
 import json
@@ -343,7 +343,7 @@ def main():
                 total_loss = 0.0
                 num_batches = 0
                 alpha=1.0
-                weight_loss=0.1
+                weight_loss=0.2
                 # if epoch + 1 <= 0.7*FLAGS.train_epochs:
                 #     #alpha = 0.5
                 #     weight_loss = 0.5
