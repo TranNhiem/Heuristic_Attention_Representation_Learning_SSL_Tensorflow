@@ -343,7 +343,7 @@ def main():
                 total_loss = 0.0
                 num_batches = 0
                 alpha=1.0
-                weight_loss=0.4
+                weight_loss=0.5
                 # if epoch + 1 <= 0.7*FLAGS.train_epochs:
                 #     alpha = 0.5
                 #     #weight_loss = 0.5
