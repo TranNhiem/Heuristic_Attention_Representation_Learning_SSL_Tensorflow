@@ -83,7 +83,7 @@ def wandb_set():
         "set the project name for wandb."
     )
     flags.DEFINE_string(
-        "wandb_run_name", "MNC_resnet18(14*14*512)_mask_original_loss_Beta_0_5_alpha_1",
+        "wandb_run_name", "MNC_resnet18(14*14*512)_mask_original_loss_Beta_0_4_alpha_schedule",
         "set the run name for wandb."
     )
     flags.DEFINE_enum(
