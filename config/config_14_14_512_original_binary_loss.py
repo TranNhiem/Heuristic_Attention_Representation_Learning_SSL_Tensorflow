@@ -83,7 +83,7 @@ def wandb_set():
         "set the project name for wandb."
     )
     flags.DEFINE_string(
-        "wandb_run_name", "MNC_resnet18(14*14*512)_mask_original_loss_Beta_0_4_alpha_schedule",
+        "wandb_run_name", "MNC_resnet18(14*14*512)_mask_original_loss_Beta_0_7_alpha_schedule",
         "set the run name for wandb."
     )
     flags.DEFINE_enum(
@@ -329,8 +329,8 @@ def Configure_Saving_and_Restore_Model():
     # Saving Model
     flags = Mock_Flag()
     flags.DEFINE_string(
-        #'model_dir', "/data1/check_point/resnet_byol/MNC_resnet18(14_14_512)_mask_original_loss_Beta_0_4_alpha_1",
-        'model_dir', "/shared_SSD_20TB/SSL_TEAM/check_point/resnet_byol/MNC_resnet18(14_14_512)_mask_original_loss_Beta_0_4_alpha_schedule",
+        'model_dir', "/data1/check_point/resnet_byol/MNC_resnet18(14_14_512)_mask_original_loss_Beta_0_7_alpha_schedule",
+        #'model_dir', "/shared_SSD_20TB/SSL_TEAM/check_point/resnet_byol/MNC_resnet18(14_14_512)_mask_original_loss_Beta_0_7_alpha_schedule",
         'Model directory for training.')
 
     flags.DEFINE_integer(
