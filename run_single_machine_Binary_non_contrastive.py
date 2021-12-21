@@ -1,4 +1,4 @@
-from config.config_28_28_512 import read_cfg
+from config.config_14_14_512_original_binary_loss import read_cfg
 
 import wandb
 
@@ -8,8 +8,6 @@ from byol_simclr_imagenet_data_harry import imagenet_dataset_single_machine
 from self_supervised_losses import byol_symetrize_loss, symetrize_l2_loss_object_level_whole_image, sum_symetrize_l2_loss_object_backg, sum_symetrize_l2_loss_object_backg_add_original
 import model_for_non_contrastive_framework as all_model
 import objective as obj_lib
-from imutils import paths
-from wandb.keras import WandbCallback
 
 # Setting GPU
 gpus = tf.config.experimental.list_physical_devices('GPU')

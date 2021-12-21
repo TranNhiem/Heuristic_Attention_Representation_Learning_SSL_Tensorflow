@@ -8,8 +8,6 @@ def read_cfg(mod="non_contrastive"):
 
     if(mod == "non_contrastive"):
         non_contrastive_cfg()
-    else:
-        contrastive_cfg()
 
 
 def base_cfg():
@@ -56,12 +54,12 @@ def base_cfg():
 
     flags.DEFINE_string(
         #'train_path', "/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/ILSVRC2012_img_train",
-        'train_path', '/shared_SSD_20TB/SSL_TEAM/1K_New/train',
+        'train_path', '/data1/1K_New/train',
         'Train dataset path.')
 
     flags.DEFINE_string(
         # 'val_path',"/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/val",
-        'val_path', '/shared_SSD_20TB/SSL_TEAM/1K_New/val',
+        'val_path', '/data1/1K_New/val',
         'Validaion dataset path.')
 
     # Mask_folder should locate in location and same level of train folder
@@ -85,7 +83,7 @@ def wandb_set():
         "set the project name for wandb."
     )
     flags.DEFINE_string(
-        "wandb_run_name", "MNC_resnet18(14*14*512)_mask_original_loss_Beta_0_4_alpha_1",
+        "wandb_run_name", "MNC_resnet18(14*14*512)_mask_original_loss_Beta_0_3_alpha_1",
         "set the run name for wandb."
     )
     flags.DEFINE_enum(
@@ -311,7 +309,7 @@ def Configure_Model_Training():
     )
     flags.DEFINE_float(
         # Weighted loss is the scaling term between  [weighted_loss]*Binary & [1-weighted_loss]*original contrastive loss)
-        'weighted_loss', 0.5,
+        'weighted_loss', 0.3,
         'weighted_loss value is configuration the weighted of original and Binary contrastive loss.'
     )
     # Fine Tuning configure
@@ -331,7 +329,7 @@ def Configure_Saving_and_Restore_Model():
     # Saving Model
     flags = Mock_Flag()
     flags.DEFINE_string(
-        'model_dir', "/shared_SSD_20TB/SSL_TEAM/check_point/resnet_byol/MNC_resnet18(14_14_512)_mask_original_loss_Beta_0_4_alpha_1",
+        'model_dir', "/data1/resnet_byol/MNC_resnet18(14_14_512)_mask_original_loss_Beta_0_3_alpha_1",
         'Model directory for training.')
 
     flags.DEFINE_integer(
@@ -378,236 +376,6 @@ def visualization():
                          1, "Number of every epoch to save the feature map"
                          )
     flags.DEFINE_string("visualize_dir",
-                        "/visualize", "path of the visualize feature map saved"
+                        "visualize", "path of the visualize feature map saved"
                         )
 
-
-def contrastive_cfg():
-
-    flags = Mock_Flag()
-    # ------------------------------------------
-    # Define for Linear Evaluation
-    # ------------------------------------------
-    flags.DEFINE_enum(
-        'linear_evaluate', 'standard', [
-            'standard', 'randaug', 'cropping_randaug'],
-        'How to scale the learning rate as a function of batch size.')
-
-    flags.DEFINE_integer(
-        'eval_steps', 0,
-        'Number of steps to eval for. If not provided, evals over entire dataset.')
-
-    flags.DEFINE_float(
-        'randaug_transform', 1,
-        'Number of augmentation transformations.')
-
-    flags.DEFINE_float(
-        'randaug_magnitude', 7,
-        'Number of augmentation transformations.')
-    # ---------------------------------------------------
-    # Define for Learning Rate Optimizer
-    # ---------------------------------------------------
-    # Learning Rate Scheudle
-
-    flags.DEFINE_float(
-        'base_lr', 0.3,
-        'Initial learning rate per batch size of 256.')
-
-    flags.DEFINE_integer(
-        'warmup_epochs', 10,  # Configure BYOL and SimCLR
-        'warmup epoch steps for Cosine Decay learning rate schedule.')
-
-    flags.DEFINE_enum(
-        'lr_rate_scaling', 'linear', ['linear', 'sqrt', 'no_scale', ],
-        'How to scale the learning rate as a function of batch size.')
-    # Optimizer
-    # Same the Original SimClRV2 training Configure
-    '''ATTENTION'''
-    flags.DEFINE_enum(
-
-        # if Change the Optimizer please change --
-        'optimizer', 'LARSW', ['Adam', 'SGD', 'LARS', 'AdamW', 'SGDW', 'LARSW',
-                               'AdamGC', 'SGDGC', 'LARSGC', 'AdamW_GC', 'SGDW_GC', 'LARSW_GC'],
-        'How to scale the learning rate as a function of batch size.')
-
-    flags.DEFINE_enum(
-        # Same the Original SimClRV2 training Configure
-        # 1. original for ['Adam', 'SGD', 'LARS']
-        # 2.optimizer_weight_decay for ['AdamW', 'SGDW', 'LARSW']
-        # 3. optimizer_GD fir  ['AdamGC', 'SGDGC', 'LARSGC']
-        # 4. optimizer_W_GD for ['AdamW_GC', 'SGDW_GC', 'LARSW_GC']
-
-        'optimizer_type', 'optimizer_weight_decay', [
-            'original', 'optimizer_weight_decay', 'optimizer_GD', 'optimizer_W_GD'],
-        'Optimizer type corresponding to Configure of optimizer')
-
-    flags.DEFINE_float(
-        'momentum', 0.9,
-        'Momentum parameter.')
-
-    flags.DEFINE_float('weight_decay', 1e-6, 'Amount of weight decay to use.')
-
-    # ------------------------------------------------------------------------------
-    # Configure for Encoder - Projection Head, Linear Evaluation Architecture
-    # ------------------------------------------------------------------------------
-    # Encoder Configure
-
-    flags.DEFINE_boolean(
-        'global_bn', True,
-        'Whether to aggregate BN statistics across distributed cores.')
-
-    flags.DEFINE_float(
-        'batch_norm_decay', 0.9,  # Checkout BN decay concept
-        'Batch norm decay parameter.')
-
-    flags.DEFINE_integer(
-        'width_multiplier', 1,
-        'Multiplier to change width of network.')
-
-    flags.DEFINE_integer(
-        'resnet_depth', 50,
-        'Depth of ResNet.')
-
-    flags.DEFINE_float(
-        'sk_ratio', 0.,
-        'If it is bigger than 0, it will enable SK. Recommendation: 0.0625.')
-
-    flags.DEFINE_float(
-        'se_ratio', 0.,
-        'If it is bigger than 0, it will enable SE.')
-
-    # Projection Head
-
-    flags.DEFINE_enum(
-        'proj_head_mode', 'nonlinear', ['none', 'linear', 'nonlinear'],
-        'How the head projection is done.')
-
-    flags.DEFINE_integer(
-        'proj_out_dim', 128,
-        'Number of head projection dimension.')
-
-    flags.DEFINE_integer(
-        'num_proj_layers', 3,
-        'Number of non-linear head layers.')
-
-    flags.DEFINE_integer(
-        'ft_proj_selector', 0,
-        'Which layer of the projection head to use during fine-tuning. '
-        '0 means no projection head, and -1 means the final layer.')
-
-    flags.DEFINE_float(
-        'temperature', 0.1,
-        'Temperature parameter for contrastive loss.')
-
-    flags.DEFINE_boolean(
-        'hidden_norm', True,
-        'L2 Normalization Vector representation.')
-
-    # -------------------------------------------------------------------
-    # Configure Model Training -- Loss Function Implementation --- Evaluation -- FineTuning --
-    # -------------------------------------------------------------------
-
-    # Configure Model Training [BaseLine Model]
-
-    flags.DEFINE_enum(
-        'mode', 'train', ['train', 'eval', 'train_then_eval'],
-        'Whether to perform training or evaluation.')
-
-    flags.DEFINE_enum(
-        'train_mode', 'pretrain', ['pretrain', 'finetune'],
-        'The train mode controls different objectives and trainable components.')
-
-    flags.DEFINE_boolean('lineareval_while_pretraining', True,
-                         'Whether to finetune supervised head while pretraining.')
-
-    flags.DEFINE_enum(
-        'aggregate_loss', 'contrastive', [
-            'contrastive', 'contrastive_supervised', ],
-        'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
-
-    # Configure Model Training [Contrastive Binary Loss]
-
-    flags.DEFINE_float(
-        # Alpha Weighted loss (Objec & Background) [binary_mask_nt_xent_object_backgroud_sum_loss]
-        'alpha', 0.8,
-        'Alpha value is configuration the weighted of Object and Background in Model Total Loss.'
-    )
-
-    flags.DEFINE_float(
-        # Weighted loss is the scaling term between  [weighted_loss]*Binary & [1-weighted_loss]*original contrastive loss)
-        'weighted_loss', 0.7,
-        'weighted_loss value is configuration the weighted of original and Binary contrastive loss.'
-    )
-
-    flags.DEFINE_enum(
-        'contrast_binary_loss', 'sum_contrast_obj_back',
-        # 4 Options Loss for training.
-        [
-            # two version binary_mask_nt_xent_object_backgroud_sum_loss, binary_mask_nt_xent_object_backgroud_sum_loss_v1
-            "sum_contrast_obj_back",
-            "only_object",  # binary_mask_nt_xent_only_Object_loss
-            # Concatenate (Object + Background feature together)
-            "original_contrast_add_backgroud_object",
-            # nt_xent_symetrize_loss_object_level_whole_image_contrast
-            "Original_loss_add_contrast_level_object",
-        ],
-        # sum_contrast_obj_back is Sum-up contrastive loss from backgroud and Object with scaling alpha
-        #
-        'Contrast binary Framework consider three different LOSSES')
-
-    flags.DEFINE_enum(
-        'loss_options', 'loss_v0',
-        ['loss_v0', 'loss_v1'],
-        "Option for chossing loss version [V0]--> Original simclr loss [V1] --> Custom build design loss"
-    )
-
-    # Fine Tuning configure
-
-    flags.DEFINE_boolean(
-        'zero_init_logits_layer', False,
-        'If True, zero initialize layers after avg_pool for supervised learning.')
-
-    flags.DEFINE_integer(
-        'fine_tune_after_block', -1,
-        'The layers after which block that we will fine-tune. -1 means fine-tuning '
-        'everything. 0 means fine-tuning after stem block. 4 means fine-tuning '
-        'just the linear head.')
-
-    # -------------------------------------------------------------------
-    # Configure Saving and Restore Model
-    # -------------------------------------------------------------------
-
-    # Saving Model
-    flags.DEFINE_string(
-        'model_dir', "./model_ckpt/simclrResNet/",
-        'Model directory for training.')
-
-    flags.DEFINE_integer(
-        'keep_hub_module_max', 1,
-        'Maximum number of Hub modules to keep.')
-
-    flags.DEFINE_integer(
-        'keep_checkpoint_max', 5,
-        'Maximum number of checkpoints to keep.')
-
-    # Loading Model
-
-    # Restore model weights only, but not global step and optimizer states
-
-    flags.DEFINE_string(
-        'checkpoint', None,
-        'Loading from the given checkpoint for fine-tuning if a finetuning '
-        'checkpoint does not already exist in model_dir.')
-
-    flags.DEFINE_integer(
-        'checkpoint_epochs', 10,
-        'Number of epochs between checkpoints/summaries.')
-
-    flags.DEFINE_integer(
-        'checkpoint_steps', 10,
-        'Number of steps between checkpoints/summaries. If provided, overrides '
-        'checkpoint_epochs.')
-
-    # Helper function to save and resore model.
-
-    # Helper function to save and resore model.
