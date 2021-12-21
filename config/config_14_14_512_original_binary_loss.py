@@ -86,7 +86,7 @@ def wandb_set():
         "set the project name for wandb."
     )
     flags.DEFINE_string(
-        "wandb_run_name", "MNC_resnet18(14*14*512)_mask_original_loss_Beta_0_4_alpha_1",
+        "wandb_run_name", "MNC_resnet18(14*14*512)_mask_original_loss_Beta_0_3_alpha_1",
         "set the run name for wandb."
     )
     flags.DEFINE_enum(
@@ -312,7 +312,7 @@ def Configure_Model_Training():
     )
     flags.DEFINE_float(
         # Weighted loss is the scaling term between  [weighted_loss]*Binary & [1-weighted_loss]*original contrastive loss)
-        'weighted_loss', 0.4,
+        'weighted_loss', 0.3,
         'weighted_loss value is configuration the weighted of original and Binary contrastive loss.'
     )
     # Fine Tuning configure
@@ -333,7 +333,7 @@ def Configure_Saving_and_Restore_Model():
     flags = Mock_Flag()
     flags.DEFINE_string(
         #'model_dir', "/data1/check_point/resnet_byol/MNC_resnet18(14_14_512)_mask_original_loss_Beta_0_4_alpha_1",
-        'model_dir', "/shared_SSD_20TB/SSL_TEAM/check_point/resnet_byol/MNC_resnet18(14_14_512)_mask_original_loss_Beta_0_4_alpha_1",
+        'model_dir', "/shared_SSD_20TB/SSL_TEAM/check_point/resnet_byol/MNC_resnet18(14_14_512)_mask_original_loss_Beta_0_3_alpha_1",
         'Model directory for training.')
 
     flags.DEFINE_integer(
