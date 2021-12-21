@@ -18,7 +18,7 @@ from self_supervised_losses import byol_symetrize_loss, symetrize_l2_loss_object
 import model_for_non_contrastive_framework as all_model
 from visualize import Visualize
 
-from config.config_56_56_512 import read_cfg
+from config.config_14_14_512 import read_cfg
 read_cfg()
 from config.absl_mock import Mock_Flag
 flag = Mock_Flag()
@@ -43,20 +43,13 @@ def main():
 
     num_train_examples, num_eval_examples = train_dataset.get_data_size()
     from Model_resnet_harry import resnet
-    model = resnet(resnet_depth=FLAGS.resnet_depth, width_multiplier=FLAGS.width_multiplier)
+    model = resnet(resnet_depth=FLAGS.resnet_depth, width_multiplier=FLAGS.width_multiplier,Middle_layer_output = [1,2,3,4,5])
     model.build((1,224,224,3))
     model.built = True
-    weight_name = "56_56_512_binary"
+    weight_name = "14_14_512_binary"
     #model.load_weights(os.path.join("D:/SSL_weight",weight_name,"encoder_model_99.h5"))
     model.summary()
     for i, (image, label) in enumerate(val_ds):
-        # temp = model.layers[0](image)
-        # temp = model.layers[1](temp)
-        # temp = model.layers[2](temp)
-        temp = image
-        for i in range(5):
-            temp = model.layers[i](temp)
-        print(temp.shape)
         import matplotlib.pyplot as plt
         print(image.shape)
 
@@ -64,7 +57,11 @@ def main():
         plt.savefig(os.path.join(FLAGS.visualize_dir,"img" + ".png"))
 
         V = Visualize(1,FLAGS.visualize_dir)
-        V.plot_feature_map(weight_name,model.predict(image))
+        fial,Middle = model.predict(image)
+        print(len(Middle))
+        for f in Middle:
+            print(f.shape)
+        V.plot_feature_map(weight_name,fial)
         break
 
 if __name__ == '__main__':

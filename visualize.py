@@ -21,7 +21,6 @@ class Visualize:
     def plot_feature_map(self,epoch,features):
         b,h,w,d= features.shape
         square = 10
-        print(b,d,h,w)
         ix = 1
         for i in range(square):
             for j in range(square):
@@ -29,7 +28,6 @@ class Visualize:
                 f = features[0,:,:,ix-1]
                 f_max = np.max(f)
                 f_min = np.min(f)
-                print(f_max,f_min)
                 f = (((f-f_min)/(f_max-f_min))*255.0).astype(np.uint8)
                 # f = np.resize(f,(100,100))
                 ax.set_xticks([])
