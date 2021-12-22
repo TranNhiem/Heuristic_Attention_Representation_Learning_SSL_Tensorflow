@@ -15,11 +15,14 @@ def read_cfg(mod="non_contrastive"):
     FLAGS.Encoder_block_strides = {'1':2,'2':1,'3':2,'4':2,'5':2}
     FLAGS.Encoder_block_channel_output = {'1':1,'2':1,'3':1,'4':1,'5':1}
 
+    FLAGS.base_lr = 0.3
+
     FLAGS.non_contrast_binary_loss = "sum_symetrize_l2_loss_object_backg_add_original"
     FLAGS.alpha = 1
     FLAGS.weighted_loss = 0.5
 
-    FLAGS.model_dir = "/shared_SSD_20TB/SSL_TEAM/check_point/resnet_byol/MNC_resnet18_28_28_Binary_loss_7_7_original_loss_alpha_1_beta_0_5"
+
+    FLAGS.model_dir = "/data1/share/resnet_byol/MNC_resnet18_28_28_Binary_loss_7_7_original_loss_alpha_1_beta_0_5"
 
 
 
