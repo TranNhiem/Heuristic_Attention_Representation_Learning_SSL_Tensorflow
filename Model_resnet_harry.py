@@ -722,7 +722,6 @@ class Resnet(tf.keras.models.Model):  # pylint: disable=missing-docstring
         for layer in self.initial_conv_relu_max_pool:
             inputs = layer(inputs, training=training)
         Middle_output = []
-
         if self.Middle_layer_output != None:
             if 1 in self.Middle_layer_output:
                 Middle_output.append(tf.identity(inputs))
@@ -734,6 +733,8 @@ class Resnet(tf.keras.models.Model):  # pylint: disable=missing-docstring
             if self.Middle_layer_output != None:
                 if i+2 in self.Middle_layer_output:
                     Middle_output.append(tf.identity(inputs))
+                    if FLAGS.original_loss_stop_gradient:
+                        inputs = tf.stop_gradient(inputs)
 
             # if FLAGS.original_loss_stop_gradient and FLAGS.Middle_layer_output-1 == i:
             #     inputs = tf.stop_gradient(inputs)

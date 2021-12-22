@@ -83,7 +83,7 @@ def wandb_set():
         "set the project name for wandb."
     )
     flags.DEFINE_string(
-        "wandb_run_name", "MNC_resnet18(14*14*512)_mask_original_loss_Beta_0_6_alpha_schedule",
+        "wandb_run_name", "MNC_resnet18(28*28*512)_mask_original_loss_Beta_0_5_alpha_1",
         "set the run name for wandb."
     )
     flags.DEFINE_enum(
@@ -195,7 +195,7 @@ def Encoder():
         'If it is bigger than 0, it will enable SE.')
 
     flags.DEFINE_enum(
-        "Middle_layer_output", 0, [0, 1, 2, 3, 4],
+        "Middle_layer_output", 3, [0, 1, 2, 3, 4],
         '''Get the feature map from middle layer,0 is mean don't get the middle layer feature map
         4 : 14*14 output
         3 : 28 *28 output
@@ -207,7 +207,7 @@ def Encoder():
         "Stop gradient with the encoder middle layer."
     )
     flags.DEFINE_dict(
-        "Encoder_block_strides", {'1': 2, '2': 1, '3': 2, '4': 2, '5': 1},
+        "Encoder_block_strides", {'1': 2, '2': 1, '3': 2, '4': 2, '5': 2},
         "control the part of the every block stride, it can control the out put size of feature map"
     )
     flags.DEFINE_dict(
@@ -329,12 +329,7 @@ def Configure_Saving_and_Restore_Model():
     # Saving Model
     flags = Mock_Flag()
     flags.DEFINE_string(
-<<<<<<< HEAD
-        #'model_dir', "/data1/check_point/resnet_byol/MNC_resnet18(14_14_512)_mask_original_loss_Beta_0_4_alpha_schedule",
-        'model_dir', "/shared_SSD_20TB/SSL_TEAM/check_point/resnet_byol/MNC_resnet18(14_14_512)_mask_original_loss_Beta_0_5_alpha_schedule",
-=======
-        'model_dir', "/data1/resnet_byol/MNC_resnet18(14_14_512)_mask_original_loss_Beta_0_6_alpha_schedule",
->>>>>>> 042c31fe7bbf80bb47d72ff0cd636b61f9e29d7c
+        'model_dir', "/shared_SSD_20TB/SSL_TEAM/check_point/resnet_byol/MNC_resnet18(28_28_512)_mask_original_loss_Beta_0_5_alpha_1",
         'Model directory for training.')
 
     flags.DEFINE_integer(

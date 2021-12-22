@@ -1,7 +1,6 @@
-from config.config_14_14_512_original_binary_loss import read_cfg
+from config.config_7_7_512_original_binary_loss import read_cfg
 
 import wandb
-
 from learning_rate_optimizer import WarmUpAndCosineDecay, CosineAnnealingDecayRestarts
 from helper_functions import *
 from byol_simclr_imagenet_data_harry import imagenet_dataset_single_machine

@@ -1,7 +1,7 @@
 from config.absl_mock import Mock_Flag
 
 
-def read_cfg(mod="non_contrastive"):
+def read_cfg_base(mod="non_contrastive"):
     flags = Mock_Flag()
     base_cfg()
     wandb_set()
@@ -56,12 +56,14 @@ def base_cfg():
 
     flags.DEFINE_string(
     #'train_path', "/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/ILSVRC2012_img_train",
-    'train_path', '/ai07_4TB/1K_New/train',
+    #'train_path', '/data1/share/1K_New/train',
+    'train_path', '/shared_SSD_20TB/SSL_TEAM/1K_New/train',
+
     'Train dataset path.')
 
     flags.DEFINE_string(
     # 'val_path',"/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/val",
-    'val_path','/ai07_4TB/1K_New/val',
+    'val_path','/shared_SSD_20TB/SSL_TEAM/1K_New/val',
     'Validaion dataset path.')
 
     # Mask_folder should locate in location and same level of train folder
@@ -180,7 +182,7 @@ def Encoder():
         'Multiplier to change width of network.')
 
     flags.DEFINE_integer(
-        'resnet_depth', 50,
+        'resnet_depth', 18,
         'Depth of ResNet.')
 
     flags.DEFINE_float(
@@ -192,19 +194,22 @@ def Encoder():
         'If it is bigger than 0, it will enable SE.')
 
     flags.DEFINE_enum(
-        "Middle_layer_output",0,[0,1,2,3,4],
-        '''Get the feature map from middle layer,0 is mean don't get the middle layer feature map
-        4 : 14*14 output
-        3 : 28 *28 output
-        2 : 56*56 output
-        1 : unsupported now'''
+        "Middle_layer_output",None,[None,1,2,3,4,5],
+        '''Get the feature map from middle layer,None is mean don't get the middle layer feature map
+        if the final output is 7*7, the output size id follow this:
+            5 : 7*7 output(conv5_x)
+            4 : 14*14 output(conv4_x)
+            3 : 28 *28 output(conv3_x)
+            2 : 56*56 output(conv2_x)
+            1 : 56*56 output(conv2_x,but only do the maxpooling)
+        detail pleas follow https://miro.medium.com/max/1124/1*_W7yvHGEv40LHHFzRnpWKQ.png '''
     )
     flags.DEFINE_boolean(
         "original_loss_stop_gradient",False,
         "Stop gradient with the encoder middle layer."
     )
     flags.DEFINE_dict(
-        "Encoder_block_strides",{'1':2,'2':1,'3':1,'4':1,'5':1},
+        "Encoder_block_strides",{'1':2,'2':1,'3':2,'4':2,'5':2},
         "control the part of the every block stride, it can control the out put size of feature map"
     )
     flags.DEFINE_dict(
