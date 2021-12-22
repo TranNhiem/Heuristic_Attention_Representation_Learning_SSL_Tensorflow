@@ -75,7 +75,6 @@ def base_cfg():
         'val_label', "ILSVRC2012_validation_ground_truth.txt",
         'val_label.')
 
-
 def wandb_set():
     flags = Mock_Flag()
     flags.DEFINE_string(
@@ -83,13 +82,12 @@ def wandb_set():
         "set the project name for wandb."
     )
     flags.DEFINE_string(
-        "wandb_run_name", "MNC_resnet18(14*14*256)_mask_original_loss_Beta_0_5_alpha_1",
+        "wandb_run_name", "MNC_resnet18(14*14*256)_mask_original_loss_Beta_0_5_alpha_schedule",
         "set the run name for wandb."
     )
     flags.DEFINE_enum(
         'wandb_mod', 'run', ['run', 'dryrun'],
         'update the to the wandb server or not')
-
 
 def Linear_Evaluation():
     flags = Mock_Flag()
@@ -110,7 +108,6 @@ def Linear_Evaluation():
     flags.DEFINE_float(
         'randaug_magnitude', 7,
         'Number of augmentation transformations.')
-
 
 def Learning_Rate_Optimizer_and_Training_Strategy():
     flags = Mock_Flag()
@@ -167,7 +164,6 @@ def Learning_Rate_Optimizer_and_Training_Strategy():
 
     flags.DEFINE_float('weight_decay', 1e-6, 'Amount of weight decay to use.')
 
-
 def Encoder():
     flags = Mock_Flag()
     flags.DEFINE_boolean(
@@ -215,7 +211,6 @@ def Encoder():
             '1': 1, '2': 1, '3': 1, '4': 1, '5': 1},
         "control the part of the every block channel output.,"
     )
-
 
 def Projection_and_Prediction_head():
 
@@ -277,7 +272,6 @@ def Projection_and_Prediction_head():
         'encoder out put do the upsample or mask do the downsample'
     )
 
-
 def Configure_Model_Training():
     # Self-Supervised training and Supervised training mode
     flags = Mock_Flag()
@@ -324,12 +318,11 @@ def Configure_Model_Training():
         'everything. 0 means fine-tuning after stem block. 4 means fine-tuning '
         'just the linear head.')
 
-
 def Configure_Saving_and_Restore_Model():
     # Saving Model
     flags = Mock_Flag()
     flags.DEFINE_string(
-        'model_dir', "/data1/share/check_point/resnet_byol/MNC_resnet18(14_14_256)_mask_original_loss_Beta_0_5_alpha_1",
+        'model_dir', "/data1/share/check_point/resnet_byol/MNC_resnet18(14_14_256)_mask_original_loss_Beta_0_5_alpha_schedule",
         'Model directory for training.')
 
     flags.DEFINE_integer(
@@ -355,7 +348,6 @@ def Configure_Saving_and_Restore_Model():
     flags.DEFINE_integer(
         'checkpoint_steps', 10,
         'Number of steps between checkpoints/summaries. If provided, overrides checkpoint_epochs.')
-
 
 def non_contrastive_cfg():
     Linear_Evaluation()
