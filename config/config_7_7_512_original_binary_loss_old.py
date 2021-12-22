@@ -122,7 +122,7 @@ def Learning_Rate_Optimizer_and_Training_Strategy():
     )
     # Warmup Cosine Learning Rate Scheudle Configure
     flags.DEFINE_float(
-        'base_lr', 0.3,
+        'base_lr', 0.5,
         'Initial learning rate per batch size of 256.')
 
     flags.DEFINE_integer(
