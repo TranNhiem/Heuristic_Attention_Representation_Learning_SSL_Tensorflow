@@ -19,7 +19,7 @@ def read_cfg(mod="non_contrastive"):
     FLAGS.alpha = 1
     FLAGS.weighted_loss = 0.5
 
-    FLAGS.model_dir = "/data1/share/resnet_byol/MNC_resnet18_28_28_Binary_loss_7_7_original_loss_alpha_1_beta_0_5"
+    FLAGS.model_dir = "/shared_SSD_20TB/SSL_TEAM/check_point/resnet_byol/MNC_resnet18_28_28_Binary_loss_7_7_original_loss_alpha_1_beta_0_5"
 
 
 
