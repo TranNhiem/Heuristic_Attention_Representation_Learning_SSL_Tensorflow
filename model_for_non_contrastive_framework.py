@@ -801,8 +801,13 @@ class Binary_online_model(tf.keras.models.Model):
         self.magnification = 1
         # Encoder
         if Backbone == "Resnet":
-            self.encoder = resnet_modify(resnet_depth=FLAGS.resnet_depth,
-                                         width_multiplier=FLAGS.width_multiplier)
+            if FLAGS.Middle_layer_output == None:
+                self.encoder = resnet_modify(resnet_depth=FLAGS.resnet_depth,
+                                             width_multiplier=FLAGS.width_multiplier)
+            else:
+                self.encoder = resnet_modify(resnet_depth=FLAGS.resnet_depth,
+                                             width_multiplier=FLAGS.width_multiplier,
+                                             Middle_layer_output = [FLAGS.Middle_layer_output])
         else:
             raise ValueError(f"Didn't have this {Backbone} model")
 
@@ -841,18 +846,13 @@ class Binary_online_model(tf.keras.models.Model):
                              f'(got input shape {inputs.shape})')
 
         # Base network forward pass
-        org_feature_map = None
-        if FLAGS.Middle_layer_output == 0:
+        final_feature_map = None
+        if FLAGS.Middle_layer_output == None:
             feature_map = self.encoder(inputs, training=training)
             print("feature_map output size : ", feature_map.shape)
         else:
-            org_feature_map, feature_map = self.encoder(inputs, training=training)
-            # return feature_map '9
-        if FLAGS.visualize:
-            # from visualize import Visualize
-            # V = Visualize(1, FLAGS.visualize_dir)
-            # V.plot_feature_map("test", feature_map)
-            return feature_map
+            final_feature_map, feature_map = self.encoder(inputs, training=training)
+            feature_map = feature_map[0]
 
         if self.Upsample:
             # Pixel shuffle
@@ -865,8 +865,6 @@ class Binary_online_model(tf.keras.models.Model):
             if FLAGS.visualize:
                 return feature_map
 
-        #print("feature_map_upsample", feature_map_upsample.shape)
-
         # Add heads
         if FLAGS.train_mode == 'pretrain':
             # object and background indexer
@@ -876,10 +874,10 @@ class Binary_online_model(tf.keras.models.Model):
             back, _ = self.projection_head(self.downsample_layear(back,self.magnification)
                                           , training=training)
 
-        if org_feature_map != None and FLAGS.non_contrast_binary_loss == "sum_symetrize_l2_loss_object_backg_add_original":
-            org_feature_map = self.downsample_layear(org_feature_map,self.magnification)
-            print(org_feature_map.shape)
-            projection_head_outputs, supervised_head_inputs = self.full_image_projection_head(org_feature_map, training=training)
+        if final_feature_map != None and FLAGS.non_contrast_binary_loss == "sum_symetrize_l2_loss_object_backg_add_original":
+            final_feature_map = self.downsample_layear(final_feature_map,self.magnification)
+            print(final_feature_map.shape)
+            projection_head_outputs, supervised_head_inputs = self.full_image_projection_head(final_feature_map, training=training)
         else:
             projection_head_outputs, supervised_head_inputs = self.projection_head(self.downsample_layear(feature_map_upsample,self.magnification)
                                                                                , training=training)
@@ -917,8 +915,13 @@ class Binary_target_model(tf.keras.models.Model):
         self.magnification = 1
         # Encoder
         if Backbone == "Resnet":
-            self.encoder = resnet_modify(resnet_depth=FLAGS.resnet_depth,
-                                         width_multiplier=FLAGS.width_multiplier)
+            if FLAGS.Middle_layer_output == None:
+                self.encoder = resnet_modify(resnet_depth=FLAGS.resnet_depth,
+                                             width_multiplier=FLAGS.width_multiplier)
+            else:
+                self.encoder = resnet_modify(resnet_depth=FLAGS.resnet_depth,
+                                             width_multiplier=FLAGS.width_multiplier,
+                                             Middle_layer_output = [FLAGS.Middle_layer_output])
         else:
             raise ValueError(f"Didn't have this {Backbone} model")
 
@@ -957,13 +960,13 @@ class Binary_target_model(tf.keras.models.Model):
                              f'(got input shape {inputs.shape})')
 
         # Base network forward pass
-        org_feature_map = None
-        if FLAGS.Middle_layer_output == 0:
+        final_feature_map = None
+        if FLAGS.Middle_layer_output == None:
             feature_map = self.encoder(inputs, training=training)
+            print("feature_map output size : ", feature_map.shape)
         else:
-            org_feature_map, feature_map = self.encoder(inputs, training=training)
-            print("Middle output size : ",feature_map.shape)
-
+            final_feature_map, feature_map = self.encoder(inputs, training=training)
+            feature_map = feature_map[0]
 
         # Pixel shuffle
         if self.Upsample:
@@ -986,10 +989,10 @@ class Binary_target_model(tf.keras.models.Model):
             #     self.visualize.plot_feature_map("obj",obj)
             #     self.visualize.plot_feature_map("back",obj)
 
-        if org_feature_map != None and FLAGS.non_contrast_binary_loss == "sum_symetrize_l2_loss_object_backg_add_original":
-            org_feature_map = self.downsample_layear(org_feature_map,self.magnification)
-            print(org_feature_map.shape)
-            projection_head_outputs, supervised_head_inputs = self.full_image_projection_head(org_feature_map, training=training)
+        if final_feature_map != None and FLAGS.non_contrast_binary_loss == "sum_symetrize_l2_loss_object_backg_add_original":
+            final_feature_map = self.downsample_layear(final_feature_map,self.magnification)
+            print(final_feature_map.shape)
+            projection_head_outputs, supervised_head_inputs = self.full_image_projection_head(final_feature_map, training=training)
         else:
             projection_head_outputs, supervised_head_inputs = self.projection_head(self.downsample_layear(feature_map_upsample,self.magnification)
                                                                                , training=training)
