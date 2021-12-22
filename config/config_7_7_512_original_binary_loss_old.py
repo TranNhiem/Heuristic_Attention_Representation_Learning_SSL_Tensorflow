@@ -54,12 +54,12 @@ def base_cfg():
 
     flags.DEFINE_string(
         #'train_path', "/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/ILSVRC2012_img_train",
-        'train_path', '/shared_SSD_20TB/SSL_TEAM/1K_New/train',
+        'train_path', '/data1/share/1K_New/train',
         'Train dataset path.')
 
     flags.DEFINE_string(
         # 'val_path',"/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/val",
-        'val_path', '/shared_SSD_20TB/SSL_TEAM/1K_New/val',
+        'val_path', '/data1/share/1K_New/val',
         'Validaion dataset path.')
 
     # Mask_folder should locate in location and same level of train folder
@@ -83,7 +83,7 @@ def wandb_set():
         "set the project name for wandb."
     )
     flags.DEFINE_string(
-        "wandb_run_name", "MNC_resnet18(14*14*512)_mask_original_loss_Beta_0_5_alpha_1",
+        "wandb_run_name", "MNC_resnet18(28*28*512)_mask_original_loss_Beta_0_5_alpha_1",
         "set the run name for wandb."
     )
     flags.DEFINE_enum(
@@ -122,7 +122,7 @@ def Learning_Rate_Optimizer_and_Training_Strategy():
     )
     # Warmup Cosine Learning Rate Scheudle Configure
     flags.DEFINE_float(
-        'base_lr', 0.5,
+        'base_lr', 0.3,
         'Initial learning rate per batch size of 256.')
 
     flags.DEFINE_integer(
@@ -195,7 +195,7 @@ def Encoder():
         'If it is bigger than 0, it will enable SE.')
 
     flags.DEFINE_enum(
-        "Middle_layer_output", 4, [0, 1, 2, 3, 4],
+        "Middle_layer_output", 3, [0, 1, 2, 3, 4],
         '''Get the feature map from middle layer,0 is mean don't get the middle layer feature map
         4 : 14*14 output
         3 : 28 *28 output
@@ -309,7 +309,7 @@ def Configure_Model_Training():
     )
     flags.DEFINE_float(
         # Weighted loss is the scaling term between  [weighted_loss]*Binary & [1-weighted_loss]*original contrastive loss)
-        'weighted_loss', 0.6,
+        'weighted_loss', 0.5,
         'weighted_loss value is configuration the weighted of original and Binary contrastive loss.'
     )
     # Fine Tuning configure
@@ -329,7 +329,7 @@ def Configure_Saving_and_Restore_Model():
     # Saving Model
     flags = Mock_Flag()
     flags.DEFINE_string(
-        'model_dir', "/data1/share/check_point/resnet_byol/MNC_resnet18(14_14_512)_mask_original_loss_Beta_0_5_alpha_1",
+        'model_dir', "/data1/share/check_point/resnet_byol/MNC_resnet18(28_28_512)_mask_original_loss_Beta_0_5_alpha_1",
         'Model directory for training.')
 
     flags.DEFINE_integer(
