@@ -83,7 +83,7 @@ def wandb_set():
         "set the project name for wandb."
     )
     flags.DEFINE_string(
-        "wandb_run_name", "MNC_resnet18(28*28*512)_mask_original_loss_Beta_0_5_alpha_1",
+        "wandb_run_name", "MNC_resnet18(56*56*512)_mask_original_loss_Beta_0_5_alpha_1",
         "set the run name for wandb."
     )
     flags.DEFINE_enum(
@@ -195,7 +195,7 @@ def Encoder():
         'If it is bigger than 0, it will enable SE.')
 
     flags.DEFINE_enum(
-        "Middle_layer_output", 3, [0, 1, 2, 3, 4],
+        "Middle_layer_output", 2, [0, 1, 2, 3, 4],
         '''Get the feature map from middle layer,0 is mean don't get the middle layer feature map
         4 : 14*14 output
         3 : 28 *28 output
@@ -329,7 +329,7 @@ def Configure_Saving_and_Restore_Model():
     # Saving Model
     flags = Mock_Flag()
     flags.DEFINE_string(
-        'model_dir', "/data1/share/check_point/resnet_byol/MNC_resnet18(28_28_512)_mask_original_loss_Beta_0_5_alpha_1",
+        'model_dir', "/data1/share/check_point/resnet_byol/MNC_resnet18(56_56_512)_mask_original_loss_Beta_0_5_alpha_1",
         'Model directory for training.')
 
     flags.DEFINE_integer(
