@@ -18,7 +18,7 @@ from self_supervised_losses import byol_symetrize_loss, symetrize_l2_loss_object
 import model_for_non_contrastive_framework as all_model
 from visualize import Visualize
 
-from config.config_14_14_512 import read_cfg
+from config.config_7_7_512 import read_cfg
 read_cfg()
 from config.absl_mock import Mock_Flag
 flag = Mock_Flag()

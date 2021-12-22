@@ -853,6 +853,8 @@ class Binary_online_model(tf.keras.models.Model):
         else:
             final_feature_map, feature_map = self.encoder(inputs, training=training)
             feature_map = feature_map[0]
+            print("middle_map output size : ", feature_map.shape)
+            print("final_feature_map output size : ", final_feature_map.shape)
 
         if self.Upsample:
             # Pixel shuffle
@@ -967,6 +969,8 @@ class Binary_target_model(tf.keras.models.Model):
         else:
             final_feature_map, feature_map = self.encoder(inputs, training=training)
             feature_map = feature_map[0]
+            print("middle_map output size : ", feature_map.shape)
+            print("final_feature_map output size : ", final_feature_map.shape)
 
         # Pixel shuffle
         if self.Upsample:

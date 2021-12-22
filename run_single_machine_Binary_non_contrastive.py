@@ -1,4 +1,4 @@
-from config.config_14_14_512_original_binary_loss import read_cfg
+from config.config_7_7_512_original_binary_loss import read_cfg
 
 import wandb
 

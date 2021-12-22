@@ -39,17 +39,6 @@ class Visualize:
         print("save in : ",os.path.join(self.visualize_dir,str(epoch)+".png"))
 
 
-from config.config import read_cfg
-read_cfg()
-from config.absl_mock import Mock_Flag
-flag = Mock_Flag()
-FLAGS = flag.FLAGS
-
-if __name__ == '__main__':
-    from helper_functions import *
-    from byol_simclr_imagenet_data_harry import imagenet_dataset_single_machine
-    import model_for_non_contrastive_framework as all_model
-
 
 
 
