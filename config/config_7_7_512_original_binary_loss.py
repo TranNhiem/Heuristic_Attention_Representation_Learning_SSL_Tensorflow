@@ -7,9 +7,9 @@ def read_cfg(mod="non_contrastive"):
     FLAGS = flag.FLAGS
 
     FLAGS.wandb_project_name = "heuristic_attention_representation_learning_v1"
-    FLAGS.wandb_run_name = "MNC_resnet18_28_28_Binary_loss_7_7_original_loss_alpha_schedule_beta_0_5"
+    FLAGS.wandb_run_name = "MNC_resnet18_56_56_Binary_loss_7_7_original_loss_alpha_schedule_beta_0_5"
 
-    FLAGS.Middle_layer_output = 3
+    FLAGS.Middle_layer_output = 2
     FLAGS.original_loss_stop_gradient = False
     FLAGS.Encoder_block_strides = {'1':2,'2':1,'3':2,'4':2,'5':2}
     FLAGS.Encoder_block_channel_output = {'1':1,'2':1,'3':1,'4':1,'5':1}
@@ -21,7 +21,7 @@ def read_cfg(mod="non_contrastive"):
     FLAGS.weighted_loss = 0.5
 
 
-    FLAGS.model_dir = "/data1/share/resnet_byol/MNC_resnet18_28_28_Binary_loss_7_7_original_loss_alpha_schedule_beta_0_5"
+    FLAGS.model_dir = "/data1/share/resnet_byol/MNC_resnet18_56_56_Binary_loss_7_7_original_loss_alpha_schedule_beta_0_5"
 
 
 
