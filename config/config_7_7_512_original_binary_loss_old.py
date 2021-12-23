@@ -54,12 +54,12 @@ def base_cfg():
 
     flags.DEFINE_string(
         #'train_path', "/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/ILSVRC2012_img_train",
-        'train_path', '/data1/1K_New/train',
+        'train_path', '/data1/share/1K_New/train',
         'Train dataset path.')
 
     flags.DEFINE_string(
         # 'val_path',"/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/val",
-        'val_path', '/data1/1K_New/val',
+        'val_path', '/data1/share/1K_New/val',
         'Validaion dataset path.')
 
     # Mask_folder should locate in location and same level of train folder
@@ -75,7 +75,6 @@ def base_cfg():
         'val_label', "ILSVRC2012_validation_ground_truth.txt",
         'val_label.')
 
-
 def wandb_set():
     flags = Mock_Flag()
     flags.DEFINE_string(
@@ -83,13 +82,12 @@ def wandb_set():
         "set the project name for wandb."
     )
     flags.DEFINE_string(
-        "wandb_run_name", "MNC_resnet18(28*28*512)_mask_original_loss_Beta_0_5_alpha_1",
+        "wandb_run_name", "MNC_resnet18(14*14*256)_mask_original_loss_Beta_0_5_alpha_schedule",
         "set the run name for wandb."
     )
     flags.DEFINE_enum(
         'wandb_mod', 'run', ['run', 'dryrun'],
         'update the to the wandb server or not')
-
 
 def Linear_Evaluation():
     flags = Mock_Flag()
@@ -110,7 +108,6 @@ def Linear_Evaluation():
     flags.DEFINE_float(
         'randaug_magnitude', 7,
         'Number of augmentation transformations.')
-
 
 def Learning_Rate_Optimizer_and_Training_Strategy():
     flags = Mock_Flag()
@@ -167,7 +164,6 @@ def Learning_Rate_Optimizer_and_Training_Strategy():
 
     flags.DEFINE_float('weight_decay', 1e-6, 'Amount of weight decay to use.')
 
-
 def Encoder():
     flags = Mock_Flag()
     flags.DEFINE_boolean(
@@ -195,7 +191,7 @@ def Encoder():
         'If it is bigger than 0, it will enable SE.')
 
     flags.DEFINE_enum(
-        "Middle_layer_output", 3, [0, 1, 2, 3, 4],
+        "Middle_layer_output", 4, [0, 1, 2, 3, 4],
         '''Get the feature map from middle layer,0 is mean don't get the middle layer feature map
         4 : 14*14 output
         3 : 28 *28 output
@@ -215,7 +211,6 @@ def Encoder():
             '1': 1, '2': 1, '3': 1, '4': 1, '5': 1},
         "control the part of the every block channel output.,"
     )
-
 
 def Projection_and_Prediction_head():
 
@@ -277,7 +272,6 @@ def Projection_and_Prediction_head():
         'encoder out put do the upsample or mask do the downsample'
     )
 
-
 def Configure_Model_Training():
     # Self-Supervised training and Supervised training mode
     flags = Mock_Flag()
@@ -309,7 +303,7 @@ def Configure_Model_Training():
     )
     flags.DEFINE_float(
         # Weighted loss is the scaling term between  [weighted_loss]*Binary & [1-weighted_loss]*original contrastive loss)
-        'weighted_loss', 0.6,
+        'weighted_loss', 0.5,
         'weighted_loss value is configuration the weighted of original and Binary contrastive loss.'
     )
     # Fine Tuning configure
@@ -324,12 +318,11 @@ def Configure_Model_Training():
         'everything. 0 means fine-tuning after stem block. 4 means fine-tuning '
         'just the linear head.')
 
-
 def Configure_Saving_and_Restore_Model():
     # Saving Model
     flags = Mock_Flag()
     flags.DEFINE_string(
-        'model_dir', "/data1/resnet_byol/MNC_resnet18(14_14_512)_mask_original_loss_Beta_0_5_alpha_1",
+        'model_dir', "/data1/share/check_point/resnet_byol/MNC_resnet18(14_14_256)_mask_original_loss_Beta_0_5_alpha_schedule",
         'Model directory for training.')
 
     flags.DEFINE_integer(
@@ -355,7 +348,6 @@ def Configure_Saving_and_Restore_Model():
     flags.DEFINE_integer(
         'checkpoint_steps', 10,
         'Number of steps between checkpoints/summaries. If provided, overrides checkpoint_epochs.')
-
 
 def non_contrastive_cfg():
     Linear_Evaluation()
