@@ -1,14 +1,13 @@
 from config.absl_mock import Mock_Flag
 from config.config import read_cfg_base
 
-
 def read_cfg(mod="non_contrastive"):
     read_cfg_base(mod)
     flag = Mock_Flag()
     FLAGS = flag.FLAGS
 
     FLAGS.wandb_project_name = "heuristic_attention_representation_learning_v1"
-    FLAGS.wandb_run_name = "MNC_resnet18_28_28_Binary_loss_7_7_original_loss_alpha_1_beta_0_5"
+    FLAGS.wandb_run_name = "MNC_resnet18_28_28_Binary_loss_7_7_original_loss_alpha_schedule_beta_0_5"
 
     FLAGS.Middle_layer_output = 3
     FLAGS.original_loss_stop_gradient = False
@@ -22,7 +21,7 @@ def read_cfg(mod="non_contrastive"):
     FLAGS.weighted_loss = 0.5
 
 
-    FLAGS.model_dir = "/data1/share/resnet_byol/MNC_resnet18_28_28_Binary_loss_7_7_original_loss_alpha_1_beta_0_5"
+    FLAGS.model_dir = "/data1/share/resnet_byol/MNC_resnet18_28_28_Binary_loss_7_7_original_loss_alpha_schedule_beta_0_5"
 
 
 

@@ -38,11 +38,11 @@ def base_cfg():
     'random seed for spliting data the same for all the run with the same validation dataset.')
 
     flags.DEFINE_integer(
-    'train_batch_size', 200,
+    'train_batch_size', 128,
     'Train batch_size .')
 
     flags.DEFINE_integer(
-    'val_batch_size', 200,
+    'val_batch_size', 128,
     'Validaion_Batch_size.')
 
     flags.DEFINE_integer(
@@ -50,20 +50,20 @@ def base_cfg():
     'Number of epochs to train for.')
 
     flags.DEFINE_integer(
-    'num_classes', 200,
+    'num_classes', 100,
     'Number of class in training data.')
 
 
     flags.DEFINE_string(
     #'train_path', "/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/ILSVRC2012_img_train",
     #'train_path', '/data1/share/1K_New/train',
-    'train_path', '/shared_SSD_20TB/SSL_TEAM/1K_New/train',
+    'train_path', '/data1/1K_New/train',
 
     'Train dataset path.')
 
     flags.DEFINE_string(
     # 'val_path',"/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/val",
-    'val_path','/shared_SSD_20TB/SSL_TEAM/1K_New/val',
+    'val_path','/data1/1K_New/val',
     'Validaion dataset path.')
 
     # Mask_folder should locate in location and same level of train folder
