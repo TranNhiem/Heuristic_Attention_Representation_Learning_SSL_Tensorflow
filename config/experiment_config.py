@@ -7,7 +7,7 @@ def read_cfg(mod="non_contrastive"):
     FLAGS = flag.FLAGS
 
     FLAGS.wandb_project_name = "heuristic_attention_representation_learning_Paper"
-    FLAGS.wandb_run_name = "Baseline_(7_7_2048)_100epoch"
+    FLAGS.wandb_run_name = "Baseline_(7_7_2048)_200epoch"
 
     FLAGS.Middle_layer_output = None
     FLAGS.original_loss_stop_gradient = False
@@ -20,14 +20,14 @@ def read_cfg(mod="non_contrastive"):
     FLAGS.alpha = 1
     FLAGS.weighted_loss = 0.5
     FLAGS.resnet_depth = 50
-    FLAGS.train_epochs = 100
+    FLAGS.train_epochs = 200
     FLAGS.num_classes = 1000
 
     FLAGS.train_batch_size = 128
     FLAGS.val_batch_size = 128
 
 
-    FLAGS.model_dir = "/data1/share/resnet_byol/restnet50/Baseline_(7_7_2048)_100epoch"
+    FLAGS.model_dir = "/data1/share/resnet_byol/restnet50/Baseline_(7_7_2048)_200epoch"
 
 
 
