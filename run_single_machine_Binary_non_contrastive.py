@@ -215,6 +215,14 @@ def main():
                 images_mask_one, lable_1, = ds_one  # lable_one
                 images_mask_two, lable_2,  = ds_two  # lable_two
 
+                '''
+                Attention to Symetrize the loss --> Need to switch image_1, image_2 to (Online -- Target Network)
+                loss 1= L2_loss*[online_model(image1), target_model(image_2)]
+                loss 2=  L2_loss*[online_model(image2), target_model(image_1)]
+                symetrize_loss= (loss 1+ loss_2)/ 2
+
+                '''
+                ### Currently Our Loss function is Asymetrize L2_Loss 
                 with tf.GradientTape(persistent=True) as tape:
 
                     obj_1, backg_1,  proj_head_output_1, supervised_head_output_1 = online_model(
