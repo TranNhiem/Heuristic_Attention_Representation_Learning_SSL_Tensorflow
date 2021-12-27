@@ -264,9 +264,10 @@ def main():
                             obj_1, obj_2,  backg_1, backg_2, proj_head_output_1, proj_head_output_2, alpha, weight_loss)
                         
                         # Loss of the image 2, 1 --> Online, Target Encoder
-                        loss_2, logits_o_ab, labels = distributed_loss(
+                        loss_2, logits_o_ab_2, labels_2 = distributed_loss(
                             obj_2_online, obj_1_target,  backg_2_online, backg_1_target, proj_head_output_2_online, proj_head_output_1_target, alpha, weight_loss)
                         
+                        ## Total loss 
                         loss= (loss_1+ loss_2)/2
 
                         if loss is None:
