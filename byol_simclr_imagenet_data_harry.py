@@ -3,7 +3,7 @@ import os
 import tensorflow as tf
 from imutils import paths
 from byol_simclr_multi_croping_augmentation import simclr_augment_randcrop_global_views, simclr_augment_inception_style, \
-    supervised_augment_eval, simclr_augment_randcrop_global_view_image_mask, simclr_augment_inception_style_image_mask
+    supervised_augment_eval, simclr_augment_randcrop_global_view_image_mask, simclr_augment_inception_style_image_mask,simclr_augment_inception_style_image_mask_tf_py,simclr_augment_randcrop_global_view_image_mask_tf_py
 from absl import logging
 import numpy as np
 import random
@@ -353,6 +353,32 @@ class imagenet_dataset_single_machine():
 
         return train_ds
 
+    def simclr_inception_style_crop_image_mask_interleave_tf_py_function(self):
+    
+        ds = (tf.data.Dataset.from_tensor_slices((self.x_train_image_mask, self.x_train_lable)))\
+            .shuffle(self.BATCH_SIZE * 100, seed=self.seed)\
+            .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)),num_parallel_calls=AUTO).cache()
+
+ 
+        train_ds_one = ds.interleave( lambda x, y, z:  tf.py_functions(func=simclr_augment_inception_style_image_mask_tf_py, inp=[x, y, self.IMG_SIZE, z],Tout=tf.float32),  cycle_length=10, block_length=16),
+                             
+                             .batch(self.BATCH_SIZE).prefetch(AUTO)
+
+
+
+        train_ds_two = ds.interleave( lambda x, y, z:  tf.py_functions(func=simclr_augment_inception_style_image_mask_tf_py, inp=[x, y, self.IMG_SIZE, z],Tout=tf.float32),  cycle_length=10, block_length=16),
+                             
+                             .batch(self.BATCH_SIZE).prefetch(AUTO)
+
+        train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
+        # train_ds=train_ds.batch(self.BATCH_SIZE)
+        # train_ds=train_ds.prefetch(AUTO)
+        train_ds = self.strategy.experimental_distribute_dataset(train_ds)
+        # train_ds = train_ds.batch(self.BATCH_SIZE)
+        # # 2. modify dataset with prefetch
+        # train_ds = train_ds.prefetch(AUTO)
+
+        return train_ds
 
     def simclr_random_global_crop_image_mask(self):
 

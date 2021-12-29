@@ -436,7 +436,6 @@ def simclr_augment_inception_style(image, IMG_SIZE):
     return image
 # @tf.function
 
-
 def simclr_augment_randcrop_global_view_image_mask(image, mask, IMG_SIZE):
 
     min_scale = 0.5
@@ -481,6 +480,53 @@ def simclr_augment_inception_style_image_mask(image, mask, IMG_SIZE):
     image = random_apply(random_blur, p=1.0, x=image,)
     mask = mask/255.
     return image, mask
+
+
+
+def simclr_augment_randcrop_global_view_image_mask_tf_py(image, mask, IMG_SIZE, z):
+
+    min_scale = 0.5
+    max_scale = 1.0
+
+    stacked_image = tf.concat([image, mask], axis=2)
+    # print(stacked_image.shape)
+
+    stacked_image = rand_distribe_crop_global_local_views_flip(
+        stacked_image, IMG_SIZE,  min_scale, max_scale, high_resol=True)
+    image = stacked_image[:, :, 0:3]
+    mask = stacked_image[:, :, 3]
+    # print(image.shape)
+    # print(mask.shape)
+    # image=rand_distribe_crop_global_local_views_flip(image, IMG_SIZE,  min_scale, max_scale, high_resol=True)
+    # mask=  rand_distribe_crop_global_local_views_flip(mask, IMG_SIZE,  min_scale, max_scale, high_resol=True)
+    # image= stacked_image[:,:,0:3]
+    image = random_apply(color_jitter, p=0.8, x=image, )
+    image = random_apply(color_drop, p=0.2, x=image, )
+    image = random_apply(random_blur, p=1.0, x=image,)
+    mask = mask/255.
+    return image, mask, z
+
+
+def simclr_augment_inception_style_image_mask_tf_py(image, mask, IMG_SIZE, z):
+    # IMG_SIZE=IMG_SIZE
+    # As discussed in the SimCLR paper, the series of augmentation
+    # transformations (except for random crops) need to be applied
+    # randomly to impose translational invariance. (Two Options implementation)
+    #image= flip_random_crop(image, crop_size)
+
+    stacked_image = tf.concat([image, mask], axis=2)
+    stacked_image = inception_style_croping(stacked_image, IMG_SIZE, IMG_SIZE)
+    # print(stacked_image.shape)
+
+    image = stacked_image[:, :, 0:3]
+    mask = stacked_image[:, :, 3]
+    # image =inception_style_croping(image, IMG_SIZE, IMG_SIZE)
+    # mask =inception_style_croping(mask, IMG_SIZE, IMG_SIZE)
+    image = random_apply(color_jitter, p=0.8, x=image, )
+    image = random_apply(color_drop, p=0.2, x=image, )
+    image = random_apply(random_blur, p=1.0, x=image,)
+    mask = mask/255.
+    return image, mask, z
 
 
 # *****************************************************
