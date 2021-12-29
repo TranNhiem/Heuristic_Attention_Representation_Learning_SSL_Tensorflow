@@ -192,9 +192,8 @@ class imagenet_dataset_single_machine():
         val_ds = (tf.data.Dataset.from_tensor_slices((self.x_val, self.x_val_lable))
                   .shuffle(self.val_batch * 100, seed=self.seed)
                   .map(lambda x, y: (self.parse_images_lable_pair(x, y)), num_parallel_calls=AUTO)
-
                   .map(lambda x, y: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE)), y),
-                       num_parallel_calls=AUTO,).cache() 
+                       num_parallel_calls=AUTO,).cache()
                   .map(lambda x, y:(
         supervised_augment_eval(x, FLAGS.IMG_height, FLAGS.IMG_width, FLAGS.randaug_transform, FLAGS.randaug_magnitude),
         y), num_parallel_calls=AUTO)
@@ -283,28 +282,37 @@ class imagenet_dataset_single_machine():
 
     def simclr_inception_style_crop_image_mask(self):
 
-        train_ds_one = (tf.data.Dataset.from_tensor_slices((self.x_train_image_mask, self.x_train_lable))
-                        .shuffle(self.BATCH_SIZE * 100, seed=self.seed)
-                        # .map(self.parse_images_label,  num_parallel_calls=AUTO)
-                        .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)),
-                             num_parallel_calls=AUTO).cache(),
-                        .map(lambda x, y, z: (simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z),
-                             num_parallel_calls=AUTO)
-                        .batch(self.BATCH_SIZE)
-                        .prefetch(AUTO)
-                        )
+        ds = (tf.data.Dataset.from_tensor_slices((self.x_train_image_mask, self.x_train_lable)))\
+            .shuffle(self.BATCH_SIZE * 100, seed=self.seed)\
+            .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)),num_parallel_calls=AUTO).cache()
 
-        train_ds_two = (tf.data.Dataset.from_tensor_slices((self.x_train_image_mask, self.x_train_lable))
-                        .shuffle(self.BATCH_SIZE * 100, seed=self.seed)
-                        # .map(self.parse_images_label,  num_parallel_calls=AUTO)
-                        .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)),
-                             num_parallel_calls=AUTO).cache(),
-                        .map(lambda x, y, z: (simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z),
-                             num_parallel_calls=AUTO)
-                        .batch(self.BATCH_SIZE)
-                        .prefetch(AUTO)
-                        )
+        # train_ds_one = (tf.data.Dataset.from_tensor_slices((self.x_train_image_mask, self.x_train_lable))
+        #                 .shuffle(self.BATCH_SIZE * 100, seed=self.seed)
+        #                 # .map(self.parse_images_label,  num_parallel_calls=AUTO)
+        #                 .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)),
+        #                      num_parallel_calls=AUTO).cache()
+        #                 .map(lambda x, y, z: (simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z),
+        #                      num_parallel_calls=AUTO)
+        #                 .batch(self.BATCH_SIZE)
+        #                 .prefetch(AUTO)
+        #                 )
+        #
+        # train_ds_two = (tf.data.Dataset.from_tensor_slices((self.x_train_image_mask, self.x_train_lable))
+        #                 .shuffle(self.BATCH_SIZE * 100, seed=self.seed)
+        #                 # .map(self.parse_images_label,  num_parallel_calls=AUTO)
+        #                 .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)),
+        #                      num_parallel_calls=AUTO).cache()
+        #                 .map(lambda x, y, z: (simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z),
+        #                      num_parallel_calls=AUTO)
+        #                 .batch(self.BATCH_SIZE)
+        #                 .prefetch(AUTO)
+        #                 )
         # train_ds_one= self.strategy.experimental_distribute_dataset(train_ds_two)
+        train_ds_one = ds.map(lambda x, y, z: (simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z),
+                             num_parallel_calls=AUTO).batch(self.BATCH_SIZE).prefetch(AUTO)
+
+        train_ds_two = ds.map(lambda x, y, z: (simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z),
+                             num_parallel_calls=AUTO).batch(self.BATCH_SIZE).prefetch(AUTO)
 
         train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
         # train_ds=train_ds.batch(self.BATCH_SIZE)
@@ -322,7 +330,7 @@ class imagenet_dataset_single_machine():
                         .shuffle(self.BATCH_SIZE * 100, seed=self.seed)
                         # .map(self.parse_images_label,  num_parallel_calls=AUTO)
                         .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)),
-                             num_parallel_calls=AUTO).cache(),
+                             num_parallel_calls=AUTO).cache()
                         .map(lambda x, y, z: (simclr_augment_randcrop_global_view_image_mask(x, y, self.IMG_SIZE), z),
                              num_parallel_calls=AUTO)
                         .batch(self.BATCH_SIZE)
@@ -333,7 +341,7 @@ class imagenet_dataset_single_machine():
                         .shuffle(self.BATCH_SIZE * 100, seed=self.seed)
                         # .map(self.parse_images_label,  num_parallel_calls=AUTO)
                         .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)),
-                             num_parallel_calls=AUTO).cache(),
+                             num_parallel_calls=AUTO).cache()
                         .map(lambda x, y, z: (simclr_augment_randcrop_global_view_image_mask(x, y, self.IMG_SIZE), z),
                              num_parallel_calls=AUTO)
                         .batch(self.BATCH_SIZE)
@@ -343,6 +351,7 @@ class imagenet_dataset_single_machine():
 
         train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
         train_ds = self.strategy.experimental_distribute_dataset(train_ds)
+
 
         return train_ds
 

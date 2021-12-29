@@ -18,10 +18,13 @@ class Visualize:
         self.epoch = epoch
         self.visualize_dir = visualize_dir
 
-    def plot_feature_map(self,epoch,features):
-        b,h,w,d= features.shape
-        square = 10
+    def plot_feature_map(self,epoch,features,mask = None):
+        square = 5
         ix = 1
+        if mask != None:
+            mask = tf.cast(mask, dtype=tf.bool)
+            #mask = tf.logical_not(mask)
+            mask = tf.cast(mask, dtype=features.dtype)
         for i in range(square):
             for j in range(square):
                 ax = plt.subplot(square, square, ix)
@@ -29,10 +32,12 @@ class Visualize:
                 f_max = np.max(f)
                 f_min = np.min(f)
                 f = (((f-f_min)/(f_max-f_min))*255.0).astype(np.uint8)
-                # f = np.resize(f,(100,100))
                 ax.set_xticks([])
                 ax.set_yticks([])
                 # plot filter channel in grayscale
+                if mask != None:
+                    mask = tf.image.resize(mask, (f.shape[0], f.shape[1]))
+                    f = tf.multiply(f, mask[:,:,0])
                 plt.imshow(f, cmap='gray')
                 ix += 1
         plt.savefig(os.path.join(self.visualize_dir,str(epoch)+".png"))

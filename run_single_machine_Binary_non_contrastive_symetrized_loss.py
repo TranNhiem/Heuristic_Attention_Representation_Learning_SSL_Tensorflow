@@ -1,4 +1,4 @@
-from config.config_7_7_512_original_binary_loss_old import read_cfg
+from config.experiment_config import read_cfg
 
 import wandb
 from learning_rate_optimizer import WarmUpAndCosineDecay, CosineAnnealingDecayRestarts
@@ -368,9 +368,19 @@ def main():
                 num_batches = 0
                 print("Epoch", epoch, "...")
                 for _, (ds_one, ds_two) in enumerate(train_ds):
+                    weight_loss = FLAGS.weighted_loss
+                    if epoch + 1 <= 0.7 * FLAGS.train_epochs:
+                        alpha = 0.5
+                        # weight_loss = 0.5
+                    elif epoch + 1 <= 0.9 * FLAGS.train_epochs:
+                        alpha = 0.7
+                        # weight_loss = 0.7
+                    else:
+                        alpha = 0.9
+                        # weight_loss = 0.9
 
                     total_loss += distributed_train_step(
-                        ds_one, ds_two, FLAGS.alpha, FLAGS.weighted_loss)
+                        ds_one, ds_two, alpha, weight_loss)
                     num_batches += 1
 
                     # Update weight of Target Encoder Every Step

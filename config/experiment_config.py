@@ -6,12 +6,13 @@ def read_cfg(mod="non_contrastive"):
     flag = Mock_Flag()
     FLAGS = flag.FLAGS
 
-    FLAGS.wandb_project_name = "heuristic_attention_representation_learning_Paper"
-    FLAGS.wandb_run_name = "Baseline_(7_7_2048)_200epoch"
+    FLAGS.wandb_project_name = "heuristic_attention_represenation_learning_ResNet50"
+    FLAGS.wandb_run_name = "MNC_resnet50_(14*14*512)mask_loss_alpha_schedule_beta_0.5"
+    FLAGS.wandb_mod = "run"
 
     FLAGS.Middle_layer_output = None
     FLAGS.original_loss_stop_gradient = False
-    FLAGS.Encoder_block_strides = {'1':2,'2':1,'3':2,'4':2,'5':2}
+    FLAGS.Encoder_block_strides = {'1':2,'2':1,'3':2,'4':2,'5':1}
     FLAGS.Encoder_block_channel_output = {'1':1,'2':1,'3':1,'4':1,'5':1}
 
     FLAGS.base_lr = 0.3
@@ -20,14 +21,14 @@ def read_cfg(mod="non_contrastive"):
     FLAGS.alpha = 1
     FLAGS.weighted_loss = 0.5
     FLAGS.resnet_depth = 50
-    FLAGS.train_epochs = 200
-    FLAGS.num_classes = 1000
+    FLAGS.train_epochs = 100
+    FLAGS.num_classes = 100
 
     FLAGS.train_batch_size = 128
     FLAGS.val_batch_size = 128
 
 
-    FLAGS.model_dir = "/data1/share/resnet_byol/restnet50/Baseline_(7_7_2048)_200epoch"
+    FLAGS.model_dir = "/data1/resnet_byol/MNC_resnet50_(14_14_512)mask_loss_alpha_schedule_beta_0_5"
 
 
 

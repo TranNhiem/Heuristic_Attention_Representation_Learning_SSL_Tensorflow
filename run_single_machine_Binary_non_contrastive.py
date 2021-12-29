@@ -1,4 +1,4 @@
-from config.config_7_7_512_original_binary_loss_old import read_cfg
+from config.experiment_config import read_cfg
 
 import wandb
 from learning_rate_optimizer import WarmUpAndCosineDecay, CosineAnnealingDecayRestarts
