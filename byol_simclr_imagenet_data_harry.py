@@ -360,13 +360,13 @@ class imagenet_dataset_single_machine():
             .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)),num_parallel_calls=AUTO).cache()
 
  
-        train_ds_one = ds.interleave( lambda x, y, z:  tf.py_functions(func=simclr_augment_inception_style_image_mask_tf_py, inp=[x, y, self.IMG_SIZE, z],Tout=tf.float32),  cycle_length=10, block_length=16),
+        train_ds_one = ds.interleave( lambda x, y, z:  tf.py_function(func=simclr_augment_inception_style_image_mask_tf_py, inp=[x, y, self.IMG_SIZE, z],Tout=tf.float32),  cycle_length=10, block_length=16),
                              
                              .batch(self.BATCH_SIZE).prefetch(AUTO)
 
 
 
-        train_ds_two = ds.interleave( lambda x, y, z:  tf.py_functions(func=simclr_augment_inception_style_image_mask_tf_py, inp=[x, y, self.IMG_SIZE, z],Tout=tf.float32),  cycle_length=10, block_length=16),
+        train_ds_two = ds.interleave( lambda x, y, z:  tf.py_function(func=simclr_augment_inception_style_image_mask_tf_py, inp=[x, y, self.IMG_SIZE, z],Tout=tf.float32),  cycle_length=10, block_length=16),
                              
                              .batch(self.BATCH_SIZE).prefetch(AUTO)
 
