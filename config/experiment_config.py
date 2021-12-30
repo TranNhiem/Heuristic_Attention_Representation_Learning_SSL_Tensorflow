@@ -7,7 +7,7 @@ def read_cfg(mod="non_contrastive"):
     FLAGS = flag.FLAGS
 
     FLAGS.wandb_project_name = "heuristic_attention_represenation_learning_Paper"
-    FLAGS.wandb_run_name = "Baseline_(7_7_2048)_100epoch"
+    FLAGS.wandb_run_name = "Test_Baseline_(7_7_2048)_100epoch"
     FLAGS.wandb_mod = "run"
 
     FLAGS.Middle_layer_output = None
@@ -26,7 +26,7 @@ def read_cfg(mod="non_contrastive"):
 
     FLAGS.train_batch_size = 128
     FLAGS.val_batch_size = 128
-    FLAGS.model_dir = "/data1/share/resnet_byol/Baseline_(7_7_2048)_100epoch"
+    FLAGS.model_dir = "/data1/share/resnet_byol/restnet50/test_Baseline_(7_7_2048)_100epoch"
 
 
 

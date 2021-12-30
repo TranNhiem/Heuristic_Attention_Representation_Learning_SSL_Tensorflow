@@ -369,6 +369,16 @@ def main():
             perform_evaluation(online_model, val_ds, eval_steps,
                                checkpoint_manager.latest_checkpoint, strategy)
 
+        save_encoder = os.path.join(
+            FLAGS.model_dir, "encoder_model_latest.h5")
+        save_online_model = os.path.join(
+            FLAGS.model_dir, "online_model_latest.h5")
+        save_target_model = os.path.join(
+            FLAGS.model_dir, "target_model_latest.h5")
+        online_model.resnet_model.save_weights(save_encoder)
+        online_model.save_weights(save_online_model)
+        target_model.save_weights(save_target_model)
+
 # # Restore model weights only, but not global step and optimizer states
 # flags.DEFINE_string(
 #     'checkpoint', None,
