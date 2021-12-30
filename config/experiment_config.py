@@ -6,8 +6,8 @@ def read_cfg(mod="non_contrastive"):
     flag = Mock_Flag()
     FLAGS = flag.FLAGS
 
-    FLAGS.wandb_project_name = "heuristic_attention_represenation_learning_ResNet50"
-    FLAGS.wandb_run_name = "MNC_resnet50_(14*14*2048)mask_loss_alpha_schedule_beta_0.5"
+    FLAGS.wandb_project_name = "heuristic_attention_represenation_learning_Paper"
+    FLAGS.wandb_run_name = "Baseline_(7_7_2048)_100epoch"
     FLAGS.wandb_mod = "run"
 
     FLAGS.Middle_layer_output = None
@@ -26,7 +26,7 @@ def read_cfg(mod="non_contrastive"):
 
     FLAGS.train_batch_size = 128
     FLAGS.val_batch_size = 128
-    FLAGS.model_dir = "/data1/resnet_byol/MNC_resnet50_(14_14_2048)mask_loss_alpha_schedule_beta_0_5"
+    FLAGS.model_dir = "/data1/share/resnet_byol/Baseline_(7_7_2048)_100epoch"
 
 
 
