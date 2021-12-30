@@ -1,4 +1,4 @@
-from config.config_7_7_512_original_binary_loss import read_cfg
+from config.experiment_config import read_cfg
 #from config.config_for_add_orgloss import read_cfg
 from config.absl_mock import Mock_Flag
 import json
@@ -55,7 +55,7 @@ def main():
                                                     train_label=FLAGS.train_label, val_label=FLAGS.val_label,
                                                     subset_class_num=FLAGS.num_classes)
 
-    train_ds = train_dataset.simclr_inception_style_crop_image_mask()
+    train_ds = train_dataset.simclr_inception_style_crop_image_mask_batch_processing()
 
     val_ds = train_dataset.supervised_validation()
 

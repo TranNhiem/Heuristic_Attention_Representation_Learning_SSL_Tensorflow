@@ -1,10 +1,5 @@
-'''
-Implementation SimCLR Augmentation Augmentation Transformation Policy for BYOL paper 
-SimCLR paper: https://arxiv.org/abs/2002.05709
-BYOL paper: https://arxiv.org/pdf/2006.07733.pdf
-'''
-# Reference
-# https://github.com/google-research/simclr/blob/master/tf2/data_util.py
+import time
+
 import tensorflow as tf
 from official.vision.image_classification.augment import RandAugment
 #from absl import flags
@@ -241,11 +236,9 @@ def rand_distribe_crop_global_local_views_flip(image, crop_size, min_scale, max_
     '''
         Args:
             image: A tensor [ with, height, channels]
-
             crop_size: Rand --> Flipping --> random_distribute_uniform (min_scale, max_scale) 
             high_resol --> True: For Global crop_view, False: For Local crop views
             AutoAugment: a function to apply AutoAugment transformation 
-
         Return: 
             Image: A tensor of Applied transformation [with, height, channels]
     '''
@@ -370,7 +363,6 @@ def color_drop(image):
     '''
     Args: 
       image: Tensor shape of [Height, width, channels]
-
     Return:
       A convert RGB-> gray transform 
     '''
@@ -397,7 +389,6 @@ def simclr_augment_randcrop(image, IMG_SIZE):
 
 def simclr_augment_randcrop_global_views(image, IMG_SIZE):
     '''
-
     args: 
     image: Input image transformation 
     IMG_SIZE: Image size for training 
@@ -537,13 +528,11 @@ CROP_PROPORTION = 0.875  # Standard for ImageNet.
 
 def croping_for_eval(image, height, width, crop=True):
     """Preprocesses the given image for evaluation.
-
     Args:
       image: `Tensor` representing an image of arbitrary size.
       height: Height of output image.
       width: Width of output image.
       crop: Whether or not to (center) crop the test images.
-
     Returns:
       A preprocessed image `Tensor`.
     """
