@@ -6,13 +6,13 @@ def read_cfg(mod="non_contrastive"):
     flag = Mock_Flag()
     FLAGS = flag.FLAGS
 
-    FLAGS.wandb_project_name = "heuristic_attention_represenation_learning_Paper"
+    FLAGS.wandb_project_name = "heuristic_attention_representation_learning_Paper"
     FLAGS.wandb_run_name = "Test_Baseline_(7_7_2048)_100epoch"
     FLAGS.wandb_mod = "run"
 
     FLAGS.Middle_layer_output = None
     FLAGS.original_loss_stop_gradient = False
-    FLAGS.Encoder_block_strides = {'1':2,'2':1,'3':2,'4':2,'5':1}
+    FLAGS.Encoder_block_strides = {'1':2,'2':1,'3':2,'4':2,'5':2}
     FLAGS.Encoder_block_channel_output = {'1':1,'2':1,'3':1,'4':1,'5':1}
 
     FLAGS.base_lr = 0.3
