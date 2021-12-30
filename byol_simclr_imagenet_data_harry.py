@@ -10,7 +10,7 @@ import random
 import re
 
 AUTO = tf.data.experimental.AUTOTUNE
-AUTO = 64
+# AUTO = 64
 #FLAGS = flags.FLAGS
 
 from config.absl_mock import Mock_Flag
