@@ -405,8 +405,17 @@ def main():
                 print("Epoch", epoch, "...")
                 for _, (ds_one, ds_two) in enumerate(train_ds):
 
+                    if epoch + 1 <= 0.7 * FLAGS.train_epochs:
+                        alpha = 0.5
+                        # weight_loss = 0.5
+                    elif epoch + 1 <= 0.9 * FLAGS.train_epochs:
+                        alpha = 0.7
+                        # weight_loss = 0.7
+                    else:
+                        alpha = 0.9
+
                     total_loss += distributed_train_step(
-                        ds_one, ds_two, FLAGS.alpha, FLAGS.weighted_loss)
+                        ds_one, ds_two, alpha, FLAGS.weighted_loss)
                     num_batches += 1
 
                     # Update weight of Target Encoder Every Step

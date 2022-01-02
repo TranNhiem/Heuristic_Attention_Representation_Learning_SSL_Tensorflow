@@ -28,7 +28,7 @@ def read_cfg(mod="non_contrastive"):
 
     FLAGS.train_batch_size = 128
     FLAGS.val_batch_size = 128
-    FLAGS.model_dir = "/data1/share/restnet/resnet_byol/MNC_(7_7_2048)_100epoch_alpha_schedule_symlpss"
+    FLAGS.model_dir = "/data1/share/resnet_byol/reatnet50/MNC_(7_7_2048)_100epoch_alpha_schedule_symlpss"
 
 
 
