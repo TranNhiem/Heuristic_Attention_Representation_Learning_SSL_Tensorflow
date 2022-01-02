@@ -198,13 +198,13 @@ def main():
 
                     if FLAGS.loss_type == "symmetrized":
                         logging.info("You implement Symmetrized loss")
-                        '''
-                        Symetrize the loss --> Need to switch image_1, image_2 to (Online -- Target Network)
-                        loss 1= L2_loss*[online_model(image1), target_model(image_2)]
-                        loss 2=  L2_loss*[online_model(image2), target_model(image_1)]
-                        symetrize_loss= (loss 1+ loss_2)/ 2
-        
-                        '''
+                        # '''
+                        # Symetrize the loss --> Need to switch image_1, image_2 to (Online -- Target Network)
+                        # loss 1= L2_loss*[online_model(image1), target_model(image_2)]
+                        # loss 2=  L2_loss*[online_model(image2), target_model(image_1)]
+                        # symetrize_loss= (loss 1+ loss_2)/ 2
+                        #
+                        # '''
 
                         # -------------------------------------------------------------
                         # Passing image 1, image 2 to Online Encoder , Target Encoder
@@ -261,7 +261,6 @@ def main():
                                                                   contrast_entropy_metric,
                                                                   loss, logits_ab,
                                                                   labels)
-
                     elif FLAGS.loss_type == "asymmetrized":
                         logging.info("You implement Asymmetrized loss")
                         # -------------------------------------------------------------
