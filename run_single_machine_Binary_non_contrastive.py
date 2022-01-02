@@ -314,6 +314,7 @@ def main():
                                                                 contrast_entropy_metric,
                                                                 loss, logits_o_ab,
                                                                 labels)
+                    
                     else: 
                         raise ValueError('invalid loss type check your loss type')        
 
