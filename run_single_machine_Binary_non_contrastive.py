@@ -241,16 +241,16 @@ def main():
 
                         obj_2, backg_2, proj_head_output_2, supervised_head_output_2 = target_model(
                             [images_mask_two[0], tf.expand_dims(images_mask_two[1], axis=-1)], training=True)
-                        
+
                         #-------------------------------------------------------------
-                        ## Passing Image 1, Image 2 to Target Encoder,  Online Encoder 
+                        ## Passing Image 1, Image 2 to Target Encoder,  Online Encoder
                         #-------------------------------------------------------------
                         obj_2_online, backg_2_online,  proj_head_output_2_online, _ = online_model(
                             [images_mask_two[0], tf.expand_dims(images_mask_two[1], axis=-1)], training=True)
                         # Vector Representation from Online encoder go into Projection head again
                         obj_2_online = prediction_model(obj_2_online, training=True)
                         backg_2_online = prediction_model(backg_2_online, training=True)
-                        
+
                         proj_head_output_2_online = prediction_model(
                             proj_head_output_2_online, training=True)
 
@@ -264,12 +264,12 @@ def main():
                             # Loss of the image 1, 2 --> Online, Target Encoder
                             loss_1, logits_o_ab, labels = distributed_loss(
                                 obj_1, obj_2,  backg_1, backg_2, proj_head_output_1, proj_head_output_2, alpha, weight_loss)
-                            
+
                             # Loss of the image 2, 1 --> Online, Target Encoder
                             loss_2, logits_o_ab_2, labels_2 = distributed_loss(
                                 obj_2_online, obj_1_target,  backg_2_online, backg_1_target, proj_head_output_2_online, proj_head_output_1_target, alpha, weight_loss)
-                            
-                            ## Total loss 
+
+                            ## Total loss
                             loss= (loss_1+ loss_2)/2
 
                             if loss is None:
@@ -283,7 +283,7 @@ def main():
                                                                 contrast_entropy_metric,
                                                                 loss, logits_o_ab,
                                                                 labels)
-                                                
+
                     elif FLAGS.loss_type=="asymmetrized": 
                         obj_1, backg_1,  proj_head_output_1, supervised_head_output_1 = online_model(
                             [images_mask_one[0], tf.expand_dims(images_mask_one[1], axis=-1)], training=True)
