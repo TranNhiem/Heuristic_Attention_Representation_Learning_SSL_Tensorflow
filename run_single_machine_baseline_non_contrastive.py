@@ -196,34 +196,108 @@ def main():
 
                 with tf.GradientTape(persistent=True) as tape:
 
-                    # Online
-                    proj_head_output_1, supervised_head_output_1 = online_model(
-                        images_one, training=True)
-                    proj_head_output_1 = prediction_model(
-                        proj_head_output_1, training=True)
+            if FLAGS.loss_type == "symmetrized":
+                logging.info("You implement Symmetrized loss")
+                '''
+                Symetrize the loss --> Need to switch image_1, image_2 to (Online -- Target Network)
+                loss 1= L2_loss*[online_model(image1), target_model(image_2)]
+                loss 2=  L2_loss*[online_model(image2), target_model(image_1)]
+                symetrize_loss= (loss 1+ loss_2)/ 2
 
-                    # Target
-                    proj_head_output_2, supervised_head_output_2 = target_model(
-                        images_two, training=True)
+                '''
 
-                    # Compute Contrastive Train Loss -->
-                    loss = None
-                    if proj_head_output_1 is not None:
-                        # Compute Contrastive Loss model
-                        loss, logits_ab, labels = distributed_loss(
-                            proj_head_output_1, proj_head_output_2)
+                # -------------------------------------------------------------
+                # Passing image 1, image 2 to Online Encoder , Target Encoder
+                # -------------------------------------------------------------
 
-                        if loss is None:
-                            loss = loss
-                        else:
-                            loss += loss
+                # Online
+                proj_head_output_1, supervised_head_output_1 = online_model(
+                    images_one, training=True)
+                proj_head_output_1 = prediction_model(
+                    proj_head_output_1, training=True)
 
-                        # Update Self-Supervised Metrics
-                        metrics.update_pretrain_metrics_train(contrast_loss_metric,
-                                                              contrast_acc_metric,
-                                                              contrast_entropy_metric,
-                                                              loss, logits_ab,
-                                                              labels)
+                # Target
+                proj_head_output_2, supervised_head_output_2 = target_model(
+                    images_two, training=True)
+
+                # -------------------------------------------------------------
+                # Passing Image 1, Image 2 to Target Encoder,  Online Encoder
+                # -------------------------------------------------------------
+
+                # online
+                proj_head_output_2_online, _ = online_model(
+                    images_two, training=True)
+                # Vector Representation from Online encoder go into Projection head again
+                proj_head_output_2_online = prediction_model(
+                    proj_head_output_2_online, training=True)
+
+                # Target
+                proj_head_output_1_target, _ = target_model(
+                    images_one, training=True)
+
+                # Compute Contrastive Train Loss -->
+                loss = None
+                if proj_head_output_1 is not None:
+                    # Compute Contrastive Loss model
+                    # Loss of the image 1, 2 --> Online, Target Encoder
+                    loss_1_2, logits_ab, labels = distributed_loss(
+                        proj_head_output_1, proj_head_output_2)
+
+                    # Loss of the image 2, 1 --> Online, Target Encoder
+                    loss_2_1, logits_ab_2, labels_2 = distributed_loss(
+                        proj_head_output_2_online, proj_head_output_1_target)
+
+                    # symetrized loss
+                    loss = (loss_1_2 + loss_2_1)/2
+
+                    if loss is None:
+                        loss = loss
+                    else:
+                        loss += loss
+
+                    # Update Self-Supervised Metrics
+                    metrics.update_pretrain_metrics_train(contrast_loss_metric,
+                                                          contrast_acc_metric,
+                                                          contrast_entropy_metric,
+                                                          loss, logits_ab,
+                                                          labels)
+
+            elif FLAGS.loss_type == "asymmetrized":
+                logging.info("You implement Asymmetrized loss")
+                # -------------------------------------------------------------
+                # Passing image 1, image 2 to Online Encoder , Target Encoder
+                # -------------------------------------------------------------
+
+                # Online
+                proj_head_output_1, supervised_head_output_1 = online_model(
+                    images_one, training=True)
+                proj_head_output_1 = prediction_model(
+                    proj_head_output_1, training=True)
+
+                # Target
+                proj_head_output_2, supervised_head_output_2 = target_model(
+                    images_two, training=True)
+
+                # Compute Contrastive Train Loss -->
+                loss = None
+                if proj_head_output_1 is not None:
+                    # Compute Contrastive Loss model
+                    # Loss of the image 1, 2 --> Online, Target Encoder
+                    loss, logits_ab, labels = distributed_loss(
+                        proj_head_output_1, proj_head_output_2)
+
+                    if loss is None:
+                        loss = loss
+                    else:
+                        loss += loss
+
+                    # Update Self-Supervised Metrics
+                    metrics.update_pretrain_metrics_train(contrast_loss_metric,
+                                                          contrast_acc_metric,
+                                                          contrast_entropy_metric,
+                                                          loss, logits_ab,
+                                                          labels)
+
 
                     # Compute the Supervised train Loss
                     '''Consider Sperate Supervised Loss'''

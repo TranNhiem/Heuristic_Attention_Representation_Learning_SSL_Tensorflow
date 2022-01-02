@@ -14,7 +14,9 @@ def read_cfg(mod="non_contrastive"):
     FLAGS.original_loss_stop_gradient = False
     FLAGS.Encoder_block_strides = {'1':2,'2':1,'3':2,'4':2,'5':2}
     FLAGS.Encoder_block_channel_output = {'1':1,'2':1,'3':1,'4':1,'5':1}
-
+    
+    FLAGS.loss_type ="symmetrized"# asymmetrized (2 only options)
+    
     FLAGS.base_lr = 0.5
 
     FLAGS.non_contrast_binary_loss = "sum_symetrize_l2_loss_object_backg"
