@@ -369,7 +369,8 @@ def main():
                     zip(grads, prediction_model.trainable_variables))
                 del tape
                 return loss
-
+            else: 
+                raise ValueError('invalid loss type check your loss type')   
             @tf.function
             def distributed_train_step(ds_one, ds_two):
                 per_replica_losses = strategy.run(

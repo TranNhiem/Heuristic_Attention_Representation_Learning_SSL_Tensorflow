@@ -224,35 +224,98 @@ def main():
                 '''
                 ### Currently Our Loss function is Asymetrize L2_Loss 
                 with tf.GradientTape(persistent=True) as tape:
+                    
+                    if FLAGS.loss_type=="symmetrized": 
+                        #-------------------------------------------------------------
+                        ## Passing image 1, image 2 to Online Encoder , Target Encoder
+                        #-------------------------------------------------------------
 
-                    obj_1, backg_1,  proj_head_output_1, supervised_head_output_1 = online_model(
-                        [images_mask_one[0], tf.expand_dims(images_mask_one[1], axis=-1)], training=True)
-                    # Vector Representation from Online encoder go into Projection head again
-                    obj_1 = prediction_model(obj_1, training=True)
-                    backg_1 = prediction_model(backg_1, training=True)
-                    proj_head_output_1 = prediction_model(
-                        proj_head_output_1, training=True)
+                        obj_1, backg_1,  proj_head_output_1, supervised_head_output_1 = online_model(
+                            [images_mask_one[0], tf.expand_dims(images_mask_one[1], axis=-1)], training=True)
+                        # Vector Representation from Online encoder go into Projection head again
+                        obj_1 = prediction_model(obj_1, training=True)
+                        backg_1 = prediction_model(backg_1, training=True)
 
-                    obj_2, backg_2, proj_head_output_2, supervised_head_output_2 = target_model(
-                        [images_mask_two[0], tf.expand_dims(images_mask_two[1], axis=-1)], training=True)
+                        proj_head_output_1 = prediction_model(
+                            proj_head_output_1, training=True)
 
-                    # Compute Contrastive Train Loss -->
-                    loss = None
-                    if proj_head_output_1 is not None:
-                        loss, logits_o_ab, labels = distributed_loss(
-                            obj_1, obj_2,  backg_1, backg_2, proj_head_output_1, proj_head_output_2, alpha, weight_loss)
+                        obj_2, backg_2, proj_head_output_2, supervised_head_output_2 = target_model(
+                            [images_mask_two[0], tf.expand_dims(images_mask_two[1], axis=-1)], training=True)
+                        
+                        #-------------------------------------------------------------
+                        ## Passing Image 1, Image 2 to Target Encoder,  Online Encoder 
+                        #-------------------------------------------------------------
+                        obj_2_online, backg_2_online,  proj_head_output_2_online, _ = online_model(
+                            [images_mask_two[0], tf.expand_dims(images_mask_two[1], axis=-1)], training=True)
+                        # Vector Representation from Online encoder go into Projection head again
+                        obj_2_online = prediction_model(obj_2_online, training=True)
+                        backg_2_online = prediction_model(backg_2_online, training=True)
+                        
+                        proj_head_output_2_online = prediction_model(
+                            proj_head_output_2_online, training=True)
 
-                        if loss is None:
-                            loss = loss
-                        else:
-                            loss += loss
+                        obj_1_target, backg_1_target, proj_head_output_1_target, _ = target_model(
+                            [images_mask_one[0], tf.expand_dims(images_mask_one[1], axis=-1)], training=True)
 
-                        # Update Self-Supervised Metrics
-                        metrics.update_pretrain_metrics_train(contrast_loss_metric,
-                                                              contrast_acc_metric,
-                                                              contrast_entropy_metric,
-                                                              loss, logits_o_ab,
-                                                              labels)
+
+                        # Compute Contrastive Train Loss -->
+                        loss = None
+                        if proj_head_output_1 is not None:
+                            # Loss of the image 1, 2 --> Online, Target Encoder
+                            loss_1, logits_o_ab, labels = distributed_loss(
+                                obj_1, obj_2,  backg_1, backg_2, proj_head_output_1, proj_head_output_2, alpha, weight_loss)
+                            
+                            # Loss of the image 2, 1 --> Online, Target Encoder
+                            loss_2, logits_o_ab_2, labels_2 = distributed_loss(
+                                obj_2_online, obj_1_target,  backg_2_online, backg_1_target, proj_head_output_2_online, proj_head_output_1_target, alpha, weight_loss)
+                            
+                            ## Total loss 
+                            loss= (loss_1+ loss_2)/2
+
+                            if loss is None:
+                                loss = loss
+                            else:
+                                loss += loss
+
+                            # Update Self-Supervised Metrics
+                            metrics.update_pretrain_metrics_train(contrast_loss_metric,
+                                                                contrast_acc_metric,
+                                                                contrast_entropy_metric,
+                                                                loss, logits_o_ab,
+                                                                labels)
+                                                
+                    elif FLAGS.loss_type=="asymmetrized": 
+                        obj_1, backg_1,  proj_head_output_1, supervised_head_output_1 = online_model(
+                            [images_mask_one[0], tf.expand_dims(images_mask_one[1], axis=-1)], training=True)
+                        # Vector Representation from Online encoder go into Projection head again
+                        obj_1 = prediction_model(obj_1, training=True)
+                        backg_1 = prediction_model(backg_1, training=True)
+                        proj_head_output_1 = prediction_model(
+                            proj_head_output_1, training=True)
+
+                        obj_2, backg_2, proj_head_output_2, supervised_head_output_2 = target_model(
+                            [images_mask_two[0], tf.expand_dims(images_mask_two[1], axis=-1)], training=True)
+
+                        # Compute Contrastive Train Loss -->
+                        loss = None
+                        if proj_head_output_1 is not None:
+                            loss, logits_o_ab, labels = distributed_loss(
+                                obj_1, obj_2,  backg_1, backg_2, proj_head_output_1, proj_head_output_2, alpha, weight_loss)
+
+
+                            if loss is None:
+                                loss = loss
+                            else:
+                                loss += loss
+
+                            # Update Self-Supervised Metrics
+                            metrics.update_pretrain_metrics_train(contrast_loss_metric,
+                                                                contrast_acc_metric,
+                                                                contrast_entropy_metric,
+                                                                loss, logits_o_ab,
+                                                                labels)
+                    else: 
+                        raise ValueError('invalid loss type check your loss type')        
 
                     # Compute the Supervised train Loss
                     '''Consider Sperate Supervised Loss'''
