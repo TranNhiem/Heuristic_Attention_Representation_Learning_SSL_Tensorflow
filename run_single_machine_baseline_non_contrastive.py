@@ -248,7 +248,7 @@ def main():
                                 proj_head_output_2_online, proj_head_output_1_target)
 
                             # symetrized loss
-                            loss = (loss_1_2 + loss_2_1)/2
+                            loss = (loss_1_2 + loss_2_1) / 2
 
                             if loss is None:
                                 loss = loss
@@ -370,6 +370,35 @@ def main():
                         return loss
                     else:
                         raise ValueError('invalid loss type check your loss type')
+
+                    weight_decay_loss = all_model.add_weight_decay(
+                        online_model, adjust_per_optimizer=True)
+
+                    # weight_decay_loss_scale = tf.nn.scale_regularization_loss(
+                    #     weight_decay_loss)
+                    # Under experiment Scale loss after adding Regularization and scaled by Batch_size
+                    # weight_decay_loss = tf.nn.scale_regularization_loss(
+                    #     weight_decay_loss)
+                    weight_decay_metric.update_state(weight_decay_loss)
+                    loss += weight_decay_loss
+                    total_loss_metric.update_state(loss)
+
+                    logging.info('Trainable variables:')
+                    for var in online_model.trainable_variables:
+                        logging.info(var.name)
+
+                    # Update Encoder and Projection head weight
+                grads = tape.gradient(loss, online_model.trainable_variables)
+                optimizer.apply_gradients(
+                    zip(grads, online_model.trainable_variables))
+
+                # Update Prediction Head model
+                grads = tape.gradient(
+                    loss, prediction_model.trainable_variables)
+                optimizer.apply_gradients(
+                    zip(grads, prediction_model.trainable_variables))
+                del tape
+                return loss
             @tf.function
             def distributed_train_step(ds_one, ds_two):
                 per_replica_losses = strategy.run(
