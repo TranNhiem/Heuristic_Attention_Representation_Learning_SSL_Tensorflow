@@ -300,8 +300,8 @@ def Configure_Model_Training():
             'Original_loss_add_contrast_level_object', 'sum_symetrize_l2_loss_object_backg', 'original_add_backgroud'],
         'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
     flags.DEFINE_enum(
-        'loss_type', 'symmetrized'['symmetrized', 'asymmetrized'], 
-        'loss type between asymmetrize vs Symmetrize loss'
+        'loss_type', 'symmetrized',['symmetrized', 'asymmetrized'],
+        'loss type between asymmetrize vs Symmetrize loss')
     flags.DEFINE_float(
         # Alpha Weighted loss (Objec & Background) [binary_mask_nt_xent_object_backgroud_sum_loss]
         'alpha', 0.5,
