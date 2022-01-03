@@ -264,9 +264,9 @@ def main():
                 # Saving Entire Model
                 if (epoch+1) % 20 == 0:
                     save_encoder = os.path.join(
-                        FLAGS.model_dir, "encoder_model_" + str(epoch) + ".h5")
+                        FLAGS.model_dir, "linear_encoder_model_" + str(epoch) + ".h5")
                     save_online_model = os.path.join(
-                        FLAGS.model_dir, "online_model_" + str(epoch) + ".h5")
+                        FLAGS.model_dir, "linear_online_model_" + str(epoch) + ".h5")
                     online_model.encoder.save_weights(save_encoder)
                     online_model.save_weights(save_online_model)
 
@@ -291,9 +291,9 @@ def main():
                                checkpoint_manager.latest_checkpoint, strategy)
 
         save_encoder = os.path.join(
-            FLAGS.model_dir, "encoder_model_latest.h5")
+            FLAGS.model_dir, "linear_encoder_model_latest.h5")
         save_online_model = os.path.join(
-            FLAGS.model_dir, "online_model_latest.h5")
+            FLAGS.model_dir, "linear_online_model_latest.h5")
         online_model.resnet_model.save_weights(save_encoder)
         online_model.save_weights(save_online_model)
 
