@@ -453,12 +453,6 @@ def main():
 
                     weight_decay_loss = all_model.add_weight_decay(
                         online_model, adjust_per_optimizer=True)
-<<<<<<< HEAD
-=======
-
-                    # weight_decay_loss_scale = tf.nn.scale_regularization_loss(
-                    #     weight_decay_loss)
->>>>>>> 27d859a43d6ba8e1978446e095c319d60e7f037f
                     # Under experiment Scale loss after adding Regularization and scaled by Batch_size
                     # weight_decay_loss = tf.nn.scale_regularization_loss(
                     #     weight_decay_loss)
@@ -482,10 +476,7 @@ def main():
                     zip(grads, prediction_model.trainable_variables))
                 del tape
                 return loss
-<<<<<<< HEAD
 
-=======
->>>>>>> 27d859a43d6ba8e1978446e095c319d60e7f037f
             @tf.function
             def distributed_train_step(ds_one, ds_two):
                 per_replica_losses = strategy.run(
