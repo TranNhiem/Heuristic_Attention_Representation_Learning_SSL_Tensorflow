@@ -341,116 +341,7 @@ def main():
                                                                   contrast_entropy_metric,
                                                                   loss, logits_ab,
                                                                   labels)
-                    elif FLAGS.loss_type == "asymmetrized":
-                        logging.info("You implement Asymmetrized loss")
-                        # -------------------------------------------------------------
-                        # Passing image 1, image 2 to Online Encoder , Target Encoder
-                        # -------------------------------------------------------------
-
-                        # Online
-                        proj_head_output_1, supervised_head_output_1 = online_model(
-                            images_one, training=True)
-                        proj_head_output_1 = prediction_model(
-                            proj_head_output_1, training=True)
-
-                        # Target
-                        proj_head_output_2, supervised_head_output_2 = target_model(
-                            images_two, training=True)
-
-                        # Compute Contrastive Train Loss -->
-                        loss = None
-                        if proj_head_output_1 is not None:
-                            # Compute Contrastive Loss model
-                            # Loss of the image 1, 2 --> Online, Target Encoder
-                            loss, logits_ab, labels = distributed_loss(
-                                proj_head_output_1, proj_head_output_2)
-
-                            if loss is None:
-                                loss = loss
-                            else:
-                                loss += loss
-
-                            # Update Self-Supervised Metrics
-                            metrics.update_pretrain_metrics_train(contrast_loss_metric,
-                                                                  contrast_acc_metric,
-                                                                  contrast_entropy_metric,
-                                                                  loss, logits_ab,
-                                                                  labels)
-
-
-                            # Compute the Supervised train Loss
-                            '''Consider Sperate Supervised Loss'''
-                            # supervised_loss=None
-                            if supervised_head_output_1 is not None:
-
-                                if FLAGS.train_mode == 'pretrain' and FLAGS.lineareval_while_pretraining:
-
-                                    outputs = tf.concat(
-                                        [supervised_head_output_1, supervised_head_output_2], 0)
-                                    supervise_lable = tf.concat(
-                                        [lable_one, lable_two], 0)
-
-                                    # Calculte the cross_entropy loss with Labels
-                                    sup_loss = obj_lib.add_supervised_loss(
-                                        labels=supervise_lable, logits=outputs)
-
-                                    scale_sup_loss = tf.nn.compute_average_loss(
-                                        sup_loss, global_batch_size=train_global_batch)
-                                    # scale_sup_loss = tf.reduce_sum(
-                                    #     sup_loss) * (1./train_global_batch)
-                                    # Update Supervised Metrics
-                                    metrics.update_finetune_metrics_train(supervised_loss_metric,
-                                                                          supervised_acc_metric, scale_sup_loss,
-                                                                          supervise_lable, outputs)
-
-                                '''Attention'''
-                                # Noted Consideration Aggregate (Supervised + Contrastive Loss) --> Update the Model Gradient
-                                if FLAGS.aggregate_loss == "contrastive_supervised":
-                                    if loss is None:
-                                        loss = scale_sup_loss
-                                    else:
-                                        loss += scale_sup_loss
-
-                                elif FLAGS.aggregate_loss == "contrastive":
-
-                                    supervise_loss = None
-                                    if supervise_loss is None:
-                                        supervise_loss = scale_sup_loss
-                                    else:
-                                        supervise_loss += scale_sup_loss
-                                else:
-                                    raise ValueError(
-                                        " Loss aggregate is invalid please check FLAGS.aggregate_loss")
-
-                            weight_decay_loss = all_model.add_weight_decay(
-                                online_model, adjust_per_optimizer=True)
-                           # Under experiment Scale loss after adding Regularization and scaled by Batch_size
-                            # weight_decay_loss = tf.nn.scale_regularization_loss(
-                            #     weight_decay_loss)
-                            weight_decay_metric.update_state(weight_decay_loss)
-                            loss += weight_decay_loss
-
-                            total_loss_metric.update_state(loss)
-
-                            logging.info('Trainable variables:')
-                            for var in online_model.trainable_variables:
-                                logging.info(var.name)
-
-                        # Update Encoder and Projection head weight
-                        grads = tape.gradient(loss, online_model.trainable_variables)
-                        optimizer.apply_gradients(
-                            zip(grads, online_model.trainable_variables))
-
-                        # Update Prediction Head model
-                        grads = tape.gradient(
-                            loss, prediction_model.trainable_variables)
-                        optimizer.apply_gradients(
-                            zip(grads, prediction_model.trainable_variables))
-                        del tape
-                        return loss
-                    else:
-                        raise ValueError('invalid loss type check your loss type')
-
+    
                     weight_decay_loss = all_model.add_weight_decay(
                         online_model, adjust_per_optimizer=True)
                     # Under experiment Scale loss after adding Regularization and scaled by Batch_size
@@ -476,7 +367,6 @@ def main():
                     zip(grads, prediction_model.trainable_variables))
                 del tape
                 return loss
-
             @tf.function
             def distributed_train_step(ds_one, ds_two):
                 per_replica_losses = strategy.run(
