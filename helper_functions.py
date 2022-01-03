@@ -211,11 +211,8 @@ def perform_evaluation(model, val_ds, val_steps, ckpt, strategy):
         # Logits output
         print("start v")
         _,_,_, supervised_head_outputs = model(features, training=False)
-        v = Visualize(1,FLAGS.visualize_dir)
-        v.plot_feature_map(1,supervised_head_outputs)
         assert supervised_head_outputs is not None
         outputs = supervised_head_outputs
-
         metrics.update_finetune_metrics_eval(
             label_top_1_accuracy, label_top_5_accuracy, outputs, labels)
 
@@ -272,6 +269,6 @@ def perform_evaluation(model, val_ds, val_steps, ckpt, strategy):
             json.dump(serializable_flags, f)
 
     # Export as SavedModel for finetuning and inference.
-    save(model, global_step=result['global_step'])
+    # save(model, global_step=result['global_step'])
 
     return result
