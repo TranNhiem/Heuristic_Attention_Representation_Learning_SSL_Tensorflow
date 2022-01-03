@@ -79,12 +79,18 @@ def main():
 
     # Configure the Encoder Architecture.
     with strategy.scope():
-        model = resnet(resnet_depth=FLAGS.resnet_depth, width_multiplier=FLAGS.width_multiplier,
-                       Middle_layer_output=[1, 2, 3, 4, 5])
-        linear_layear = all_model.LinearLayer(FLAGS.num_classes)
-        model.built = True
-        model.build((1, 224, 224, 3))
-        model.load_weights("/data1/share/resnet_byol/restnet50/Baseline_(7_7_2048)_200epoch/encoder_model_199.h5")
+        # model = resnet(resnet_depth=FLAGS.resnet_depth, width_multiplier=FLAGS.width_multiplier,
+        #                Middle_layer_output=[1, 2, 3, 4, 5])
+        # linear_layear = all_model.LinearLayer(FLAGS.num_classes)
+        # model.built = True
+        # model.build((1, 224, 224, 3))
+        # model.load_weights("/data1/share/resnet_byol/restnet50/Baseline_(7_7_2048)_200epoch/encoder_model_199.h5")
+
+        online_model = all_model.online_model(FLAGS.num_classes)
+        online_model.built = True
+        online_model.build((1, 224, 224, 3))
+        online_model.load_weights("/data1/share/resnet_byol/restnet50/Baseline_(7_7_2048)_200epoch/online_model_199.h5")
+
 
     # Configure Wandb Training
     # Weight&Bias Tracking Experiment
@@ -225,10 +231,8 @@ def main():
 
             @tf.function
             def distributed_train_step(ds):
-                per_replica_losses = strategy.run(
-                    train_step, args=(ds))
-                return strategy.reduce(tf.distribute.ReduceOp.SUM, per_replica_losses,
-                                       axis=None)
+                per_replica_losses = strategy.run(train_step, args=(ds))
+                return strategy.reduce(tf.distribute.ReduceOp.SUM, per_replica_losses,axis=None)
             global_step = optimizer.iterations
 
             for epoch in range(FLAGS.train_epochs):
