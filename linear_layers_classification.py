@@ -114,7 +114,7 @@ def main():
     # Only Evaluate model
     # *****************************************************************
     online_model.built = True
-    model.build((1, 224, 224, 3))
+    online_model.build((1, 224, 224, 3))
     online_model.load_weights("/data1/share/resnet_byol/restnet50/Baseline_(7_7_2048)_200epoch/online_model_199.h5")
     if FLAGS.mode == "eval":
         # can choose different min_interval
