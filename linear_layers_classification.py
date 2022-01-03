@@ -55,7 +55,6 @@ def main():
                                                     train_label=FLAGS.train_label, val_label=FLAGS.val_label,
                                                     subset_class_num=FLAGS.num_classes)
 
-    train_ds = train_dataset.simclr_inception_style_crop_image_mask_batch_processing()
 
     val_ds = train_dataset.supervised_validation()
 
