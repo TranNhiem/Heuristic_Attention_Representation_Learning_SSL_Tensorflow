@@ -19,7 +19,7 @@ import model_for_non_contrastive_framework as all_model
 import objective as obj_lib
 from imutils import paths
 from wandb.keras import WandbCallback
-
+from Model_resnet_harry import resnet
 # Setting GPU
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if gpus:
@@ -79,7 +79,12 @@ def main():
 
     # Configure the Encoder Architecture.
     with strategy.scope():
-        online_model = all_model.online_model(FLAGS.num_classes)
+        model = resnet(resnet_depth=FLAGS.resnet_depth, width_multiplier=FLAGS.width_multiplier,
+                       Middle_layer_output=[1, 2, 3, 4, 5])
+        linear_layear = all_model.LinearLayer(FLAGS.num_classes)
+        model.built = True
+        model.load_weights("/data1/share/resnet_byol/restnet50/Baseline_(7_7_2048)_200epoch/encoder_model_199.h5")
+        online_model = tf.keras.Model(inputs=model.input(), outputs=[b1, b3, b3])
 
     # Configure Wandb Training
     # Weight&Bias Tracking Experiment
@@ -113,9 +118,7 @@ def main():
     # *****************************************************************
     # Only Evaluate model
     # *****************************************************************
-    online_model.built = True
-    online_model.build((1, 224, 224, 3))
-    online_model.load_weights("/data1/share/resnet_byol/restnet50/Baseline_(7_7_2048)_200epoch/online_model_199.h5")
+
     if FLAGS.mode == "eval":
         # can choose different min_interval
         for ckpt in tf.train.checkpoints_iterator(FLAGS.model_dir, min_interval_secs=15):
