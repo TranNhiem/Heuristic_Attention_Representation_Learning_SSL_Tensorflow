@@ -87,9 +87,9 @@ def main():
         # model.load_weights("/data1/share/resnet_byol/restnet50/Baseline_(7_7_2048)_200epoch/encoder_model_199.h5")
 
         online_model = all_model.online_model(FLAGS.num_classes)
-        online_model.built = True
-        online_model.build((1, 224, 224, 3))
-        online_model.load_weights("/data1/share/resnet_byol/restnet50/Baseline_(7_7_2048)_200epoch/online_model_199.h5")
+        online_model.resnet_model.built = True
+        online_model.resnet_model.build((1, 224, 224, 3))
+        online_model.resnet_model.load_weights("/data1/share/resnet_byol/restnet50/Baseline_(7_7_2048)_200epoch/encoder_model_199.h5")
 
 
     # Configure Wandb Training
