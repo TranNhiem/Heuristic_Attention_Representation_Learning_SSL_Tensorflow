@@ -273,8 +273,8 @@ def main():
                 result = perform_evaluation(online_model, val_ds, eval_steps, checkpoint_manager.latest_checkpoint, strategy)
                 wandb.log({
                     "epochs": epoch+1,
-                    "train/alpha_value": alpha,
-                    "train/weight_loss_value": weight_loss,
+                    # "train/alpha_value": alpha,
+                    # "train/weight_loss_value": weight_loss,
                     "train/weight_decay": weight_decay_metric.result(),
                     "train/total_loss": epoch_loss,
                     "train/supervised_loss": supervised_loss_metric.result(),
