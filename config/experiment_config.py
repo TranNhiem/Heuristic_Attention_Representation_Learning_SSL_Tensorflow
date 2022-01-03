@@ -7,7 +7,7 @@ def read_cfg(mod="non_contrastive"):
     FLAGS = flag.FLAGS
 
     FLAGS.wandb_project_name = "heuristic_attention_representation_learning_Paper"
-    FLAGS.wandb_run_name = "test_linear_classification"
+    FLAGS.wandb_run_name = "MNC_(7_7_2048)_100epoch_alpha_schedule_symloss"
     FLAGS.wandb_mod = "run"
 
     FLAGS.Middle_layer_output = None
@@ -17,7 +17,7 @@ def read_cfg(mod="non_contrastive"):
     
     FLAGS.loss_type ="symmetrized"# asymmetrized (2 only options)
     
-    FLAGS.base_lr = 0.3
+    FLAGS.base_lr = 0.5
 
     FLAGS.non_contrast_binary_loss = "sum_symetrize_l2_loss_object_backg"
     FLAGS.alpha = 1
@@ -28,8 +28,8 @@ def read_cfg(mod="non_contrastive"):
 
     FLAGS.train_batch_size = 128
     FLAGS.val_batch_size = 128
-    FLAGS.model_dir = "/data1/share/resnet_byol/reatnet50/test_linear_classification"
-    FLAGS.train_mode = "finetune"
+    FLAGS.model_dir = "/data1/share/resnet_byol/reatnet50/MNC_(7_7_2048)_100epoch_alpha_schedule_symloss"
+    #FLAGS.train_mode = "finetune"
 
 
 
