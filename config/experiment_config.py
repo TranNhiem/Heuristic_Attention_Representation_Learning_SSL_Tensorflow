@@ -29,6 +29,7 @@ def read_cfg(mod="non_contrastive"):
     FLAGS.train_batch_size = 128
     FLAGS.val_batch_size = 128
     FLAGS.model_dir = "/data1/share/resnet_byol/reatnet50/test_linear_classification"
+    FLAGS.train_mode = "finetune"
 
 
 
