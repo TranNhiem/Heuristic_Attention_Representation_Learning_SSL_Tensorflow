@@ -113,8 +113,7 @@ def main():
     # *****************************************************************
     # Only Evaluate model
     # *****************************************************************
-    online_model.build((1, 224, 224, 3))
-    online_model.load_weights("/data1/share/resnet_byol/restnet50/Basel/online_model_199.h5")
+    online_model.load_weights("/data1/share/resnet_byol/restnet50/Baselline_(7_7_2048)_200_epoch/online_model_199.h5")
     if FLAGS.mode == "eval":
         # can choose different min_interval
         for ckpt in tf.train.checkpoints_iterator(FLAGS.model_dir, min_interval_secs=15):
