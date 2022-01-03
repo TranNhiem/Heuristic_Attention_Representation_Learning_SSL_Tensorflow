@@ -83,6 +83,7 @@ def main():
                        Middle_layer_output=[1, 2, 3, 4, 5])
         linear_layear = all_model.LinearLayer(FLAGS.num_classes)
         model.built = True
+        model.build((1, 224, 224, 3))
         model.load_weights("/data1/share/resnet_byol/restnet50/Baseline_(7_7_2048)_200epoch/encoder_model_199.h5")
         online_model = tf.keras.Model(inputs=model.input(), outputs=[b1, b3, b3])
 
