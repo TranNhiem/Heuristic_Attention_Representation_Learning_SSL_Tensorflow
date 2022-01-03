@@ -210,7 +210,7 @@ def perform_evaluation(model, val_ds, val_steps, ckpt, strategy):
     def single_step(features, labels):
         # Logits output
         print("start v")
-        _,_,_, supervised_head_outputs = model(features, training=False)
+        _, supervised_head_outputs = model(features, training=False)
         assert supervised_head_outputs is not None
         outputs = supervised_head_outputs
         metrics.update_finetune_metrics_eval(
