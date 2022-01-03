@@ -184,6 +184,8 @@ def main():
             all_metrics.extend(
                 [supervised_loss_metric, supervised_acc_metric])
 
+            checkpoint_manager = try_restore_from_checkpoint(
+                online_model, optimizer.iterations, optimizer)
             @tf.function
             def train_step(ds):
 
@@ -191,14 +193,13 @@ def main():
                 images, lable_1, = ds
 
                 with tf.GradientTape(persistent=True) as tape:
-
                     _, _,  _, supervised_head_output_1 = online_model(
-                        [images_mask_one[0], tf.expand_dims(images_mask_one[1], axis=-1)], training=True)
+                        images, training=True)
                     # Vector Representation from Online encoder go into Projection head again
                     # Compute Contrastive Train Loss -->
                     if supervised_head_output_1 is not None:
-                        outputs = tf.concat([supervised_head_output_1, supervised_head_output_2], 0)
-                        supervise_lable = tf.concat([lable_1, lable_2], 0)
+                        outputs = supervised_head_output_1
+                        supervise_lable = lable_1
 
                         # Calculte the cross_entropy loss with Labels
                         sup_loss = obj_lib.add_supervised_loss(
@@ -245,10 +246,8 @@ def main():
                 for _, ds in enumerate(val_ds):
                     total_loss += distributed_train_step(ds)
                     num_batches += 1
-
                     with summary_writer.as_default():
                         cur_step = global_step.numpy()
-                        checkpoint_manager.save(cur_step)
                         logging.info('Completed: %d / %d steps',
                                      cur_step, train_steps)
                         metrics.log_and_write_metrics_to_summary(
@@ -271,14 +270,11 @@ def main():
                     online_model.encoder.save_weights(save_encoder)
                     online_model.save_weights(save_online_model)
 
-                result = perform_evaluation(online_model, val_ds, eval_steps, ckpt, strategy)
+                result = perform_evaluation(online_model, val_ds, eval_steps, checkpoint_manager.latest_checkpoint, strategy)
                 wandb.log({
                     "epochs": epoch+1,
                     "train/alpha_value": alpha,
                     "train/weight_loss_value": weight_loss,
-                    "train_contrast_loss": contrast_loss_metric.result(),
-                    "train_contrast_acc": contrast_acc_metric.result(),
-                    "train_contrast_acc_entropy": contrast_entropy_metric.result(),
                     "train/weight_decay": weight_decay_metric.result(),
                     "train/total_loss": epoch_loss,
                     "train/supervised_loss": supervised_loss_metric.result(),
