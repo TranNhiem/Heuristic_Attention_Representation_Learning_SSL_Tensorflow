@@ -306,7 +306,6 @@ def main():
                     '''Consider Sperate Supervised Loss'''
                     # supervised_loss=None
                     if supervised_head_output_1 is not None:
-
                         if FLAGS.train_mode == 'pretrain' and FLAGS.lineareval_while_pretraining:
 
                             outputs = tf.concat(
@@ -341,7 +340,6 @@ def main():
                                                                   contrast_entropy_metric,
                                                                   loss, logits_ab,
                                                                   labels)
-    
                     weight_decay_loss = all_model.add_weight_decay(
                         online_model, adjust_per_optimizer=True)
                     # Under experiment Scale loss after adding Regularization and scaled by Batch_size
@@ -367,6 +365,7 @@ def main():
                     zip(grads, prediction_model.trainable_variables))
                 del tape
                 return loss
+
             @tf.function
             def distributed_train_step(ds_one, ds_two):
                 per_replica_losses = strategy.run(
