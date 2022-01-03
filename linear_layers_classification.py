@@ -193,7 +193,7 @@ def main():
                 images, lable_1, = ds
 
                 with tf.GradientTape(persistent=True) as tape:
-                    _, _,  _, supervised_head_output_1 = online_model(
+                    _, supervised_head_output_1 = online_model(
                         images, training=True)
                     # Vector Representation from Online encoder go into Projection head again
                     # Compute Contrastive Train Loss -->
