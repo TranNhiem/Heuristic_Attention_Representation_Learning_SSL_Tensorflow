@@ -232,7 +232,7 @@ def main():
             @tf.function
             def distributed_train_step(ds):
                 per_replica_losses = strategy.run(
-                    train_step, args=ds)
+                    train_step, args=(ds,))
                 return strategy.reduce(tf.distribute.ReduceOp.SUM, per_replica_losses,axis=None)
             global_step = optimizer.iterations
 
