@@ -468,7 +468,7 @@ def main():
                 # Wandb Configure for Visualize the Model Training
                 wandb.log({
                     "epochs": epoch+1,
-                    "train/alpha_value": FLAGS.alpha,
+                    "train/alpha_value": alpha,
                     "train/weight_loss_value": FLAGS.weighted_loss,
                     "train_contrast_loss": contrast_loss_metric.result(),
                     "train_contrast_acc": contrast_acc_metric.result(),
