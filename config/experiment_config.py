@@ -28,7 +28,7 @@ def read_cfg(mod="non_contrastive"):
 
     FLAGS.train_batch_size = 128
     FLAGS.val_batch_size = 128
-    FLAGS.model_dir = "/data1/share/resnet_byol/MNC_resnet18(14_14_512)_mask_original_loss_Beta_0_5_alpha_schedule_symloss"
+    FLAGS.model_dir = "/data1/share/resnet_byol/baseline_fp16_7_7_512"
     #FLAGS.train_mode = "finetune"
 
 
