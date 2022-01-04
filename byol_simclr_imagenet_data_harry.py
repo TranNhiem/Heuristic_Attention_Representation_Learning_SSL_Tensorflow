@@ -291,7 +291,7 @@ class imagenet_dataset_single_machine():
                         .shuffle(self.BATCH_SIZE * 100, seed=self.seed)
                         # .map(self.parse_images_label,  num_parallel_calls=AUTO)
                         .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)),
-                             num_parallel_calls=AUTO).cache()
+                             num_parallel_calls=AUTO)#.cache()
                         .map(lambda x, y, z: (simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z),
                              num_parallel_calls=AUTO)
                         .batch(self.BATCH_SIZE)
@@ -302,7 +302,7 @@ class imagenet_dataset_single_machine():
                         .shuffle(self.BATCH_SIZE * 100, seed=self.seed)
                         # .map(self.parse_images_label,  num_parallel_calls=AUTO)
                         .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)),
-                             num_parallel_calls=AUTO).cache()
+                             num_parallel_calls=AUTO)#.cache()
                         .map(lambda x, y, z: (simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z),
                              num_parallel_calls=AUTO)
                         .batch(self.BATCH_SIZE)

@@ -314,6 +314,12 @@ def Configure_Model_Training():
     )
     # Fine Tuning configure
 
+    flags.DEFINE_enum(
+        'mixprecision', "fp32", ['fp16', 'fp32'],  # fp32 is original precision
+        'Mixprecision helps for speeding up training by reducing time aggregate gradient'
+    )
+
+
     flags.DEFINE_boolean(
         'zero_init_logits_layer', False,
         'If True, zero initialize layers after avg_pool for supervised learning.')

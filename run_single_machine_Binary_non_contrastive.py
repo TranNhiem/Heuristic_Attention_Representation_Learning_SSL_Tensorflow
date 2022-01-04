@@ -373,16 +373,44 @@ def main():
                     for var in online_model.trainable_variables:
                         logging.info(var.name)
 
-                # Update Encoder and Projection head weight
-                grads = tape.gradient(loss, online_model.trainable_variables)
-                optimizer.apply_gradients(
-                    zip(grads, online_model.trainable_variables))
 
-                # Update Prediction Head model
-                grads = tape.gradient(
-                    loss, prediction_model.trainable_variables)
-                optimizer.apply_gradients(
-                    zip(grads, prediction_model.trainable_variables))
+                if FLAGS.mixprecision == "fp16":
+                    logging.info("you implement mix_percision_16_Fp")
+
+                    # Reduce loss Precision to 16 Bits
+                    scaled_loss = optimizer.get_scaled_loss(loss)
+
+                    # Update the Encoder
+                    scaled_gradients = tape.gradient(
+                        scaled_loss, online_model.trainable_variables)
+                    gradients = optimizer.get_unscaled_gradients(scaled_gradients)
+                    optimizer.apply_gradients(
+                        zip(gradients, online_model.trainable_variables))
+
+                    # Update Prediction Head model
+                    scaled_grads = tape.gradient(
+                        scaled_loss, prediction_model.trainable_variables)
+                    gradients_unscale = optimizer.get_unscaled_gradients(scaled_grads)
+                    optimizer.apply_gradients(
+                        zip(gradients_unscale, prediction_model.trainable_variables))
+
+                elif FLAGS.mixprecision == "fp32":
+                    logging.info("you implement original_Fp precision")
+
+                    # Update Encoder and Projection head weight
+                    grads = tape.gradient(loss, online_model.trainable_variables)
+                    optimizer.apply_gradients(
+                        zip(grads, online_model.trainable_variables))
+
+                    # Update Prediction Head model
+                    grads = tape.gradient(
+                        loss, prediction_model.trainable_variables)
+                    optimizer.apply_gradients(
+                        zip(grads, prediction_model.trainable_variables))
+                else:
+                    raise ValueError(
+                        "Invalid Implement optimization floating precision")
+
                 del tape
                 return loss
 

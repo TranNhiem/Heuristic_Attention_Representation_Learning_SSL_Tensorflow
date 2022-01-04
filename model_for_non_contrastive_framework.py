@@ -46,6 +46,7 @@ def build_optimizer(lr_schedule):
         Optimizer_type = FLAGS.optimizer
         optimizers = get_optimizer(lr_schedule, Optimizer_type)
         optimizer = optimizers.original_optimizer(FLAGS)
+
     elif FLAGS.optimizer_type == "optimizer_weight_decay":
         Optimizer_type = FLAGS.optimizer
         optimizers = get_optimizer(lr_schedule, Optimizer_type)
@@ -64,6 +65,9 @@ def build_optimizer(lr_schedule):
     else:
         raise ValueError(" FLAGS.Optimizer type is invalid please check again")
     #optimizer_mix_percision = mixed_precision.LossScaleOptimizer(optimizer)
+
+    if FLAGS.mixprecision == "fp16":
+        optimizer = mixed_precision.LossScaleOptimizer(optimizer)
 
     return optimizer
 
