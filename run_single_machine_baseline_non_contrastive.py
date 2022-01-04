@@ -330,16 +330,19 @@ def main():
                         # Noted Consideration Aggregate (Supervised + Contrastive Loss) --> Update the Model Gradient
                         if FLAGS.aggregate_loss == "contrastive_supervised":
                             if loss is None:
-                                loss = loss
+                                loss = scale_sup_loss
                             else:
-                                loss += loss
+                                loss += scale_sup_loss
+                        elif FLAGS.aggregate_loss == "contrastive":
 
-                            # Update Self-Supervised Metrics
-                            metrics.update_pretrain_metrics_train(contrast_loss_metric,
-                                                                  contrast_acc_metric,
-                                                                  contrast_entropy_metric,
-                                                                  loss, logits_ab,
-                                                                  labels)
+                            supervise_loss = None
+                            if supervise_loss is None:
+                                supervise_loss = scale_sup_loss
+                            else:
+                                supervise_loss += scale_sup_loss
+                        else:
+                            raise ValueError(
+                                " Loss aggregate is invalid please check FLAGS.aggregate_loss")
                     weight_decay_loss = all_model.add_weight_decay(
                         online_model, adjust_per_optimizer=True)
                     # Under experiment Scale loss after adding Regularization and scaled by Batch_size
@@ -365,7 +368,7 @@ def main():
                 #     zip(grads, prediction_model.trainable_variables))
                 # del tape
                 # return loss
-                 if FLAGS.mixprecision == "fp16":
+                if FLAGS.mixprecision == "fp16":
                     logging.info("you implement mix_percision_16_Fp")
 
                     # Reduce loss Precision to 16 Bits
