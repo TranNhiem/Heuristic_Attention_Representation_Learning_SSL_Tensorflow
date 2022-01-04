@@ -6,7 +6,7 @@ def read_cfg(mod="non_contrastive"):
     flag = Mock_Flag()
     FLAGS = flag.FLAGS
 
-    FLAGS.wandb_project_name = "heuristic_attention_representation_learning_Paper"
+    FLAGS.wandb_project_name = "heuristic_attention_represenation_learning_ResNet18"
     FLAGS.wandb_run_name = "restnet18_output_(7*7*512)_baseline_symloss"
     FLAGS.wandb_mod = "run"
 
