@@ -365,7 +365,7 @@ def main():
                 #     zip(grads, prediction_model.trainable_variables))
                 # del tape
                 # return loss
-                 if FLAGS.mixprecision == "fp16":
+                if FLAGS.mixprecision == "fp16":
                     logging.info("you implement mix_percision_16_Fp")
 
                     # Reduce loss Precision to 16 Bits
