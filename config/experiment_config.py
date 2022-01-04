@@ -22,7 +22,7 @@ def read_cfg(mod="non_contrastive"):
     FLAGS.non_contrast_binary_loss = "sum_symetrize_l2_loss_object_backg"
     FLAGS.alpha = 1
     FLAGS.weighted_loss = 0.5
-    FLAGS.resnet_depth = 50
+    FLAGS.resnet_depth = 18
     FLAGS.train_epochs = 100
     FLAGS.num_classes = 1000
 
