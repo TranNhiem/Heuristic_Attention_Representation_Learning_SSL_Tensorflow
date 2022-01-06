@@ -366,6 +366,11 @@ def main():
                         online_model, adjust_per_optimizer=True)
 
                     weight_decay_metric.update_state(weight_decay_loss)
+                    
+                    if FLAGS.mixprecision == "fp16": 
+                        #Casting the weight Decay loss also
+                        weight_decay_loss=tf.cast(weight_decay_loss, 'float16')
+                        
                     loss += weight_decay_loss
                     total_loss_metric.update_state(loss)
 
