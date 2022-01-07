@@ -27,6 +27,9 @@ from learning_rate_optimizer import get_optimizer
 from tensorflow.keras import mixed_precision
 from visualize import Visualize
 
+# if FLAGS.mixprecision == "fp16":
+#     mixed_precision.set_global_policy('mixed_float16')
+
 #FLAGS = flags.FLAGS
 
 from config.absl_mock import Mock_Flag
