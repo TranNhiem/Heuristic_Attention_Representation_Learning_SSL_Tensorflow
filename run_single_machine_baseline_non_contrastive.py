@@ -6,6 +6,7 @@ import random
 from absl import flags
 from absl import logging
 from absl import app
+from absl import app
 
 import tensorflow as tf
 from learning_rate_optimizer import WarmUpAndCosineDecay
@@ -48,6 +49,8 @@ def main():
 
     # Preparing dataset
     # Imagenet path prepare localy
+    summary_writer = tf.summary.create_file_writer(FLAGS.model_dir)
+    tf.profiler.experimental.start(FLAGS.model_dir)
     strategy = tf.distribute.MirroredStrategy()
     train_global_batch = FLAGS.train_batch_size * strategy.num_replicas_in_sync
     val_global_batch = FLAGS.val_batch_size * strategy.num_replicas_in_sync
@@ -122,12 +125,10 @@ def main():
             # global_step from ckpt
             if result['global_step'] >= train_steps:
                 logging.info('Evaluation complete. Existing-->')
-
     # *****************************************************************
     # Pre-Training and Evaluate
     # *****************************************************************
     else:
-        summary_writer = tf.summary.create_file_writer(FLAGS.model_dir)
         with strategy.scope():
 
             # Configure the learning rate
@@ -406,8 +407,6 @@ def main():
 
                     all_reduce_fp32_grads = optimizer.get_unscaled_gradients(all_reduce_fp32_grads)
                     optimizer.apply_gradients(zip(all_reduce_fp32_grads, prediction_model.trainable_variables), experimental_aggregate_gradients=False)
-                    
-
 
                 elif FLAGS.mixprecision == "fp32":
                     logging.info("you implement original_Fp precision")
@@ -438,11 +437,9 @@ def main():
             global_step = optimizer.iterations
 
             for epoch in range(FLAGS.train_epochs):
-
                 total_loss = 0.0
                 num_batches = 0
-
-                for _, (ds_one, ds_two) in enumerate(train_ds):
+                for loca_step , (ds_one, ds_two) in enumerate(train_ds):
 
                     total_loss += distributed_train_step(ds_one, ds_two)
                     num_batches += 1
@@ -470,6 +467,12 @@ def main():
                                           global_step)
                         summary_writer.flush()
 
+                    if loca_step == 20:
+                        # stop profile
+                        print("stop profiler")
+                        tf.profiler.experimental.stop()
+
+
                 epoch_loss = total_loss/num_batches
                 # Wandb Configure for Visualize the Model Training
                 wandb.log({
@@ -484,6 +487,7 @@ def main():
                 })
                 for metric in all_metrics:
                     metric.reset_states()
+
                 # Saving Entire Model
                 if (epoch+1) % 20 == 0:
                     save_encoder = os.path.join(
