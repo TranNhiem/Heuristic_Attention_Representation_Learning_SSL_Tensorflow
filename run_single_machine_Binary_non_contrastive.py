@@ -28,6 +28,7 @@ if not os.path.isdir(FLAGS.model_dir):
     os.makedirs(FLAGS.model_dir)
 flag.save_config(os.path.join(FLAGS.model_dir,"config.cfg"))
 
+os.environ['TF_GPU_THREAD_MODE'] = 'gpu_private'
 
 def main():
     # Preparing dataset
@@ -455,7 +456,7 @@ def main():
                 return strategy.reduce(tf.distribute.ReduceOp.SUM, per_replica_losses,
                                        axis=None)
             global_step = optimizer.iterations
-
+            tf.profiler.experimental.start(FLAGS.model_dir)
             for epoch in range(FLAGS.train_epochs):
                 total_loss = 0.0
                 num_batches = 0
@@ -489,6 +490,9 @@ def main():
 
                     with summary_writer.as_default():
                         cur_step = global_step.numpy()
+                        if cur_step == 10 and epoch == 0:
+                            print("stop profile")
+                            tf.profiler.experimental.stop()
                         checkpoint_manager.save(cur_step)
                         logging.info('Completed: %d / %d steps',
                                      cur_step, train_steps)
@@ -500,6 +504,14 @@ def main():
 
                 epoch_loss = total_loss/num_batches
                 # Wandb Configure for Visualize the Model Training
+                if (epoch+1) % 5 == 0:
+                    result = perform_evaluation(online_model, val_ds, eval_steps,
+                                       checkpoint_manager.latest_checkpoint, strategy)
+                    wandb.log({
+                    "eval/label_top_1_accuracy": result["eval/label_top_1_accuracy"],
+                    "eval/label_top_5_accuracy": result["eval/label_top_5_accuracy"],
+                    })
+
                 wandb.log({
                     "epochs": epoch+1,
                     "train/alpha_value": alpha,
@@ -511,11 +523,14 @@ def main():
                     "train/total_loss": epoch_loss,
                     "train/supervised_loss": supervised_loss_metric.result(),
                     "train/supervised_acc": supervised_acc_metric.result(),
-                    "encoder output size": "14*14*2048"
                 })
+
                 for metric in all_metrics:
                     metric.reset_states()
                 # Saving Entire Model
+
+
+
                 if (epoch+1) % 20 == 0:
                     save_encoder = os.path.join(
                         FLAGS.model_dir, "encoder_model_" + str(epoch) + ".h5")
@@ -529,9 +544,7 @@ def main():
 
             logging.info('Training Complete ...')
 
-        if FLAGS.mode == 'train_then_eval':
-            perform_evaluation(online_model, val_ds, eval_steps,
-                               checkpoint_manager.latest_checkpoint, strategy)
+
 
         save_encoder = os.path.join(
             FLAGS.model_dir, "encoder_model_latest.h5")

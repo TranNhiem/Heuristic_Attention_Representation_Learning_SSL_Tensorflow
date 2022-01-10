@@ -40,7 +40,7 @@ if not os.path.isdir(FLAGS.model_dir):
     os.makedirs(FLAGS.model_dir)
 flag.save_config(os.path.join(FLAGS.model_dir,"config.cfg"))
 
-
+os.environ['TF_GPU_THREAD_MODE'] = 'gpu_private'
 
 def main():
     # if len(argv) > 1:
@@ -438,11 +438,11 @@ def main():
                                        axis=None)
             global_step = optimizer.iterations
 
+            # Train the model here
+            tf.profiler.experimental.start(FLAGS.model_dir)
             for epoch in range(FLAGS.train_epochs):
-
                 total_loss = 0.0
                 num_batches = 0
-
                 for _, (ds_one, ds_two) in enumerate(train_ds):
 
                     total_loss += distributed_train_step(ds_one, ds_two)
@@ -462,6 +462,9 @@ def main():
 
                     with summary_writer.as_default():
                         cur_step = global_step.numpy()
+                        if cur_step == 10 and epoch == 0:
+                            print("stop profile")
+                            tf.profiler.experimental.stop()
                         checkpoint_manager.save(cur_step)
                         logging.info('Completed: %d / %d steps',
                                      cur_step, train_steps)
@@ -472,6 +475,14 @@ def main():
                         summary_writer.flush()
 
                 epoch_loss = total_loss/num_batches
+                if (epoch+1) % 5 == 0:
+                    result = perform_evaluation(online_model, val_ds, eval_steps,
+                                       checkpoint_manager.latest_checkpoint, strategy)
+                    wandb.log({
+                    "eval/label_top_1_accuracy": result["eval/label_top_1_accuracy"],
+                    "eval/label_top_5_accuracy": result["eval/label_top_5_accuracy"],
+                    })
+
                 # Wandb Configure for Visualize the Model Training
                 wandb.log({
                     "epochs": epoch+1,
