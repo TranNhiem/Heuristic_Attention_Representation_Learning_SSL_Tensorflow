@@ -190,6 +190,7 @@ def distorted_bounding_box_crop(image,
 
 
 # Alternative two option for random_crop (Simclr_github)
+@tf.function
 def flip_random_crop(image, crop_size):
     '''
     Args: 
@@ -204,7 +205,7 @@ def flip_random_crop(image, crop_size):
     return image
 # Local Croping --Under experiment
 
-
+@tf.function
 def random_crop_flip_resize(image, IMG_SIZE):
     # Random cropping
     h_crop = tf.cast(tf.random.uniform(shape=[], minval=30,
@@ -231,7 +232,7 @@ def random_crop_flip_resize(image, IMG_SIZE):
 
 # Random Global and Local Croping
 
-
+@tf.function
 def rand_distribe_crop_global_local_views_flip(image, crop_size, min_scale, max_scale, high_resol=True):
     '''
         Args:
@@ -261,6 +262,7 @@ def rand_distribe_crop_global_local_views_flip(image, crop_size, min_scale, max_
 
 
 # Local Croping --Under experiment
+@tf.function
 def rand_distribe_crop_global_local_views_flip_v1(image, crop_size, IMG_SIZE):
     # Random cropping
     # h_crop = tf.cast(tf.random.uniform(shape=[], minval=50,
@@ -295,7 +297,7 @@ def rand_distribe_crop_global_local_views_flip_v1(image, crop_size, IMG_SIZE):
 
 # Inception Style Croping
 
-
+@tf.function
 def inception_style_croping(image, height, width):
     """Make a random crop and resize it to height `height` and width `width`.
     Args:
@@ -321,7 +323,7 @@ def inception_style_croping(image, height, width):
 # This random brightness implement in SimCLRV2
 # Magnitude reference form BYOL
 
-
+@tf.function
 def color_jitter(image, strength=[0.4, 0.4, 0.2, 0.1]):
     '''
     Args: 
@@ -340,7 +342,7 @@ def color_jitter(image, strength=[0.4, 0.4, 0.2, 0.1]):
     x = tf.clip_by_value(x, 0, 255)
     return x
 
-
+@tf.function
 def random_blur(image):  # IMG_SIZE=32,
     '''
     Args: 
@@ -358,7 +360,7 @@ def random_blur(image):  # IMG_SIZE=32,
         image, kernel_size=IMG_SIZE // 10, sigma=sigma, padding='SAME')
     return image_blur
 
-
+@tf.function
 def color_drop(image):
     '''
     Args: 
