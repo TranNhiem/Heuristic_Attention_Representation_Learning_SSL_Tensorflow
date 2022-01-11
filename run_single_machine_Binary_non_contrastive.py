@@ -186,6 +186,7 @@ def main():
                 online_model, optimizer.iterations, optimizer)
 
             # Scale loss  --> Aggregating all Gradients
+            @tf.function
             def distributed_loss(o1, o2, b1, b2, f1=None, f2=None, alpha=0.5, weight=0.5):
 
                 if FLAGS.non_contrast_binary_loss == 'original_add_backgroud':

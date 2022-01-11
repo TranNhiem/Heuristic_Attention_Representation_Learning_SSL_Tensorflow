@@ -208,7 +208,7 @@ def main():
                     (1./train_global_batch)
                 return loss, logits_ab, labels
 
-            @tf.function
+            @tf.function(jit_compile=True)
             def train_step(ds_one, ds_two, alpha, weight_loss):
 
                 # Get the data from
