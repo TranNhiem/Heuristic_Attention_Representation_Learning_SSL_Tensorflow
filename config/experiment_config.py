@@ -17,6 +17,8 @@ def read_cfg(mod="non_contrastive"):
     FLAGS.Middle_layer_output = None
     
     FLAGS.loss_type ="symmetrized"# asymmetrized (2 only options)
+    # Moving average the weight From Online to Target Encoder Network
+    FLAGS.moving_average = "schedule"# two options [fixed_value, schedule] schedule recommend from BYOL
     FLAGS.mixprecision='fp32' #['fp16', 'fp32'],  # fp32 is original precision
     FLAGS.base_lr = 0.5
 

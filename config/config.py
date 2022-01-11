@@ -319,6 +319,9 @@ def Configure_Model_Training():
         'Mixprecision helps for speeding up training by reducing time aggregate gradient'
     )
 
+    flags.DEFINE_enum(
+        'moving_average', 'schedule', ["fixed_value", "schedule"],
+        'Moving average the weight of online Encoder to Target Encoder.')
 
     flags.DEFINE_boolean(
         'zero_init_logits_layer', False,
