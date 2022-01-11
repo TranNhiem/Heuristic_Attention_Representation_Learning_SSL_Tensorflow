@@ -113,7 +113,7 @@ def build_optimizer_multi_machine(lr_schedule):
 
     return optimizer_mix_percision
 
-
+@tf.function
 def add_weight_decay(model, adjust_per_optimizer=True):
     """Compute weight decay from flags."""
     if adjust_per_optimizer and 'lars' in FLAGS.optimizer:

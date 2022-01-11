@@ -209,7 +209,7 @@ def main():
                     (1./train_global_batch)
                 return loss, logits_ab, labels
 
-            @tf.function
+            @tf.function(jit_compile=True)
             def train_step(ds_one, ds_two, alpha, weight_loss):
 
                 # Get the data from
@@ -410,8 +410,8 @@ def main():
                     all_reduce_fp32_grads = [
                         tf.cast(grad, 'float32')for grad in all_reduce_fp16_grads]
 
-                    all_reduce_fp32_grads = optimizer.get_unscaled_gradients(
-                        all_reduce_fp32_grads)
+                    # all_reduce_fp32_grads = optimizer.get_unscaled_gradients(
+                    #     all_reduce_fp32_grads)
                     optimizer.apply_gradients(zip(
                         all_reduce_fp32_grads, online_model.trainable_variables), experimental_aggregate_gradients=False)
 
@@ -423,8 +423,8 @@ def main():
                     ).all_reduce(tf.distribute.ReduceOp.SUM, fp16_grads)
                     all_reduce_fp32_grads = [
                         tf.cast(grad, 'float32')for grad in all_reduce_fp16_grads]
-                    all_reduce_fp32_grads = optimizer.get_unscaled_gradients(
-                        all_reduce_fp32_grads)
+                    # all_reduce_fp32_grads = optimizer.get_unscaled_gradients(
+                    #     all_reduce_fp32_grads)
                     optimizer.apply_gradients(zip(
                         all_reduce_fp32_grads, prediction_model.trainable_variables), experimental_aggregate_gradients=False)
 
