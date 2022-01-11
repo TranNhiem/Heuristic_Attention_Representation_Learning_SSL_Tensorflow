@@ -450,9 +450,10 @@ def main():
                     if FLAGS.moving_average == "fixed_value":
                         beta = 0.99
                     if FLAGS.moving_average == "schedule":
-                    # This update the Beta value schedule along with Trainign steps Follow BYOL
-                        beta_base = 0.996
-                        beta = 1 - (1-beta_base) * (cos(pi*global_step/self.train_steps)+1)/2
+                        # This update the Beta value schedule along with Trainign steps Follow BYOL
+                        cur_step = global_step.numpy()
+                        beta = 1 - (1-beta_base) * \
+                            (cos(pi*cur_step/train_steps)+1)/2
 
                     target_encoder_weights = target_model.get_weights()
                     online_encoder_weights = online_model.get_weights()
