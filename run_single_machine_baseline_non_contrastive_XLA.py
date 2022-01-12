@@ -17,6 +17,10 @@ import model_for_non_contrastive_framework as all_model
 import objective as obj_lib
 from imutils import paths
 
+## Automatic Clustering JIT Compiler XLA
+tf.config.optimizer.set_jit(True)
+
+
 # Setting GPU
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if gpus:
