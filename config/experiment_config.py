@@ -7,19 +7,19 @@ def read_cfg(mod="non_contrastive"):
     FLAGS = flag.FLAGS
 
     FLAGS.wandb_project_name = "heuristic_attention_representation_learning_Paper"
-    FLAGS.wandb_run_name = "Hybrid_loss_(7*7*2048)_100epoch_alpha_schedule_symloss"
+    FLAGS.wandb_run_name = "Hybrid_loss_(28_28_2048)_100epoch_alpha_schedule_symloss"
     FLAGS.wandb_mod = "run"
 
     FLAGS.Middle_layer_output = None
     FLAGS.original_loss_stop_gradient = False
-    FLAGS.Encoder_block_strides = {'1':2,'2':1,'3':2,'4':2,'5':2}
+    FLAGS.Encoder_block_strides = {'1':2,'2':1,'3':2,'4':1,'5':1}
     FLAGS.Encoder_block_channel_output = {'1':1,'2':1,'3':1,'4':1,'5':1}
     FLAGS.Middle_layer_output = None
     
     FLAGS.loss_type ="symmetrized"# asymmetrized (2 only options)
     # Moving average the weight From Online to Target Encoder Network
     FLAGS.moving_average = "schedule"# two options [fixed_value, schedule] schedule recommend from BYOL
-    FLAGS.mixprecision='fp32' #['fp16', 'fp32'],  # fp32 is original precision
+    FLAGS.mixprecision='fp16' #['fp16', 'fp32'],  # fp32 is original precision
     FLAGS.base_lr = 0.5
 
     FLAGS.non_contrast_binary_loss = "sum_symetrize_l2_loss_object_backg_add_original"#sum_symetrize_l2_loss_object_backg_add_original
@@ -31,7 +31,7 @@ def read_cfg(mod="non_contrastive"):
 
     FLAGS.train_batch_size = 128
     FLAGS.val_batch_size = 128
-    FLAGS.model_dir = "/data1/share/resnet_byol/resnet50/Hybrid_loss_(7*7*2048)_100epoch_alpha_schedule_symloss"
+    FLAGS.model_dir = "/data1/share/resnet_byol/resnet50/Hybrid_loss_(28_28_2048)_100epoch_alpha_schedule_symloss"
     #FLAGS.train_mode = "finetune"
 
 

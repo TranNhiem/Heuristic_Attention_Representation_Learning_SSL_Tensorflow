@@ -113,7 +113,6 @@ def build_optimizer_multi_machine(lr_schedule):
 
     return optimizer_mix_percision
 
-@tf.function
 def add_weight_decay(model, adjust_per_optimizer=True):
     """Compute weight decay from flags."""
     if adjust_per_optimizer and 'lars' in FLAGS.optimizer:
@@ -848,9 +847,9 @@ class Binary_online_model(tf.keras.models.Model):
             if FLAGS.fine_tune_after_block > -1:
                 raise ValueError('Does not support layer freezing during pretraining,'
                                  'should set fine_tune_after_block<=-1 for safety.')
-        if inputs.shape[3] is None:
-            raise ValueError('The input channels dimension must be statically known '
-                             f'(got input shape {inputs.shape})')
+            # if inputs.shape[3] is None:
+            #     raise ValueError('The input channels dimension must be statically known '
+            #                      f'(got input shape {inputs.shape})')
 
         # Base network forward pass
         final_feature_map = None
@@ -895,7 +894,7 @@ class Binary_online_model(tf.keras.models.Model):
             print(supervised_head_inputs)
             supervised_head_outputs = self.supervised_head(
                 supervised_head_inputs, training)
-            return None, None, None, supervised_head_outputs
+            return None, supervised_head_outputs
 
         elif FLAGS.train_mode == 'pretrain' and FLAGS.lineareval_while_pretraining:
             # When performing pretraining and linear evaluation together we do not
@@ -1010,7 +1009,7 @@ class Binary_target_model(tf.keras.models.Model):
         if FLAGS.train_mode == 'finetune':
             supervised_head_outputs = self.supervised_head(
                 supervised_head_inputs, training)
-            return None, None, None, supervised_head_outputs
+            return None, supervised_head_outputs
 
         elif FLAGS.train_mode == 'pretrain' and FLAGS.lineareval_while_pretraining:
             # When performing pretraining and linear evaluation together we do not

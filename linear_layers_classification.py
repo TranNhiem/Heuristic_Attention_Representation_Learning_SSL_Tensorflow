@@ -1,3 +1,5 @@
+import numpy as np
+
 from config.experiment_config import read_cfg
 #from config.config_for_add_orgloss import read_cfg
 from config.absl_mock import Mock_Flag
@@ -39,7 +41,6 @@ if not os.path.isdir(FLAGS.model_dir):
     print("Creat the model dir: ",FLAGS.model_dir)
     os.makedirs(FLAGS.model_dir)
 flag.save_config(os.path.join(FLAGS.model_dir,"config.cfg"))
-
 
 def main():
     # Preparing dataset
@@ -86,16 +87,29 @@ def main():
         # model.build((1, 224, 224, 3))
         # model.load_weights("/data1/share/resnet_byol/restnet50/Baseline_(7_7_2048)_200epoch/encoder_model_199.h5")
 
-        online_model = all_model.online_model(FLAGS.num_classes)
-        online_model.resnet_model.built = True
-        online_model.resnet_model.build((1, 224, 224, 3))
-        online_model.resnet_model.load_weights("/data1/share/resnet_byol/restnet50/Baseline_(7_7_2048)_200epoch/encoder_model_199.h5")
+        model = resnet(
+            resnet_depth=FLAGS.resnet_depth,
+            width_multiplier=FLAGS.width_multiplier,
+        )
+        img_row, img_col =224, 224
+        # flow the tensor to load the parameters
+        model(np.zeros((1, img_row, img_col, 3)))
+        model.summary()
+        model.load_weights("/data1/share/resnet_byol/resnet50/Baseline_(7_7_2048)_100epoch_symloss/encoder_model_99.h5")
+        try:
+            model.load_weights("/data1/share/resnet_byol/resnet50/Baseline_(7_7_2048)_100epoch_symloss/encoder_model_99.h5")
+        except:
+            print(" is not exist.")
 
+        # online_model = all_model.online_model(FLAGS.num_classes)
+        # online_model.resnet_model.built = True
+        # online_model.resnet_model.build((1, 224, 224, 3))
+        # online_model.resnet_model.load_weights("/data1/share/resnet_byol/resnet50/Baseline_(7_7_2048)_100epoch_symloss/encoder_model_99.h5")
+        #
 
     # Configure Wandb Training
     # Weight&Bias Tracking Experiment
     configs = {
-
         "Model_Arch": "ResNet50",
         "Training mode": "Binary_Non_Contrative_SSL",
         "DataAugmentation_types": "SimCLR_Inception_Croping_image_mask",
