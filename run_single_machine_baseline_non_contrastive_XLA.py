@@ -212,29 +212,30 @@ def main():
                         # -------------------------------------------------------------
 
                         # Online
-                        proj_head_output_1, supervised_head_output_1 = online_model(
-                            images_one, training=True)
-                        proj_head_output_1 = prediction_model(
-                            proj_head_output_1, training=True)
+                        with tf.xla.experimental.jit_scope():
+                            proj_head_output_1, supervised_head_output_1 = online_model(
+                                images_one, training=True)
+                            proj_head_output_1 = prediction_model(
+                                proj_head_output_1, training=True)
 
-                        # Target
-                        proj_head_output_2, supervised_head_output_2 = target_model(
-                            images_two, training=True)
+                            # Target
+                            proj_head_output_2, supervised_head_output_2 = target_model(
+                                images_two, training=True)
 
-                        # -------------------------------------------------------------
-                        # Passing Image 1, Image 2 to Target Encoder,  Online Encoder
-                        # -------------------------------------------------------------
+                            # -------------------------------------------------------------
+                            # Passing Image 1, Image 2 to Target Encoder,  Online Encoder
+                            # -------------------------------------------------------------
 
-                        # online
-                        proj_head_output_2_online, _ = online_model(
-                            images_two, training=True)
-                        # Vector Representation from Online encoder go into Projection head again
-                        proj_head_output_2_online = prediction_model(
-                            proj_head_output_2_online, training=True)
+                            # online
+                            proj_head_output_2_online, _ = online_model(
+                                images_two, training=True)
+                            # Vector Representation from Online encoder go into Projection head again
+                            proj_head_output_2_online = prediction_model(
+                                proj_head_output_2_online, training=True)
 
-                        # Target
-                        proj_head_output_1_target, _ = target_model(
-                            images_one, training=True)
+                            # Target
+                            proj_head_output_1_target, _ = target_model(
+                                images_one, training=True)
 
                         # Compute Contrastive Train Loss -->
                         loss = None
