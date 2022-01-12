@@ -177,7 +177,7 @@ def main():
                 online_model, optimizer.iterations, optimizer)
 
             # Scale loss  --> Aggregating all Gradients
-            @tf.function
+            @tf.function(jit_compile=True)
             def distributed_loss(x1, x2):
 
                 # each GPU loss per_replica batch loss
@@ -212,6 +212,7 @@ def main():
                         # -------------------------------------------------------------
 
                         # Online
+                        ## XLA JIT Compiler of operators within the Scope
                         with tf.xla.experimental.jit_scope():
                             proj_head_output_1, supervised_head_output_1 = online_model(
                                 images_one, training=True)
@@ -269,18 +270,21 @@ def main():
                         # -------------------------------------------------------------
                         # Passing image 1, image 2 to Online Encoder , Target Encoder
                         # -------------------------------------------------------------
+                        
+                        
+                        ## XLA JIT Compiler of operators within the Scope
+                        with tf.xla.experimental.jit_scope():
+                            # Online
+                            proj_head_output_1, supervised_head_output_1 = online_model(
+                                images_one, training=True)
+                            proj_head_output_1 = prediction_model(
+                                proj_head_output_1, training=True)
 
-                        # Online
-                        proj_head_output_1, supervised_head_output_1 = online_model(
-                            images_one, training=True)
-                        proj_head_output_1 = prediction_model(
-                            proj_head_output_1, training=True)
+                            # Target
+                            proj_head_output_2, supervised_head_output_2 = target_model(
+                                images_two, training=True)
 
-                        # Target
-                        proj_head_output_2, supervised_head_output_2 = target_model(
-                            images_two, training=True)
-
-                        # Compute Contrastive Train Loss -->
+                            # Compute Contrastive Train Loss -->
                         loss = None
                         if proj_head_output_1 is not None:
                             # Compute Contrastive Loss model
@@ -309,11 +313,13 @@ def main():
                     # supervised_loss=None
                     if supervised_head_output_1 is not None:
                         if FLAGS.train_mode == 'pretrain' and FLAGS.lineareval_while_pretraining:
-
-                            outputs = tf.concat(
-                                [supervised_head_output_1, supervised_head_output_2], 0)
-                            supervise_lable = tf.concat(
-                                [lable_one, lable_two], 0)
+                            
+                            ## XLA JIT Compiler of operators within the Scope
+                            with tf.xla.experimental.jit_scope():
+                                outputs = tf.concat(
+                                    [supervised_head_output_1, supervised_head_output_2], 0)
+                                supervise_lable = tf.concat(
+                                    [lable_one, lable_two], 0)
 
                             # Calculte the cross_entropy loss with Labels
                             sup_loss = obj_lib.add_supervised_loss(
