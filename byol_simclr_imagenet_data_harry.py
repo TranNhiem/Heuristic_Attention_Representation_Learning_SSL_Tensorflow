@@ -17,6 +17,14 @@ from config.absl_mock import Mock_Flag
 flag = Mock_Flag()
 FLAGS = flag.FLAGS
 
+# Experimental options
+options = tf.data.Options()
+options.experimental_optimization.noop_elimination = True
+options.experimental_optimization.map_vectorization.enabled = True
+options.experimental_optimization.apply_default_optimizations = True
+options.experimental_deterministic = False
+options.experimental_threading.max_intra_op_parallelism = 1
+
 
 class imagenet_dataset_single_machine():
 
@@ -234,8 +242,18 @@ class imagenet_dataset_single_machine():
                         .prefetch(AUTO)
                         )
         # train_ds_one= self.strategy.experimental_distribute_dataset(train_ds_two)
+        if FLAGS.dataloader =="ds_1_2_options":
+            logging.info("Train_ds_one and two  with option")
+            train_ds_one.with_options(option)
+            train_ds_two.with_options(option)
 
         train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
+       
+        
+        if FLAGS.dataloader =="train_ds_options":
+            logging.info("Train_ds dataloader with option")
+            train_ds.with_options(option)
+
         train_ds = self.strategy.experimental_distribute_dataset(train_ds)
         # train_ds = train_ds.batch(self.BATCH_SIZE)
         # # 2. modify dataset with prefetch
@@ -271,7 +289,20 @@ class imagenet_dataset_single_machine():
                         .prefetch(AUTO)
                         )
 
+
+        if FLAGS.dataloader =="ds_1_2_options":
+            logging.info("Train_ds_one and two  with option")
+            train_ds_one.with_options(option)
+            train_ds_two.with_options(option)
+
         train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
+
+        if FLAGS.dataloader =="train_ds_options":
+            logging.info("Train_ds dataloader with option")
+            train_ds.with_options(option)
+
+
+        #train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
         # adding the distribute data to GPUs
         train_ds = self.strategy.experimental_distribute_dataset(train_ds)
 
@@ -311,13 +342,21 @@ class imagenet_dataset_single_machine():
         # train_ds_one= self.strategy.experimental_distribute_dataset(train_ds_two)
 
 
+        if FLAGS.dataloader =="ds_1_2_options":
+            logging.info("Train_ds_one and two  with option")
+            train_ds_one.with_options(option)
+            train_ds_two.with_options(option)
+
         train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
-        # train_ds=train_ds.batch(self.BATCH_SIZE)
-        # train_ds=train_ds.prefetch(AUTO)
+
+        if FLAGS.dataloader =="train_ds_options":
+            logging.info("Train_ds dataloader with option")
+            train_ds.with_options(option)
+
+
+        # adding the distribute data to GPUs
         train_ds = self.strategy.experimental_distribute_dataset(train_ds)
-        # train_ds = train_ds.batch(self.BATCH_SIZE)
-        # # 2. modify dataset with prefetch
-        # train_ds = train_ds.prefetch(AUTO)
+
 
         return train_ds
 
@@ -434,11 +473,25 @@ class imagenet_dataset_single_machine():
                         .batch(self.BATCH_SIZE)
                         .prefetch(AUTO)
                         )
-        # train_ds_one= self.strategy.experimental_distribute_dataset(train_ds_two)
+
+
+        if FLAGS.dataloader =="ds_1_2_options":
+            logging.info("Train_ds_one and two  with option")
+            train_ds_one.with_options(option)
+            train_ds_two.with_options(option)
 
         train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
+
+        if FLAGS.dataloader =="train_ds_options":
+            logging.info("Train_ds dataloader with option")
+            train_ds.with_options(option)
+
+
+        # adding the distribute data to GPUs
         train_ds = self.strategy.experimental_distribute_dataset(train_ds)
 
+
+      
 
         return train_ds
 
