@@ -80,12 +80,12 @@ def main():
 
     # Configure the Encoder Architecture.
     with strategy.scope():
-        # model = resnet(resnet_depth=FLAGS.resnet_depth, width_multiplier=FLAGS.width_multiplier,
-        #                Middle_layer_output=[1, 2, 3, 4, 5])
-        # linear_layear = all_model.LinearLayer(FLAGS.num_classes)
-        # model.built = True
-        # model.build((1, 224, 224, 3))
-        # model.load_weights("/data1/share/resnet_byol/restnet50/Baseline_(7_7_2048)_200epoch/encoder_model_199.h5")
+        model = resnet(resnet_depth=FLAGS.resnet_depth, width_multiplier=FLAGS.width_multiplier,
+                       Middle_layer_output=[1, 2, 3, 4, 5])
+        linear_layear = all_model.LinearLayer(FLAGS.num_classes)
+        model.built = True
+        model.build((1, 224, 224, 3))
+        model.load_weights("/data1/share/resnet_byol/restnet50/Baseline_(7_7_2048)_200epoch/encoder_model_199.h5")
 
         model = resnet(
             resnet_depth=FLAGS.resnet_depth,
@@ -93,7 +93,8 @@ def main():
         )
         img_row, img_col =224, 224
         # flow the tensor to load the parameters
-        model(np.zeros((1, img_row, img_col, 3)))
+
+
         model.summary()
         model.load_weights("/data1/share/resnet_byol/resnet50/Baseline_(7_7_2048)_100epoch_symloss/encoder_model_99.h5")
         try:
