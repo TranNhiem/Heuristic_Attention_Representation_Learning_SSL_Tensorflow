@@ -254,12 +254,13 @@ class imagenet_dataset_single_machine():
 
         train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
 
-        elif FLAGS.dataloader == "train_ds_options":
+        if FLAGS.dataloader == "train_ds_options":
 
             logging.info("Train_ds dataloader with option")
             train_ds.with_options(options)
-        else:
-            logging.info(" dataloader without option")
+        
+        # else:
+        #     logging.info(" dataloader without option")
 
         train_ds = self.strategy.experimental_distribute_dataset(train_ds)
         # train_ds = train_ds.batch(self.BATCH_SIZE)
