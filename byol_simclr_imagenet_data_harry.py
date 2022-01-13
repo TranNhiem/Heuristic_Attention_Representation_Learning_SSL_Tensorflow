@@ -203,7 +203,7 @@ class imagenet_dataset_single_machine():
                   .shuffle(self.val_batch * 100, seed=self.seed)
                   .map(lambda x, y: (self.parse_images_lable_pair(x, y)), num_parallel_calls=AUTO)
                   .map(lambda x, y: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE)), y),
-                       num_parallel_calls=AUTO,).cache(FLAGS.cached_file_val)
+                       num_parallel_calls=AUTO,)#.cache(FLAGS.cached_file_val)
                   .map(lambda x, y:(supervised_augment_eval(x, FLAGS.IMG_height, FLAGS.IMG_width, FLAGS.randaug_transform, FLAGS.randaug_magnitude),
         y), num_parallel_calls=AUTO)
                   .batch(self.BATCH_SIZE)
