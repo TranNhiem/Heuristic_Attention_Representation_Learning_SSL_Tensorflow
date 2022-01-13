@@ -254,7 +254,7 @@ class imagenet_dataset_single_machine():
 
         train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
 
-        if FLAGS.dataloader == "train_ds_options":
+        elif FLAGS.dataloader == "train_ds_options":
 
             logging.info("Train_ds dataloader with option")
             train_ds.with_options(options)
@@ -304,9 +304,11 @@ class imagenet_dataset_single_machine():
 
         train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
 
-        if FLAGS.dataloader =="train_ds_options":
+        elif FLAGS.dataloader =="train_ds_options":
             logging.info("Train_ds dataloader with option")
             train_ds.with_options(options)
+        else:
+            logging.info(" dataloader without option")
 
 
         #train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
@@ -357,7 +359,7 @@ class imagenet_dataset_single_machine():
 
         train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
 
-        if FLAGS.dataloader == "train_ds_options":
+        elif FLAGS.dataloader == "train_ds_options":
             logging.info("Train_ds dataloader with option")
             train_ds.with_options(options)
         
@@ -493,7 +495,7 @@ class imagenet_dataset_single_machine():
 
         train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
 
-        if FLAGS.dataloader == "train_ds_options":
+        elif FLAGS.dataloader == "train_ds_options":
             logging.info("Train_ds dataloader with option")
             train_ds.with_options(options)
         
