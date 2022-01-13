@@ -20,7 +20,9 @@ FLAGS = flag.FLAGS
 # Experimental options
 options = tf.data.Options()
 options.experimental_optimization.noop_elimination = True
-options.experimental_optimization.map_vectorization.enabled = True
+#options.experimental_optimization.map_vectorization.enabled = True
+tf.data.experimental.Optimization.map_and_batch_fusion=True
+tf.data.experimental.Optimization.map_parallelization=True
 options.experimental_optimization.apply_default_optimizations = True
 options.experimental_deterministic = False
 options.experimental_threading.max_intra_op_parallelism = 1
@@ -340,6 +342,7 @@ class imagenet_dataset_single_machine():
                         .prefetch(AUTO)
                         )
         # train_ds_one= self.strategy.experimental_distribute_dataset(train_ds_two)
+
 
 
         if FLAGS.dataloader =="ds_1_2_options":
