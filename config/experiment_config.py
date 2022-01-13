@@ -6,8 +6,8 @@ def read_cfg(mod="non_contrastive"):
     flag = Mock_Flag()
     FLAGS = flag.FLAGS
     FLAGS.dataloader = 'ds_1_2_options'   #, ['ds_1_2_options', 'train_ds_options'],
-    FLAGS.wandb_project_name = "heuristic_attention_representation_learning_Paper"
-    FLAGS.wandb_run_name = "Hybrid_loss_(7*7*2048)_100epoch_alpha_schedule_symloss_faster"
+    FLAGS.wandb_project_name = "heuristic_attention_representation_learning_ResNet18"
+    FLAGS.wandb_run_name = "Hybrid_loss_(7*7*2048)_100_Testing_cach"
     FLAGS.wandb_mod = "run"
 
     FLAGS.Middle_layer_output = None
@@ -25,13 +25,13 @@ def read_cfg(mod="non_contrastive"):
     FLAGS.non_contrast_binary_loss = "sum_symetrize_l2_loss_object_backg_add_original"#sum_symetrize_l2_loss_object_backg_add_original
     FLAGS.alpha = 1
     FLAGS.weighted_loss = 0.5
-    FLAGS.resnet_depth = 50
+    FLAGS.resnet_depth = 18
     FLAGS.train_epochs = 100
-    FLAGS.num_classes = 1000
+    FLAGS.num_classes = 100
 
     FLAGS.train_batch_size = 128
     FLAGS.val_batch_size = 128
-    FLAGS.model_dir = "/data1/resnet_byol/resnet50/Hybrid_loss_(7*7*2048)_100epoch_alpha_schedule_symloss_faster"
+    FLAGS.model_dir = "/data1/resnet_byol/resnet18/test_catch"
     #FLAGS.train_mode = "finetune"
 
 
