@@ -5,7 +5,7 @@ def read_cfg(mod="non_contrastive"):
     read_cfg_base(mod)
     flag = Mock_Flag()
     FLAGS = flag.FLAGS
-
+    FLAGS.dataloader = 'ds_1_2_options'   #, ['ds_1_2_options', 'train_ds_options'],
     FLAGS.wandb_project_name = "heuristic_attention_representation_learning_Paper"
     FLAGS.wandb_run_name = "Hybrid_loss_(28_28_2048)_100epoch_alpha_schedule_symloss"
     FLAGS.wandb_mod = "run"

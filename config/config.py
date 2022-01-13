@@ -53,6 +53,9 @@ def base_cfg():
     'num_classes', 100,
     'Number of class in training data.')
 
+    flags.DEFINE_enum(
+    'dataloader', 'ds_1_2_options', ['ds_1_2_options', 'train_ds_options'],
+    'The dataloader apply options.')
 
     flags.DEFINE_string(
     #'train_path', "/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/ILSVRC2012_img_train",
