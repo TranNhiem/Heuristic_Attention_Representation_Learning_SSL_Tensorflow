@@ -6,8 +6,8 @@ def read_cfg(mod="non_contrastive"):
     flag = Mock_Flag()
     FLAGS = flag.FLAGS
     FLAGS.dataloader = 'ds_1_2_options'   #, ['ds_1_2_options', 'train_ds_options'],
-    FLAGS.wandb_project_name = "heuristic_attention_represenation_learning_ResNet18"
-    FLAGS.wandb_run_name = "Hybrid_loss_(7*7*2048)_100_Testing_cach"
+    FLAGS.wandb_project_name = "distributed_training_benchmark"
+    FLAGS.wandb_run_name = "Resnet18_Testing_cach_saving_file"
     FLAGS.wandb_mod = "run"
 
     FLAGS.Middle_layer_output = None
@@ -31,7 +31,7 @@ def read_cfg(mod="non_contrastive"):
 
     FLAGS.train_batch_size = 128
     FLAGS.val_batch_size = 128
-    FLAGS.model_dir = "/data1/resnet_byol/resnet18/test_catch"
+    FLAGS.model_dir = "/data1/resnet_byol/resnet18/test_catch_v1"
     #FLAGS.train_mode = "finetune"
 
 
