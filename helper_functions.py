@@ -182,7 +182,7 @@ def perform_evaluation(model, val_ds, val_steps, ckpt, strategy):
         return
 
     # Tensorboard enable
-    summary_writer = tf.summary.create_file_writer(FLAGS.model_dir)
+    # summary_writer = tf.summary.create_file_writer(FLAGS.model_dir)
 
     # Building the Supervised metrics
     with strategy.scope():
@@ -198,12 +198,12 @@ def perform_evaluation(model, val_ds, val_steps, ckpt, strategy):
         ]
 
         # Restore model checkpoint
-        logging.info('Restoring from %s', ckpt)
-        checkpoint = tf.train.Checkpoint(
-            model=model, global_step=tf.Variable(0, dtype=tf.int64))
-        checkpoint.restore(ckpt).expect_partial()
-        global_step = checkpoint.global_step
-        logging.info('Performing eval at step %d', global_step.numpy())
+        # logging.info('Restoring from %s', ckpt)
+        # checkpoint = tf.train.Checkpoint(
+        #     model=model, global_step=tf.Variable(0, dtype=tf.int64))
+        # checkpoint.restore(ckpt).expect_partial()
+        # global_step = checkpoint.global_step
+        # logging.info('Performing eval at step %d', global_step.numpy())
 
     # Scaling the loss  -- Update the sum up all the gradient
     @tf.function
@@ -233,16 +233,16 @@ def perform_evaluation(model, val_ds, val_steps, ckpt, strategy):
         logging.info("Complete validation for %d step ", i+1, val_steps)
 
     # At this step of training with Ckpt Complete evaluate model performance
-    logging.info('Finished eval for %s', ckpt)
+    # logging.info('Finished eval for %s', ckpt)
 
     # Logging to tensorboard for the information
     # Write summaries
     cur_step = global_step.numpy()
     logging.info('Writing summaries for %d step', cur_step)
 
-    with summary_writer.as_default():
-        metrics.log_and_write_metrics_to_summary(all_metrics, cur_step)
-        summary_writer.flush()
+    # with summary_writer.as_default():
+    #     metrics.log_and_write_metrics_to_summary(all_metrics, cur_step)
+    #     summary_writer.flush()
 
     # Record results as Json.
     result_json_path = os.path.join(FLAGS.model_dir, 'result.jsoin')

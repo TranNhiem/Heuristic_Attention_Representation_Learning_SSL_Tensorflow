@@ -41,7 +41,6 @@ if not os.path.isdir(FLAGS.model_dir):
 flag.save_config(os.path.join(FLAGS.model_dir,"config.cfg"))
 
 os.environ['TF_GPU_THREAD_MODE'] = 'gpu_private'
-os.environ['TF_GPU_THREAD_COUNT'] = 'gpu_private'
 
 def main():
     # if len(argv) > 1:
