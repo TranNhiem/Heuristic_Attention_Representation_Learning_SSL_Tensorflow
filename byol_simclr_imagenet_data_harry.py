@@ -227,9 +227,9 @@ class imagenet_dataset_single_machine():
                         .map(lambda x, y: (self.parse_images_lable_pair(x, y)), num_parallel_calls=AUTO)
                         .map(lambda x, y: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE)), y),
                              num_parallel_calls=AUTO,
-                             )
+                             )#.cache()
                         .map(lambda x, y: (simclr_augment_inception_style(x, self.IMG_SIZE), y),
-                             num_parallel_calls=AUTO)
+                             num_parallel_calls=AUTO).cache()
                         .batch(self.BATCH_SIZE)
                         .prefetch(AUTO)
                         )
@@ -240,9 +240,9 @@ class imagenet_dataset_single_machine():
                         .map(lambda x, y: (self.parse_images_lable_pair(x, y)), num_parallel_calls=AUTO)
                         .map(lambda x, y: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE)), y),
                              num_parallel_calls=AUTO,
-                             )
+                             )#.cache()
                         .map(lambda x, y: (simclr_augment_inception_style(x, self.IMG_SIZE), y),
-                             num_parallel_calls=AUTO)
+                             num_parallel_calls=AUTO).cache()
                         .batch(self.BATCH_SIZE)
                         .prefetch(AUTO)
                         )
@@ -279,7 +279,7 @@ class imagenet_dataset_single_machine():
                              num_parallel_calls=AUTO,
                              )#.cache()
                         .map(lambda x, y: (simclr_augment_randcrop_global_views(x, self.IMG_SIZE), y),
-                             num_parallel_calls=AUTO)
+                             num_parallel_calls=AUTO).cache()
                         .batch(self.BATCH_SIZE)
                         .prefetch(AUTO)
                         )
@@ -292,7 +292,7 @@ class imagenet_dataset_single_machine():
                              num_parallel_calls=AUTO,
                              )#.cache()
                         .map(lambda x, y: (simclr_augment_randcrop_global_views(x, self.IMG_SIZE), y),
-                             num_parallel_calls=AUTO)
+                             num_parallel_calls=AUTO).cache()
                         .batch(self.BATCH_SIZE)
                         .prefetch(AUTO)
                         )
@@ -332,7 +332,7 @@ class imagenet_dataset_single_machine():
                         .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)),
                              num_parallel_calls=AUTO)#.cache()
                         .map(lambda x, y, z: (simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z),
-                             num_parallel_calls=AUTO)
+                             num_parallel_calls=AUTO).cache()
                         .batch(self.BATCH_SIZE)
                         .prefetch(AUTO)
                         )
@@ -343,7 +343,7 @@ class imagenet_dataset_single_machine():
                         .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)),
                              num_parallel_calls=AUTO)#.cache()
                         .map(lambda x, y, z: (simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z),
-                             num_parallel_calls=AUTO)
+                             num_parallel_calls=AUTO).cache()
                         .batch(self.BATCH_SIZE)
                         .prefetch(AUTO)
                         )
