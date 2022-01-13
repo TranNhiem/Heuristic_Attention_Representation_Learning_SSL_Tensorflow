@@ -213,7 +213,7 @@ class imagenet_dataset_single_machine():
                   )
         
         logging.info("Val_ds dataloader with option")
-        val_ds.with_options(option)
+        val_ds.with_options(options)
             
         val_ds = self.strategy.experimental_distribute_dataset(val_ds)
 
@@ -650,7 +650,7 @@ class imagenet_dataset_multi_machine():
         logging.info('num_input_pipelines: %d', input_context.num_input_pipelines)
 
         options = tf.data.Options()
-        option.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.DATA
+        options.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.DATA
 
         val_ds = (tf.data.Dataset.from_tensor_slices((self.x_val, self.x_val_lable))
                   .shuffle(self.val_batch * 100, seed=self.seed)
