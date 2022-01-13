@@ -47,11 +47,6 @@ flag.save_config(os.path.join(FLAGS.model_dir,"config.cfg"))
 os.environ['TF_GPU_THREAD_MODE'] = 'gpu_private'
 
 def main():
-    # if len(argv) > 1:
-    #     raise app.UsageError('Too many command-line arguments.')
-
-    # Preparing dataset
-    # Imagenet path prepare localy
     strategy = tf.distribute.MirroredStrategy()
     train_global_batch = FLAGS.train_batch_size * strategy.num_replicas_in_sync
     val_global_batch = FLAGS.val_batch_size * strategy.num_replicas_in_sync

@@ -214,7 +214,7 @@ def main():
                 loss = tf.reduce_sum(per_example_loss) * (1. / train_global_batch)
                 return loss, logits_ab, labels
 
-            @tf.function(jit_compile=True)
+            @tf.function
             def train_step(ds_one, ds_two, alpha, weight_loss):
 
                 # Get the data from
@@ -519,12 +519,14 @@ def main():
                 epoch_loss = total_loss / num_batches
                 # Wandb Configure for Visualize the Model Training
                 if (epoch + 1) % 5 == 0:
+                    FLAGS.train_mode = 'finetune'
                     result = perform_evaluation(online_model, val_ds, eval_steps,
                                                 checkpoint_manager.latest_checkpoint, strategy)
                     wandb.log({
                         "eval/label_top_1_accuracy": result["eval/label_top_1_accuracy"],
                         "eval/label_top_5_accuracy": result["eval/label_top_5_accuracy"],
                     })
+                    FLAGS.train_mode = 'pretrain'
 
                 wandb.log({
                     "epochs": epoch + 1,
