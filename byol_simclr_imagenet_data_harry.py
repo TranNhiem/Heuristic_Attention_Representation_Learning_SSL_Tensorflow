@@ -211,7 +211,10 @@ class imagenet_dataset_single_machine():
 
                   .prefetch(AUTO)
                   )
-
+        
+        logging.info("Val_ds dataloader with option")
+        val_ds.with_options(option)
+            
         val_ds = self.strategy.experimental_distribute_dataset(val_ds)
 
         return val_ds
@@ -252,9 +255,12 @@ class imagenet_dataset_single_machine():
         train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
        
         
-        if FLAGS.dataloader =="train_ds_options":
-            logging.info("Train_ds dataloader with option")
+        elif FLAGS.dataloader == "train_ds_options":
+                logging.info("Train_ds dataloader with option")
             train_ds.with_options(option)
+        
+        else: 
+            logging.info(" dataloader without option")
 
         train_ds = self.strategy.experimental_distribute_dataset(train_ds)
         # train_ds = train_ds.batch(self.BATCH_SIZE)
@@ -352,9 +358,12 @@ class imagenet_dataset_single_machine():
 
         train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
 
-        if FLAGS.dataloader =="train_ds_options":
-            logging.info("Train_ds dataloader with option")
+        elif FLAGS.dataloader == "train_ds_options":
+                logging.info("Train_ds dataloader with option")
             train_ds.with_options(option)
+        
+        else: 
+            logging.info(" dataloader without option")
 
 
         # adding the distribute data to GPUs
@@ -485,9 +494,12 @@ class imagenet_dataset_single_machine():
 
         train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
 
-        if FLAGS.dataloader =="train_ds_options":
-            logging.info("Train_ds dataloader with option")
+        elif FLAGS.dataloader == "train_ds_options":
+                logging.info("Train_ds dataloader with option")
             train_ds.with_options(option)
+        
+        else: 
+            logging.info(" dataloader without option")
 
 
         # adding the distribute data to GPUs
