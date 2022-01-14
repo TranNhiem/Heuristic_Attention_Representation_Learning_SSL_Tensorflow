@@ -41,7 +41,11 @@ if not os.path.isdir(FLAGS.model_dir):
     os.makedirs(FLAGS.model_dir)
 flag.save_config(os.path.join(FLAGS.model_dir,"config.cfg"))
 
-os.environ['TF_GPU_THREAD_MODE'] = 'gpu_private'
+### For setting GPUs Thread reduce kernel Luanch Delay
+#https://github.com/tensorflow/tensorflow/issues/25724
+os.environ['TF_GPU_THREAD_MODE']='gpu_private'
+os.environ['TF_GPU_THREAD_COUNT']='2'
+
 
 def main():
     # if len(argv) > 1:
