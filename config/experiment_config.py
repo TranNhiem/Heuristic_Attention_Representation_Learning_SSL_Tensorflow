@@ -5,8 +5,8 @@ def read_cfg(mod="non_contrastive"):
     read_cfg_base(mod)
     flag = Mock_Flag()
     FLAGS = flag.FLAGS
-    #FLAGS.cached_file_val= '/data1/cached_file/'
-    FLAGS.cached_file=  '/data1/cached_file/'
+    FLAGS.cached_file_val= '/data1/cached_file/val_cached'
+    FLAGS.cached_file=  '/data1/cached_file/cached'
     FLAGS.dataloader = 'ds_1_2_options'   #, ['ds_1_2_options', 'train_ds_options'],
     FLAGS.wandb_project_name = "distributed_training_benchmark"
     FLAGS.wandb_run_name = "Resnet18_Testing_cach_saving_file"
