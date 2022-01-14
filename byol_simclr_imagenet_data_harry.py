@@ -219,27 +219,30 @@ class imagenet_dataset_single_machine():
 
     def simclr_inception_style_crop(self):
 
-        ds = (tf.data.Dataset.from_tensor_slices((self.x_train, self.x_train_lable))
+        train_ds_one = (tf.data.Dataset.from_tensor_slices((self.x_train, self.x_train_lable))
                         .shuffle(self.BATCH_SIZE * 100, seed=self.seed)
                         # .map(self.parse_images_label,  num_parallel_calls=AUTO)
                         .map(lambda x, y: (self.parse_images_lable_pair(x, y)), num_parallel_calls=AUTO)
                         .map(lambda x, y: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE)), y),
-                             num_parallel_calls=AUTO,).cache())
-
-
-        train_ds_one=  ds.map(lambda x, y: (simclr_augment_inception_style(x, self.IMG_SIZE), y),num_parallel_calls=AUTO).batch(self.BATCH_SIZE, num_parallel_calls=AUTO).prefetch(AUTO)
+                             num_parallel_calls=AUTO,).cache()
+                        .map(lambda x, y: (simclr_augment_inception_style(x, self.IMG_SIZE), y),num_parallel_calls=AUTO)
+                        .batch(self.BATCH_SIZE, num_parallel_calls=AUTO)
+                        .prefetch(AUTO))
                         
                         
 
-        # train_ds_two = (tf.data.Dataset.from_tensor_slices((self.x_train, self.x_train_lable))
-        #                 .shuffle(self.BATCH_SIZE * 100, seed=self.seed)
-        #                 # .map(self.parse_images_label,  num_parallel_calls=AUTO)
-        #                 .map(lambda x, y: (self.parse_images_lable_pair(x, y)), num_parallel_calls=AUTO)
-        #                 .map(lambda x, y: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE)), y),
-        #                      num_parallel_calls=AUTO,
-        #                      ).cache(FLAGS.cached_file)
-        train_ds_two=ds.map(lambda x, y: (simclr_augment_inception_style(x, self.IMG_SIZE), y),
-                             num_parallel_calls=AUTO).batch(self.BATCH_SIZE, num_parallel_calls=AUTO).prefetch(AUTO)
+        train_ds_two = (tf.data.Dataset.from_tensor_slices((self.x_train, self.x_train_lable))
+                        .shuffle(self.BATCH_SIZE * 100, seed=self.seed)
+                        # .map(self.parse_images_label,  num_parallel_calls=AUTO)
+                        .map(lambda x, y: (self.parse_images_lable_pair(x, y)), num_parallel_calls=AUTO)
+                        .map(lambda x, y: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE)), y),
+                             num_parallel_calls=AUTO,
+                             ).cache()
+                        .map(lambda x, y: (simclr_augment_inception_style(x, self.IMG_SIZE), y),
+                         num_parallel_calls=AUTO)
+                        .batch(self.BATCH_SIZE, num_parallel_calls=AUTO)
+                        .prefetch(AUTO)
+                            )
                         
                        
                         
