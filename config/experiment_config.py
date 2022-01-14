@@ -5,11 +5,11 @@ def read_cfg(mod="non_contrastive"):
     read_cfg_base(mod)
     flag = Mock_Flag()
     FLAGS = flag.FLAGS
-    FLAGS.cached_file_val= '/data1/cached_file/'
+    FLAGS.cached_file_val= '/data1/cached_file/val_cached/'
     FLAGS.cached_file =  '/data1/cached_file/'
     FLAGS.dataloader = 'ds_1_2_options'   #, ['ds_1_2_options', 'train_ds_options'],
     FLAGS.wandb_project_name = "distributed_training_benchmark"
-    FLAGS.wandb_run_name = "Resnet18_baseline_model_fp16_cached_Prefetch_GPU_Thread_10_cls_cached_files"
+    FLAGS.wandb_run_name = "Resnet18_baseline_model_fp16_Prefetch_GPU_Thread_10_cls_no_options_no_cached"
     FLAGS.wandb_mod = "run"
 
     FLAGS.Middle_layer_output = None
@@ -33,7 +33,7 @@ def read_cfg(mod="non_contrastive"):
 
     FLAGS.train_batch_size = 128
     FLAGS.val_batch_size = 128
-    FLAGS.model_dir = "/data1/resnet_byol/resnet18/baseline_Testing_cached_fp16_10cls_Prefetch_set_GPU_Thread_cached_files"
+    FLAGS.model_dir = "/data1/resnet_byol/resnet18/baseline_Testing_cached_fp16_10cls_Prefetch_set_GPU_Thread_no_options_no_cached"
     #FLAGS.train_mode = "finetune"
 
 

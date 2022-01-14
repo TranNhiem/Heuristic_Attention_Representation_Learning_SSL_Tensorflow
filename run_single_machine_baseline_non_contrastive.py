@@ -40,6 +40,9 @@ FLAGS = flag.FLAGS
 if not os.path.isdir(FLAGS.model_dir):
     print("creat : ",FLAGS.model_dir)
     os.makedirs(FLAGS.model_dir)
+    os.makedirs(FLAGS.cached_file_val)
+    os.makedirs(FLAGS.cached_file)
+
 flag.save_config(os.path.join(FLAGS.model_dir,"config.cfg"))
 
 ### For setting GPUs Thread reduce kernel Luanch Delay
