@@ -9,7 +9,7 @@ def read_cfg(mod="non_contrastive"):
     FLAGS.cached_file=  '/data1/cached_file/cached'
     FLAGS.dataloader = 'ds_1_2_options'   #, ['ds_1_2_options', 'train_ds_options'],
     FLAGS.wandb_project_name = "distributed_training_benchmark"
-    FLAGS.wandb_run_name = "Resnet18_Testing_cach_saving_file"
+    FLAGS.wandb_run_name = "Resnet18_baseline_model_fp16_cached"
     FLAGS.wandb_mod = "run"
 
     FLAGS.Middle_layer_output = None
@@ -33,7 +33,7 @@ def read_cfg(mod="non_contrastive"):
 
     FLAGS.train_batch_size = 128
     FLAGS.val_batch_size = 128
-    FLAGS.model_dir = "/data1/resnet_byol/resnet18/test_catch_v1"
+    FLAGS.model_dir = "/data1/resnet_byol/resnet18/baseline_Testing_cached"
     #FLAGS.train_mode = "finetune"
 
 
