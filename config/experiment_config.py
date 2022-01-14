@@ -9,7 +9,7 @@ def read_cfg(mod="non_contrastive"):
     FLAGS.cached_file =  '/data1/cached_file/cached'
     FLAGS.dataloader = 'ds_1_2_options'   #, ['ds_1_2_options', 'train_ds_options'],
     FLAGS.wandb_project_name = "distributed_training_benchmark"
-    FLAGS.wandb_run_name = "Resnet18_baseline_model_fp16_cached_Prefetch_GPU_Thread_10_cls_FP32"
+    FLAGS.wandb_run_name = "Resnet18_baseline_model_fp16_cached_Prefetch_GPU_Thread_10_cls_no_cache"
     FLAGS.wandb_mod = "run"
 
     FLAGS.Middle_layer_output = None
@@ -21,7 +21,7 @@ def read_cfg(mod="non_contrastive"):
     FLAGS.loss_type ="symmetrized"# asymmetrized (2 only options)
     # Moving average the weight From Online to Target Encoder Network
     FLAGS.moving_average = "schedule"# two options [fixed_value, schedule] schedule recommend from BYOL
-    FLAGS.mixprecision='fp32' #['fp16', 'fp32'],  # fp32 is original precision
+    FLAGS.mixprecision='fp16' #['fp16', 'fp32'],  # fp32 is original precision
     FLAGS.base_lr = 0.5
 
     FLAGS.non_contrast_binary_loss = "sum_symetrize_l2_loss_object_backg_add_original"#sum_symetrize_l2_loss_object_backg_add_original
@@ -33,7 +33,7 @@ def read_cfg(mod="non_contrastive"):
 
     FLAGS.train_batch_size = 128
     FLAGS.val_batch_size = 128
-    FLAGS.model_dir = "/data1/resnet_byol/resnet18/baseline_Testing_cached_fp16_10cls_Prefetch_set_GPU_Thread_FP32"
+    FLAGS.model_dir = "/data1/resnet_byol/resnet18/baseline_Testing_cached_fp16_10cls_Prefetch_set_GPU_Thread__no_cache"
     #FLAGS.train_mode = "finetune"
 
 
