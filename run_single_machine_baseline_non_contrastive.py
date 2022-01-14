@@ -36,6 +36,7 @@ from config.absl_mock import Mock_Flag
 read_cfg()
 flag = Mock_Flag()
 FLAGS = flag.FLAGS
+
 if not os.path.isdir(FLAGS.model_dir):
     print("creat : ",FLAGS.model_dir)
     os.makedirs(FLAGS.model_dir)
