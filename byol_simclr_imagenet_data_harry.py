@@ -1,9 +1,10 @@
+from config.absl_mock import Mock_Flag
 import os
 #from absl import flags
 import tensorflow as tf
 from imutils import paths
 from byol_simclr_multi_croping_augmentation import simclr_augment_randcrop_global_views, simclr_augment_inception_style, \
-    supervised_augment_eval, simclr_augment_randcrop_global_view_image_mask, simclr_augment_inception_style_image_mask,simclr_augment_inception_style_image_mask_tf_py,simclr_augment_randcrop_global_view_image_mask_tf_py
+    supervised_augment_eval, simclr_augment_randcrop_global_view_image_mask, simclr_augment_inception_style_image_mask, simclr_augment_inception_style_image_mask_tf_py, simclr_augment_randcrop_global_view_image_mask_tf_py
 from absl import logging
 import numpy as np
 import random
@@ -13,7 +14,6 @@ AUTO = tf.data.AUTOTUNE
 # AUTO = 64
 #FLAGS = flags.FLAGS
 
-from config.absl_mock import Mock_Flag
 flag = Mock_Flag()
 FLAGS = flag.FLAGS
 
@@ -21,8 +21,8 @@ FLAGS = flag.FLAGS
 options = tf.data.Options()
 options.experimental_optimization.noop_elimination = True
 #options.experimental_optimization.map_vectorization.enabled = True
-options.experimental_optimization.map_and_batch_fusion=True
-options.experimental_optimization.map_parallelization=True
+options.experimental_optimization.map_and_batch_fusion = True
+options.experimental_optimization.map_parallelization = True
 options.experimental_optimization.apply_default_optimizations = True
 options.experimental_deterministic = False
 options.experimental_threading.max_intra_op_parallelism = 1
@@ -30,8 +30,8 @@ options.experimental_threading.max_intra_op_parallelism = 1
 
 class imagenet_dataset_single_machine():
 
-    def __init__(self, img_size, train_batch, val_batch, strategy, train_path=None,train_label = None, val_path=None,val_label = None, bi_mask=False,
-                 mask_path=None,subset_class_num = None):
+    def __init__(self, img_size, train_batch, val_batch, strategy, train_path=None, train_label=None, val_path=None, val_label=None, bi_mask=False,
+                 mask_path=None, subset_class_num=None):
         '''
         args: 
         img_size: Image training size
@@ -53,34 +53,35 @@ class imagenet_dataset_single_machine():
         self.label, self.class_name = self.get_label(train_label)
         numeric_train_cls = []
         numeric_val_cls = []
-        print("train_path:",train_path)
-        print("val_path:",val_path)
+        print("train_path:", train_path)
+        print("val_path:", val_path)
 
         if train_path is None and val_path is None:
-            raise ValueError(f'The train_path and val_path is None, please cheeek')
+            raise ValueError(
+                f'The train_path and val_path is None, please cheeek')
         elif val_path is None:
             dataset = list(paths.list_images(train_path))
-            dataset_len =  len(dataset)
+            dataset_len = len(dataset)
             random.Random(FLAGS.SEED_data_split).shuffle(dataset)
             self.x_val = dataset[0:int(dataset_len * 0.2)]
             self.x_train = dataset[len(self.x_val) + 1:]
             for image_path in self.x_train:
-                label = re.split(r"/|\|//|\\",image_path)[-2]
+                label = re.split(r"/|\|//|\\", image_path)[-2]
                 #label = image_path.split("/")[-2]
                 numeric_train_cls.append(self.label[label])
             for image_path in self.x_val:
-                label = re.split(r"/|\|//|\\",image_path)[-2]
+                label = re.split(r"/|\|//|\\", image_path)[-2]
                 numeric_val_cls.append(self.label[label])
 
         else:
             self.x_train = list(paths.list_images(train_path))
-            
+
             self.x_val = list(paths.list_images(val_path))
             random.Random(FLAGS.SEED_data_split).shuffle(self.x_train)
             random.Random(FLAGS.SEED_data_split).shuffle(self.x_val)
 
             for image_path in self.x_train:
-                label = re.split(r"/|\|//|\\",image_path)[-2]
+                label = re.split(r"/|\|//|\\", image_path)[-2]
                 numeric_train_cls.append(self.label[label])
 
             val_label_map = self.get_val_label(val_label)
@@ -92,42 +93,43 @@ class imagenet_dataset_single_machine():
                 label = int(label.split(".")[0])
                 numeric_val_cls.append(val_label_map[label-1])
 
-
         if subset_class_num != None:
             x_train_sub = []
             numeric_train_cls_sub = []
-            for file_path,numeric_cls in zip(self.x_train,numeric_train_cls):
-                if numeric_cls<subset_class_num:
+            for file_path, numeric_cls in zip(self.x_train, numeric_train_cls):
+                if numeric_cls < subset_class_num:
                     x_train_sub.append(file_path)
                     numeric_train_cls_sub.append(numeric_cls)
             self.x_train = x_train_sub
             numeric_train_cls = numeric_train_cls_sub
-            
+
             x_val_sub = []
             numeric_val_cls_sub = []
-            for file_path,numeric_cls in zip(self.x_val,numeric_val_cls):
-                if numeric_cls<subset_class_num:
+            for file_path, numeric_cls in zip(self.x_val, numeric_val_cls):
+                if numeric_cls < subset_class_num:
                     x_val_sub.append(file_path)
                     numeric_val_cls_sub.append(numeric_cls)
             self.x_val = x_val_sub
             numeric_val_cls = numeric_val_cls_sub
-        
 
         if bi_mask:
             for p in self.x_train:
-                self.bi_mask.append(p.replace("train", mask_path).replace("JPEG", "png"))
+                self.bi_mask.append(
+                    p.replace("train", mask_path).replace("JPEG", "png"))
 
         # Path for loading all Images
         # For training
 
-        self.x_train_lable = tf.one_hot(numeric_train_cls, depth = len(self.class_name) if subset_class_num==None else subset_class_num)
-        self.x_val_lable = tf.one_hot(numeric_val_cls, depth = len(self.class_name) if subset_class_num==None else subset_class_num)
+        self.x_train_lable = tf.one_hot(numeric_train_cls, depth=len(
+            self.class_name) if subset_class_num == None else subset_class_num)
+        self.x_val_lable = tf.one_hot(numeric_val_cls, depth=len(
+            self.class_name) if subset_class_num == None else subset_class_num)
 
         if bi_mask:
             self.x_train_image_mask = np.stack(
                 (np.array(self.x_train), np.array(self.bi_mask)), axis=-1)
             print(self.x_train_image_mask.shape)
-        
+
     def get_label(self, label_txt_path=None):
         class_name = []
         class_ID = []
@@ -203,16 +205,16 @@ class imagenet_dataset_single_machine():
                   .shuffle(self.val_batch * 100, seed=self.seed)
                   .map(lambda x, y: (self.parse_images_lable_pair(x, y)), num_parallel_calls=AUTO)
                   .map(lambda x, y: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE)), y),
-                       num_parallel_calls=AUTO,)#.cache(FLAGS.cached_file_val)
-                  .map(lambda x, y:(supervised_augment_eval(x, FLAGS.IMG_height, FLAGS.IMG_width, FLAGS.randaug_transform, FLAGS.randaug_magnitude),
-        y), num_parallel_calls=AUTO)
+                       num_parallel_calls=AUTO,)  # .cache(FLAGS.cached_file_val)
+                  .map(lambda x, y: (supervised_augment_eval(x, FLAGS.IMG_height, FLAGS.IMG_width, FLAGS.randaug_transform, FLAGS.randaug_magnitude),
+                                     y), num_parallel_calls=AUTO)
                   .batch(self.BATCH_SIZE)
                   .prefetch(AUTO)
                   )
-        
+
         logging.info("Val_ds dataloader with option")
         val_ds.with_options(options)
-            
+
         val_ds = self.strategy.experimental_distribute_dataset(val_ds)
 
         return val_ds
@@ -220,21 +222,21 @@ class imagenet_dataset_single_machine():
     def simclr_inception_style_crop(self):
 
         ds = (tf.data.Dataset.from_tensor_slices((self.x_train, self.x_train_lable))
-            .map(lambda x, y: (self.parse_images_lable_pair(x, y) ),num_parallel_calls=AUTO)
-            .map(lambda x, y: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE)), y),
-                             num_parallel_calls=AUTO,
-                             )#.cache(FLAGS.cached_file)
-        )
-        
+              .map(lambda x, y: (self.parse_images_lable_pair(x, y)), num_parallel_calls=AUTO)
+              .map(lambda x, y: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE)), y),
+                   num_parallel_calls=AUTO,
+                   ).cache(FLAGS.cached_file)
+              )
+
         # train_ds_one = (tf.data.Dataset.from_tensor_slices((self.x_train, self.x_train_lable))
         #                 .shuffle(self.BATCH_SIZE * 100, seed=self.seed)
         #                 # .map(self.parse_images_label,  num_parallel_calls=AUTO)
         #                 .map(lambda x, y: (self.parse_images_lable_pair(x, y)), num_parallel_calls=AUTO)
-        train_ds_one= ds.shuffle(self.BATCH_SIZE*100, seed=self.seed).map(lambda x, y: (simclr_augment_inception_style(x, self.IMG_SIZE), y)
-                                    ,num_parallel_calls=AUTO).batch(self.BATCH_SIZE, num_parallel_calls=AUTO).prefetch(20)#.prefetch(AUTO)
-                        
-        train_ds_two= ds.shuffle(self.BATCH_SIZE*100, seed=self.seed).map(lambda x, y: (simclr_augment_inception_style(x, self.IMG_SIZE), y)
-                            ,num_parallel_calls=AUTO).batch(self.BATCH_SIZE, num_parallel_calls=AUTO).prefetch(20)#.prefetch(AUTO)
+        train_ds_one = ds.shuffle(self.BATCH_SIZE*100, seed=self.seed).map(lambda x, y: (simclr_augment_inception_style(
+            x, self.IMG_SIZE), y), num_parallel_calls=AUTO).batch(self.BATCH_SIZE, num_parallel_calls=AUTO).prefetch(20)  # .prefetch(AUTO)
+
+        train_ds_two = ds.shuffle(self.BATCH_SIZE*100, seed=self.seed).map(lambda x, y: (simclr_augment_inception_style(
+            x, self.IMG_SIZE), y), num_parallel_calls=AUTO).batch(self.BATCH_SIZE, num_parallel_calls=AUTO).prefetch(20)  # .prefetch(AUTO)
 
         # train_ds_two = (tf.data.Dataset.from_tensor_slices((self.x_train, self.x_train_lable))
         #                 .shuffle(self.BATCH_SIZE * 100, seed=self.seed)
@@ -248,14 +250,12 @@ class imagenet_dataset_single_machine():
         #                 .batch(self.BATCH_SIZE, num_parallel_calls=AUTO)
         #                 .prefetch(AUTO)
         #                     )
-                        
-                       
-                        
+
         # train_ds_one= self.strategy.experimental_distribute_dataset(train_ds_two)
-        if FLAGS.dataloader =="ds_1_2_options":
+        if FLAGS.dataloader == "ds_1_2_options":
             logging.info("Train_ds_one and two  with option")
-            # train_ds_one#.with_options(options)
-            # train_ds_two#.with_options(options)
+            train_ds_one.with_options(options)
+            train_ds_two.with_options(options)
 
         train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
 
@@ -263,7 +263,7 @@ class imagenet_dataset_single_machine():
 
             logging.info("Train_ds dataloader with option")
             train_ds.with_options(options)
-        
+
         # else:
         #     logging.info(" dataloader without option")
 
@@ -284,7 +284,7 @@ class imagenet_dataset_single_machine():
                              num_parallel_calls=AUTO,
                              ).cache(FLAGS.cached_file)
                         .map(lambda x, y: (simclr_augment_randcrop_global_views(x, self.IMG_SIZE), y),
-                             num_parallel_calls=AUTO)#.cache()
+                             num_parallel_calls=AUTO)  # .cache()
                         .batch(self.BATCH_SIZE)
                         .prefetch(AUTO)
                         )
@@ -297,25 +297,23 @@ class imagenet_dataset_single_machine():
                              num_parallel_calls=AUTO,
                              ).cache(FLAGS.cached_file)
                         .map(lambda x, y: (simclr_augment_randcrop_global_views(x, self.IMG_SIZE), y),
-                             num_parallel_calls=AUTO)#.cache()
+                             num_parallel_calls=AUTO)  # .cache()
                         .batch(self.BATCH_SIZE)
                         .prefetch(AUTO)
                         )
 
-
-        if FLAGS.dataloader =="ds_1_2_options":
+        if FLAGS.dataloader == "ds_1_2_options":
             logging.info("Train_ds_one and two  with option")
             train_ds_one.with_options(options)
             train_ds_two.with_options(options)
 
         train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
 
-        if FLAGS.dataloader =="train_ds_options":
+        if FLAGS.dataloader == "train_ds_options":
             logging.info("Train_ds dataloader with option")
             train_ds.with_options(options)
         # else:
         #     logging.info(" dataloader without option")
-
 
         #train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
         # adding the distribute data to GPUs
@@ -326,17 +324,17 @@ class imagenet_dataset_single_machine():
     def simclr_inception_style_crop_image_mask(self):
 
         ds = (tf.data.Dataset.from_tensor_slices((self.x_train_image_mask, self.x_train_lable))
-                    .shuffle(self.BATCH_SIZE * 100, seed=self.seed)
-                    .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)),num_parallel_calls=AUTO).cache()
-        )
-            # .shuffle(self.BATCH_SIZE * 100, seed=self.seed)\
+              .shuffle(self.BATCH_SIZE * 100, seed=self.seed)
+              .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)), num_parallel_calls=AUTO).cache()
+              )
+        # .shuffle(self.BATCH_SIZE * 100, seed=self.seed)\
 
         train_ds_one = ds.map(lambda x, y, z: (simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z),
-                             num_parallel_calls=AUTO).batch(self.BATCH_SIZE, num_parallel_calls=AUTO).prefetch(AUTO)
-        
+                              num_parallel_calls=AUTO).batch(self.BATCH_SIZE, num_parallel_calls=AUTO).prefetch(AUTO)
+
         train_ds_two = ds.map(lambda x, y, z: (simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z),
-                             num_parallel_calls=AUTO).batch(self.BATCH_SIZE, num_parallel_calls=AUTO).prefetch(AUTO)
-        
+                              num_parallel_calls=AUTO).batch(self.BATCH_SIZE, num_parallel_calls=AUTO).prefetch(AUTO)
+
         # train_ds_one = (tf.data.Dataset.from_tensor_slices((self.x_train_image_mask, self.x_train_lable))
         #                 .shuffle(self.BATCH_SIZE * 100, seed=self.seed)
         #                 # .map(self.parse_images_label,  num_parallel_calls=AUTO)
@@ -358,12 +356,10 @@ class imagenet_dataset_single_machine():
         #                 .batch(self.BATCH_SIZE)
         #                 .prefetch(AUTO)
         #                 )
-        
+
         # train_ds_one= self.strategy.experimental_distribute_dataset(train_ds_two)
 
-
-
-        if FLAGS.dataloader =="ds_1_2_options":
+        if FLAGS.dataloader == "ds_1_2_options":
             logging.info("Train_ds_one and two  with option")
             train_ds_one.with_options(options)
             train_ds_two.with_options(options)
@@ -373,14 +369,12 @@ class imagenet_dataset_single_machine():
         if FLAGS.dataloader == "train_ds_options":
             logging.info("Train_ds dataloader with option")
             train_ds.with_options(options)
-        
-        # else: 
-        #     logging.info(" dataloader without option")
 
+        # else:
+        #     logging.info(" dataloader without option")
 
         # adding the distribute data to GPUs
         train_ds = self.strategy.experimental_distribute_dataset(train_ds)
-
 
         return train_ds
 
@@ -498,8 +492,7 @@ class imagenet_dataset_single_machine():
                         .prefetch(AUTO)
                         )
 
-
-        if FLAGS.dataloader =="ds_1_2_options":
+        if FLAGS.dataloader == "ds_1_2_options":
             logging.info("Train_ds_one and two  with option")
             train_ds_one.with_options(options)
             train_ds_two.with_options(options)
@@ -509,26 +502,22 @@ class imagenet_dataset_single_machine():
         if FLAGS.dataloader == "train_ds_options":
             logging.info("Train_ds dataloader with option")
             train_ds.with_options(options)
-        
-        # else: 
-        #     logging.info(" dataloader without option")
 
+        # else:
+        #     logging.info(" dataloader without option")
 
         # adding the distribute data to GPUs
         train_ds = self.strategy.experimental_distribute_dataset(train_ds)
 
-
-      
-
         return train_ds
 
     def get_data_size(self):
-        return len(self.x_train) , len(self.x_val)
+        return len(self.x_train), len(self.x_val)
 
 
 class imagenet_dataset_multi_machine():
 
-    def __init__(self, img_size, train_batch, val_batch, strategy, train_path=None,train_label = None, val_path=None,val_label = None, bi_mask=False,
+    def __init__(self, img_size, train_batch, val_batch, strategy, train_path=None, train_label=None, val_path=None, val_label=None, bi_mask=False,
                  mask_path=None):
         '''
         args: 
@@ -550,10 +539,11 @@ class imagenet_dataset_multi_machine():
         self.label, self.class_name = self.get_label(train_label)
         numeric_train_cls = []
         numeric_val_cls = []
-        print(train_path,val_path)
+        print(train_path, val_path)
 
         if train_path is None and val_path is None:
-            raise ValueError(f'The train_path and val_path is None, please cheeek')
+            raise ValueError(
+                f'The train_path and val_path is None, please cheeek')
         elif val_path is None:
             dataset = list(paths.list_images(train_path))
             dataset_len = dataset = len(dataset)
@@ -574,7 +564,7 @@ class imagenet_dataset_multi_machine():
             random.Random(FLAGS.SEED_data_split).shuffle(self.x_val)
 
             for image_path in self.x_train:
-                label = re.split(r"/|\|//|\\",image_path)[-2]
+                label = re.split(r"/|\|//|\\", image_path)[-2]
                 numeric_train_cls.append(self.label[label])
 
             val_label_map = self.get_val_label(val_label)
@@ -587,13 +577,16 @@ class imagenet_dataset_multi_machine():
 
         if bi_mask:
             for p in self.x_train:
-                self.bi_mask.append(p.replace("train", mask_path).replace("JPEG", "png"))
+                self.bi_mask.append(
+                    p.replace("train", mask_path).replace("JPEG", "png"))
 
         # Path for loading all Images
         # For training
 
-        self.x_train_lable = tf.one_hot(numeric_train_cls, depth=len(self.class_name))
-        self.x_val_lable = tf.one_hot(numeric_val_cls, depth=len(self.class_name))
+        self.x_train_lable = tf.one_hot(
+            numeric_train_cls, depth=len(self.class_name))
+        self.x_val_lable = tf.one_hot(
+            numeric_val_cls, depth=len(self.class_name))
 
         if bi_mask:
             self.x_train_image_mask = np.stack(
@@ -657,10 +650,12 @@ class imagenet_dataset_multi_machine():
 
     def supervised_validation(self, input_context):
         '''This for Supervised validation training'''
-        dis_tributed_batch = input_context.get_per_replica_batch_size(self.BATCH_SIZE)
+        dis_tributed_batch = input_context.get_per_replica_batch_size(
+            self.BATCH_SIZE)
         logging.info('Global batch size: %d', self.BATCH_SIZE)
         logging.info('Per-replica batch size: %d', dis_tributed_batch)
-        logging.info('num_input_pipelines: %d', input_context.num_input_pipelines)
+        logging.info('num_input_pipelines: %d',
+                     input_context.num_input_pipelines)
 
         options = tf.data.Options()
         options.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.DATA
@@ -672,8 +667,9 @@ class imagenet_dataset_multi_machine():
                   .map(lambda x, y: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE)), y),
                        num_parallel_calls=AUTO, )
                   .map(lambda x, y: (
-        supervised_augment_eval(x, FLAGS.IMG_height, FLAGS.IMG_width, FLAGS.randaug_transform, FLAGS.randaug_magnitude),
-        y), num_parallel_calls=AUTO)
+                      supervised_augment_eval(
+                          x, FLAGS.IMG_height, FLAGS.IMG_width, FLAGS.randaug_transform, FLAGS.randaug_magnitude),
+                      y), num_parallel_calls=AUTO)
 
                   )
 
@@ -733,7 +729,7 @@ class imagenet_dataset_multi_machine():
                         )
 
         train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
-        
+
         if FLAGS.with_option:
             logging.info("You implement data loader with option")
             train_ds.with_options(option)
@@ -750,7 +746,6 @@ class imagenet_dataset_multi_machine():
         return train_ds
 
     def simclr_random_global_crop(self, input_context):
-
         '''
             This class property return self-supervised training data
         '''
@@ -808,7 +803,8 @@ class imagenet_dataset_multi_machine():
 
     def simclr_inception_style_crop_image_mask(self, input_context):
 
-        dis_tributed_batch = input_context.get_per_replica_batch_size(self.BATCH_SIZE)
+        dis_tributed_batch = input_context.get_per_replica_batch_size(
+            self.BATCH_SIZE)
         logging.info('Global batch size: %d', self.BATCH_SIZE)
         logging.info('Per-replica batch size: %d', dis_tributed_batch)
         logging.info('num_input_pipelines: %d',
@@ -857,7 +853,8 @@ class imagenet_dataset_multi_machine():
 
     def simclr_random_global_crop_image_mask(self, input_context):
 
-        dis_tributed_batch = input_context.get_per_replica_batch_size(self.BATCH_SIZE)
+        dis_tributed_batch = input_context.get_per_replica_batch_size(
+            self.BATCH_SIZE)
         logging.info('Global batch size: %d', self.BATCH_SIZE)
         logging.info('Per-replica batch size: %d', dis_tributed_batch)
         logging.info('num_input_pipelines: %d',
@@ -905,7 +902,7 @@ class imagenet_dataset_multi_machine():
         return train_ds
 
     def get_data_size(self):
-        return len(self.x_train) , len(self.x_val)
+        return len(self.x_train), len(self.x_val)
 
 
 if __name__ == "__main__":
@@ -922,5 +919,3 @@ if __name__ == "__main__":
 
     print("num_train_examples : ", num_train_examples)
     print("num_eval_examples : ", num_eval_examples)
-
-
