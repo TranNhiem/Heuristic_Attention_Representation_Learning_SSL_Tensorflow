@@ -33,7 +33,7 @@ def read_cfg(mod="non_contrastive"):
 
     FLAGS.train_batch_size = 128
     FLAGS.val_batch_size = 128
-    FLAGS.model_dir = "/data1/resnet_byol/resnet18/baseline_Testing_cached"
+    FLAGS.model_dir = "/data1/resnet_byol/resnet18/baseline_Testing_cached_fp16"
     #FLAGS.train_mode = "finetune"
 
 
