@@ -56,12 +56,13 @@ def base_cfg():
     flags.DEFINE_enum(
     'dataloader', 'ds_1_2_options', ['ds_1_2_options', 'train_ds_options'],
     'The dataloader apply options.')
+    
     flags.DEFINE_string(
-    'cached_file_val', '/data1/cached_file/val_cached',
+    'cached_file_val', '/data1/cached_file/',
     'cached_validation_dataset saving into file')
     
     flags.DEFINE_string(
-    'cached_file', '/data1/cached_file/train_cached',
+    'cached_file', '/data1/cached_file/',
     'cached_training_dataset saving into file')
     
     flags.DEFINE_string(
