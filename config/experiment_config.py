@@ -39,5 +39,6 @@ def read_cfg(mod="non_contrastive"):
 
     FLAGS.train_batch_size = 128
     FLAGS.val_batch_size = 128
+
     FLAGS.model_dir = "/data1/resnet_byol/resnet18/baseline_Testing_cached_1000_cls_Prefetch_set_GPU_Thread_1000_cls_cached"
     #FLAGS.train_mode = "finetune"
