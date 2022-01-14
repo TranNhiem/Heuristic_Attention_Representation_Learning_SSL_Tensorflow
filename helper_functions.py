@@ -197,13 +197,13 @@ def perform_evaluation(model, val_ds, val_steps, ckpt, strategy):
             regularization_loss, label_top_1_accuracy, label_top_5_accuracy
         ]
 
-        # Restore model checkpoint
-        # logging.info('Restoring from %s', ckpt)
-        # checkpoint = tf.train.Checkpoint(
-        #     model=model, global_step=tf.Variable(0, dtype=tf.int64))
-        # checkpoint.restore(ckpt).expect_partial()
-        # global_step = checkpoint.global_step
-        # logging.info('Performing eval at step %d', global_step.numpy())
+        #Restore model checkpoint
+        logging.info('Restoring from %s', ckpt)
+        checkpoint = tf.train.Checkpoint(
+            model=model, global_step=tf.Variable(0, dtype=tf.int64))
+        checkpoint.restore(ckpt).expect_partial()
+        global_step = checkpoint.global_step
+        logging.info('Performing eval at step %d', global_step.numpy())
 
     # Scaling the loss  -- Update the sum up all the gradient
     @tf.function
