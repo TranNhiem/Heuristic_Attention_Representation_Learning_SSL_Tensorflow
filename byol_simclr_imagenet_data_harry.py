@@ -318,16 +318,16 @@ class imagenet_dataset_single_machine():
 
     def simclr_inception_style_crop_image_mask(self):
 
-        ds = (tf.data.Dataset.from_tensor_slices((self.x_train_image_mask, self.x_train_lable)))
+        ds = (tf.data.Dataset.from_tensor_slices((self.x_train_image_mask, self.x_train_lable))
+                    .shuffle(self.BATCH_SIZE * 100, seed=self.seed)
+                    .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)),num_parallel_calls=AUTO).cache(FLAGS.cached_file)
+        )
             # .shuffle(self.BATCH_SIZE * 100, seed=self.seed)\
-            .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)),num_parallel_calls=AUTO).cache(FLAGS.cached_file)
-        
-        train_ds_one = ds.shuffle(self.BATCH_SIZE * 100, seed=self.seed)\
-                        .map(lambda x, y, z: (simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z),
+
+        train_ds_one = ds.map(lambda x, y, z: (simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z),
                              num_parallel_calls=AUTO).batch(self.BATCH_SIZE).prefetch(AUTO)
         
-        train_ds_two = ds.shuffle(self.BATCH_SIZE * 100, seed=self.seed)\
-                            map(lambda x, y, z: (simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z),
+        train_ds_two = ds.map(lambda x, y, z: (simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z),
                              num_parallel_calls=AUTO).batch(self.BATCH_SIZE).prefetch(AUTO)
         
         # train_ds_one = (tf.data.Dataset.from_tensor_slices((self.x_train_image_mask, self.x_train_lable))
