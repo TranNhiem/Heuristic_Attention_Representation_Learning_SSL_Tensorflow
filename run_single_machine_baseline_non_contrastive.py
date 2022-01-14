@@ -31,8 +31,9 @@ if gpus:
 
 from config.experiment_config import read_cfg
 from config.absl_mock import Mock_Flag
-read_cfg()
 
+
+read_cfg()
 flag = Mock_Flag()
 FLAGS = flag.FLAGS
 if not os.path.isdir(FLAGS.model_dir):
