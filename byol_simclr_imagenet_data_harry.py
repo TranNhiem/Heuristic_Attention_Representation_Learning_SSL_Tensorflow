@@ -225,7 +225,7 @@ class imagenet_dataset_single_machine():
                         .map(lambda x, y: (self.parse_images_lable_pair(x, y)), num_parallel_calls=AUTO)
                         .map(lambda x, y: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE)), y),
                              num_parallel_calls=AUTO,
-                             ).cache()
+                             ).cache())
 
 
                 train_ds_one=  ds.map(lambda x, y: (simclr_augment_inception_style(x, self.IMG_SIZE), y),
