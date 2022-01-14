@@ -35,7 +35,7 @@ def read_cfg(mod="non_contrastive"):
     FLAGS.weighted_loss = 0.5
     FLAGS.resnet_depth = 18
     FLAGS.train_epochs = 50
-    FLAGS.num_classes = 1000
+    #FLAGS.num_classes = 1000
 
     FLAGS.train_batch_size = 128
     FLAGS.val_batch_size = 128
