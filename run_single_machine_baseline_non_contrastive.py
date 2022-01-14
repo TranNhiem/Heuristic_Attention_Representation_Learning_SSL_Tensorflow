@@ -495,7 +495,8 @@ def main():
                         summary_writer.flush()
 
                 epoch_loss = total_loss/num_batches
-                if (epoch+1) % 5 == 0:
+                
+                if (epoch+1) % 10 == 0:
                     result = perform_evaluation(online_model, val_ds, eval_steps,
                                        checkpoint_manager.latest_checkpoint, strategy)
                     wandb.log({
