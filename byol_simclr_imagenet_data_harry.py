@@ -228,7 +228,7 @@ class imagenet_dataset_single_machine():
                              ).cache())
 
 
-                train_ds_one=  ds.map(lambda x, y: (simclr_augment_inception_style(x, self.IMG_SIZE), y),
+        train_ds_one=  ds.map(lambda x, y: (simclr_augment_inception_style(x, self.IMG_SIZE), y),
                              num_parallel_calls=AUTO)#.cache()
                         .batch(self.BATCH_SIZE, num_parallel_calls=AUTO)
                         .prefetch(AUTO)
