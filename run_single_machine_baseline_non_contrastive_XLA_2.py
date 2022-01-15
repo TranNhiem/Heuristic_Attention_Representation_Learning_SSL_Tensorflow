@@ -312,44 +312,46 @@ def main():
                     # Compute the Supervised train Loss
                     '''Consider Sperate Supervised Loss'''
                     # supervised_loss=None
-                    if supervised_head_output_1 is not None:
-                        if FLAGS.train_mode == 'pretrain' and FLAGS.lineareval_while_pretraining:
+                    with tf.xla.experimental.jit_scope():
+                        if supervised_head_output_1 is not None:
+                            if FLAGS.train_mode == 'pretrain' and FLAGS.lineareval_while_pretraining:
 
-                            outputs = tf.concat(
-                                [supervised_head_output_1, supervised_head_output_2], 0)
-                            supervise_lable = tf.concat(
-                                [lable_one, lable_two], 0)
+                                outputs = tf.concat(
+                                    [supervised_head_output_1, supervised_head_output_2], 0)
+                                supervise_lable = tf.concat(
+                                    [lable_one, lable_two], 0)
 
-                            # Calculte the cross_entropy loss with Labels
-                            sup_loss = obj_lib.add_supervised_loss(
-                                labels=supervise_lable, logits=outputs)
+                                # Calculte the cross_entropy loss with Labels
+                                sup_loss = obj_lib.add_supervised_loss(
+                                    labels=supervise_lable, logits=outputs)
 
-                            scale_sup_loss = tf.nn.compute_average_loss(
-                                sup_loss, global_batch_size=train_global_batch)
-                            # scale_sup_loss = tf.reduce_sum(
-                            #     sup_loss) * (1./train_global_batch)
-                            # Update Supervised Metrics
-                            metrics.update_finetune_metrics_train(supervised_loss_metric,
-                                                                  supervised_acc_metric, scale_sup_loss,
-                                                                  supervise_lable, outputs)
+                                scale_sup_loss = tf.nn.compute_average_loss(
+                                    sup_loss, global_batch_size=train_global_batch)
+                                # scale_sup_loss = tf.reduce_sum(
+                                #     sup_loss) * (1./train_global_batch)
+                                # Update Supervised Metrics
+                                metrics.update_finetune_metrics_train(supervised_loss_metric,
+                                                                      supervised_acc_metric, scale_sup_loss,
+                                                                      supervise_lable, outputs)
 
-                        '''Attention'''
-                        # Noted Consideration Aggregate (Supervised + Contrastive Loss) --> Update the Model Gradient
-                        if FLAGS.aggregate_loss == "contrastive_supervised":
-                            if loss is None:
-                                loss = scale_sup_loss
+                            '''Attention'''
+                            # Noted Consideration Aggregate (Supervised + Contrastive Loss) --> Update the Model Gradient
+                            if FLAGS.aggregate_loss == "contrastive_supervised":
+                                if loss is None:
+                                    loss = scale_sup_loss
+                                else:
+                                    loss += scale_sup_loss
+                            elif FLAGS.aggregate_loss == "contrastive":
+
+                                supervise_loss = None
+                                if supervise_loss is None:
+                                    supervise_loss = scale_sup_loss
+                                else:
+                                    supervise_loss += scale_sup_loss
                             else:
-                                loss += scale_sup_loss
-                        elif FLAGS.aggregate_loss == "contrastive":
+                                raise ValueError(
+                                    " Loss aggregate is invalid please check FLAGS.aggregate_loss")
 
-                            supervise_loss = None
-                            if supervise_loss is None:
-                                supervise_loss = scale_sup_loss
-                            else:
-                                supervise_loss += scale_sup_loss
-                        else:
-                            raise ValueError(
-                                " Loss aggregate is invalid please check FLAGS.aggregate_loss")
                     weight_decay_loss = all_model.add_weight_decay(
                         online_model, adjust_per_optimizer=True)
                     # Under experiment Scale loss after adding Regularization and scaled by Batch_size
@@ -560,6 +562,7 @@ def main():
 #     'checkpoint', None,
 #     'Loading from the given checkpoint for fine-tuning if a finetuning '
 #     'checkpoint does not already exist in model_dir.')
+
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
