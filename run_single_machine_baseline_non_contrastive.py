@@ -464,7 +464,7 @@ def main():
             for epoch in range(FLAGS.train_epochs):
                 total_loss = 0.0
                 num_batches = 0
-                for step, (ds_one, ds_two) in enumerate(train_ds):
+                for step, (ds_one, ds_two) in enumerate(iter(train_ds)):
 
                     total_loss += distributed_train_step(ds_one, ds_two)
                     num_batches += 1
