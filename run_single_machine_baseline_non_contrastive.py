@@ -50,8 +50,8 @@ flag.save_config(os.path.join(FLAGS.model_dir, "config.cfg"))
 
 # For setting GPUs Thread reduce kernel Luanch Delay
 # https://github.com/tensorflow/tensorflow/issues/25724
-os.environ['TF_GPU_THREAD_MODE'] = 'gpu_private'
-os.environ['TF_GPU_THREAD_COUNT'] = '2'
+# os.environ['TF_GPU_THREAD_MODE'] = 'gpu_private'
+# os.environ['TF_GPU_THREAD_COUNT'] = '2'
 
 
 def main():
