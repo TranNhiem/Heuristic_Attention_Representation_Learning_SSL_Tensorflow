@@ -1,3 +1,5 @@
+from config.absl_mock import Mock_Flag
+from config.experiment_config import read_cfg
 import os
 import json
 import math
@@ -29,26 +31,23 @@ if gpus:
     except RuntimeError as e:
         print(e)
 
-from config.experiment_config import read_cfg
-from config.absl_mock import Mock_Flag
-
 
 read_cfg()
 flag = Mock_Flag()
 FLAGS = flag.FLAGS
 
 if not os.path.isdir(FLAGS.model_dir):
-    print("creat : ",FLAGS.model_dir,FLAGS.cached_file_val, FLAGS.cached_file )
+    print("creat : ", FLAGS.model_dir, FLAGS.cached_file_val, FLAGS.cached_file)
     os.makedirs(FLAGS.model_dir)
     os.makedirs(FLAGS.cached_file_val, exist_ok=True)
     os.makedirs(FLAGS.cached_file, exist_ok=True)
 
-flag.save_config(os.path.join(FLAGS.model_dir,"config.cfg"))
+flag.save_config(os.path.join(FLAGS.model_dir, "config.cfg"))
 
-### For setting GPUs Thread reduce kernel Luanch Delay
-#https://github.com/tensorflow/tensorflow/issues/25724
-os.environ['TF_GPU_THREAD_MODE']='gpu_private'
-os.environ['TF_GPU_THREAD_COUNT']='2'
+# For setting GPUs Thread reduce kernel Luanch Delay
+# https://github.com/tensorflow/tensorflow/issues/25724
+os.environ['TF_GPU_THREAD_MODE'] = 'gpu_private'
+os.environ['TF_GPU_THREAD_COUNT'] = '2'
 
 
 def main():
@@ -61,13 +60,13 @@ def main():
     train_global_batch = FLAGS.train_batch_size * strategy.num_replicas_in_sync
     val_global_batch = FLAGS.val_batch_size * strategy.num_replicas_in_sync
     train_dataset = imagenet_dataset_single_machine(img_size=FLAGS.image_size, train_batch=train_global_batch,  val_batch=val_global_batch,
-                                                    strategy=strategy,train_path=FLAGS.train_path,
+                                                    strategy=strategy, train_path=FLAGS.train_path,
                                                     val_path=FLAGS.val_path,
                                                     mask_path=FLAGS.mask_path, bi_mask=False,
-                                                    train_label=FLAGS.train_label, val_label=FLAGS.val_label,subset_class_num=FLAGS.num_classes )
+                                                    train_label=FLAGS.train_label, val_label=FLAGS.val_label, subset_class_num=FLAGS.num_classes)
 
     train_ds = train_dataset.simclr_inception_style_crop()
-
+    train_ds = iter(train_ds)
     val_ds = train_dataset.supervised_validation()
 
     num_train_examples, num_eval_examples = train_dataset.get_data_size()
@@ -109,13 +108,13 @@ def main():
         "Temperature": FLAGS.temperature,
         "Optimizer": FLAGS.optimizer,
         "SEED": FLAGS.SEED,
-        "Subset_dataset": FLAGS.num_classes, 
+        "Subset_dataset": FLAGS.num_classes,
         "Loss type": FLAGS.aggregate_loss,
-        "opt" : FLAGS.up_scale
+        "opt": FLAGS.up_scale
 
     }
 
-    wandb.init(project=FLAGS.wandb_project_name,name = FLAGS.wandb_run_name,mode = FLAGS.wandb_mod,
+    wandb.init(project=FLAGS.wandb_project_name, name=FLAGS.wandb_run_name, mode=FLAGS.wandb_mod,
                sync_tensorboard=True, config=configs)
 
     # Training Configuration
@@ -267,10 +266,10 @@ def main():
 
                             # Update Self-Supervised Metrics
                             metrics.update_pretrain_metrics_train(contrast_loss_metric,
-                                                                contrast_acc_metric,
-                                                                contrast_entropy_metric,
-                                                                loss, logits_ab,
-                                                                labels)
+                                                                  contrast_acc_metric,
+                                                                  contrast_entropy_metric,
+                                                                  loss, logits_ab,
+                                                                  labels)
 
                     elif FLAGS.loss_type == "asymmetrized":
                         logging.info("You implement Asymmetrized loss")
@@ -303,15 +302,15 @@ def main():
 
                             # Update Self-Supervised Metrics
                             metrics.update_pretrain_metrics_train(contrast_loss_metric,
-                                                                contrast_acc_metric,
-                                                                contrast_entropy_metric,
-                                                                loss, logits_ab,
-                                                                labels)
+                                                                  contrast_acc_metric,
+                                                                  contrast_entropy_metric,
+                                                                  loss, logits_ab,
+                                                                  labels)
 
-                    else: 
-                        raise ValueError('invalid loss type check your loss type')   
-            
-            
+                    else:
+                        raise ValueError(
+                            'invalid loss type check your loss type')
+
                     # Compute the Supervised train Loss
                     '''Consider Sperate Supervised Loss'''
                     # supervised_loss=None
@@ -333,8 +332,8 @@ def main():
                             #     sup_loss) * (1./train_global_batch)
                             # Update Supervised Metrics
                             metrics.update_finetune_metrics_train(supervised_loss_metric,
-                                                                supervised_acc_metric, scale_sup_loss,
-                                                                supervise_lable, outputs)
+                                                                  supervised_acc_metric, scale_sup_loss,
+                                                                  supervise_lable, outputs)
 
                         '''Attention'''
                         # Noted Consideration Aggregate (Supervised + Contrastive Loss) --> Update the Model Gradient
@@ -358,7 +357,7 @@ def main():
                     # Under experiment Scale loss after adding Regularization and scaled by Batch_size
                     # weight_decay_loss = tf.nn.scale_regularization_loss(
                     #     weight_decay_loss)
-                    
+
                     weight_decay_metric.update_state(weight_decay_loss)
                     loss += weight_decay_loss
                     total_loss_metric.update_state(loss)
@@ -382,7 +381,7 @@ def main():
                 if FLAGS.mixprecision == "fp16":
                     logging.info("you implement mix_percision_16_Fp")
 
-                    ##Method 1
+                    # Method 1
                     # # Reduce loss Precision to 16 Bits
                     # scaled_loss = optimizer.get_scaled_loss(loss)
 
@@ -400,9 +399,11 @@ def main():
                     # optimizer.apply_gradients(
                     #     zip(gradients_unscale, prediction_model.trainable_variables))
 
-                    ## Method 2
-                    fp32_grads = tape.gradient(loss, online_model.trainable_variables)
-                    fp16_grads = [tf.cast(grad, 'float16') for grad in fp32_grads]
+                    # Method 2
+                    fp32_grads = tape.gradient(
+                        loss, online_model.trainable_variables)
+                    fp16_grads = [tf.cast(grad, 'float16')
+                                  for grad in fp32_grads]
                     all_reduce_fp16_grads = tf.distribute.get_replica_context(
                     ).all_reduce(tf.distribute.ReduceOp.SUM, fp16_grads)
                     all_reduce_fp32_grads = [
@@ -417,7 +418,8 @@ def main():
                     # Method 2
                     fp32_grads = tape.gradient(
                         loss, prediction_model.trainable_variables)
-                    fp16_grads = [tf.cast(grad, 'float16') for grad in fp32_grads]
+                    fp16_grads = [tf.cast(grad, 'float16')
+                                  for grad in fp32_grads]
                     all_reduce_fp16_grads = tf.distribute.get_replica_context(
                     ).all_reduce(tf.distribute.ReduceOp.SUM, fp16_grads)
                     all_reduce_fp32_grads = [
@@ -432,7 +434,8 @@ def main():
                     logging.info("you implement original_Fp precision")
 
                     # Update Encoder and Projection head weight
-                    grads = tape.gradient(loss, online_model.trainable_variables)
+                    grads = tape.gradient(
+                        loss, online_model.trainable_variables)
                     optimizer.apply_gradients(
                         zip(grads, online_model.trainable_variables))
 
@@ -474,7 +477,7 @@ def main():
                         beta_base = 0.996
                         cur_step = global_step.numpy()
                         beta = 1 - (1-beta_base) * \
-                               (math.cos(math.pi * cur_step / train_steps) + 1) / 2
+                            (math.cos(math.pi * cur_step / train_steps) + 1) / 2
 
                     target_encoder_weights = target_model.get_weights()
                     online_encoder_weights = online_model.get_weights()
@@ -504,13 +507,13 @@ def main():
                         summary_writer.flush()
 
                 epoch_loss = total_loss/num_batches
-                
+
                 if (epoch+1) % 10 == 0:
                     result = perform_evaluation(online_model, val_ds, eval_steps,
-                                       checkpoint_manager.latest_checkpoint, strategy)
+                                                checkpoint_manager.latest_checkpoint, strategy)
                     wandb.log({
-                    "eval/label_top_1_accuracy": result["eval/label_top_1_accuracy"],
-                    "eval/label_top_5_accuracy": result["eval/label_top_5_accuracy"],
+                        "eval/label_top_1_accuracy": result["eval/label_top_1_accuracy"],
+                        "eval/label_top_5_accuracy": result["eval/label_top_5_accuracy"],
                     })
 
                 # Wandb Configure for Visualize the Model Training
