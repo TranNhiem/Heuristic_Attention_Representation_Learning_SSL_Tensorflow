@@ -225,7 +225,7 @@ class imagenet_dataset_single_machine():
               .map(lambda x, y: (self.parse_images_lable_pair(x, y)), num_parallel_calls=AUTO)
               .map(lambda x, y: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE)), y),
                    num_parallel_calls=AUTO,
-                   ).cache(filename=os.path.join(FLAGS.cached_file, 'train'), overwrite=True)
+                   ).cache(filename=os.path.join(FLAGS.cached_file, 'train'))
               )
 
         # train_ds_one = (tf.data.Dataset.from_tensor_slices((self.x_train, self.x_train_lable))
