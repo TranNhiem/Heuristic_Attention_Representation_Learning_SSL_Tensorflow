@@ -59,11 +59,11 @@ def base_cfg():
         'The dataloader apply options.')
 
     flags.DEFINE_string(
-        'cached_file_val', '/data1/cached_file/',
+        'cached_file_val', '/data1/cached_file/val_cached_1/',
         'cached_validation_dataset saving into file')
 
     flags.DEFINE_string(
-        'cached_file', '/data1/cached_file/',
+        'cached_file', '/data1/cached_file/train_cahed/',
         'cached_training_dataset saving into file')
 
     flags.DEFINE_string(
