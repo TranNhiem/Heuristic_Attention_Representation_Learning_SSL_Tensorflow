@@ -19,9 +19,9 @@ import model_for_non_contrastive_framework as all_model
 import objective as obj_lib
 from imutils import paths
 
-from tensorflow.keras import mixed_precision
-policy = mixed_precision.Policy('mixed_float16')
-mixed_precision.set_global_policy(policy)
+# from tensorflow.keras import mixed_precision
+# policy = mixed_precision.Policy('mixed_float16')
+# mixed_precision.set_global_policy(policy)
 
 # Setting GPU
 gpus = tf.config.experimental.list_physical_devices('GPU')
