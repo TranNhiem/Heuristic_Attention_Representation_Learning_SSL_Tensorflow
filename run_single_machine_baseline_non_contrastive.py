@@ -317,7 +317,7 @@ def main():
                     if supervised_head_output_1 is not None:
                         if FLAGS.train_mode == 'pretrain' and FLAGS.lineareval_while_pretraining:
                             if FLAGS.precision_method == "API":
-                                lable_one = tf.cast(label_one, 'float16')
+                                lable_one = tf.cast(lable_one, 'float16')
 
                             outputs = tf.concat(
                                 [supervised_head_output_1, supervised_head_output_2], 0)
