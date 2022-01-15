@@ -11,7 +11,7 @@ def read_cfg(mod="non_contrastive"):
     # , ['ds_1_2_options', 'train_ds_options'],
     FLAGS.dataloader = 'ds_1_2_options'
     FLAGS.wandb_project_name = "distributed_training_benchmark"
-    FLAGS.wandb_run_name = "Resnet18_baseline_model_Prefetch_GPU_Thread_1000_cls_cached"
+    FLAGS.wandb_run_name = "Resnet50_baseline_model_Prefetch_GPU_Thread_1000_cls_cached_FP32"
     FLAGS.wandb_mod = "run"
 
     FLAGS.Middle_layer_output = None
@@ -33,12 +33,12 @@ def read_cfg(mod="non_contrastive"):
     FLAGS.non_contrast_binary_loss = "sum_symetrize_l2_loss_object_backg_add_original"
     FLAGS.alpha = 1
     FLAGS.weighted_loss = 0.5
-    FLAGS.resnet_depth = 18
+    FLAGS.resnet_depth = 50
     FLAGS.train_epochs = 50
-    FLAGS.num_classes = 1000
+    FLAGS.num_classes = 10
 
     FLAGS.train_batch_size = 128
     FLAGS.val_batch_size = 128
 
-    FLAGS.model_dir = "/data1/resnet_byol/resnet18/baseline_Testing_cached_Prefetch_set_GPU_Thread_1000_cls_cached_"
+    FLAGS.model_dir = "/data1/resnet_byol/resnet18/baseline_Testing_cached_Prefetch_set_GPU_Thread_1000_cls_cached_FP32"
     #FLAGS.train_mode = "finetune"
