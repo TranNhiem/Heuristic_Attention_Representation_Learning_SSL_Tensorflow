@@ -34,7 +34,7 @@ from config.absl_mock import Mock_Flag
 flag = Mock_Flag()
 FLAGS = flag.FLAGS
 
-if (FLAGS.mixprecision == "fp16") & (FLAGS.precision_method == "API"):
+if FLAGS.mixprecision == "fp16" and FLAGS.precision_method == "API":
     mixed_precision.set_global_policy('mixed_float16')
 
 
