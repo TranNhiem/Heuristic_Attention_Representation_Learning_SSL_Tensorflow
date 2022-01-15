@@ -11,7 +11,7 @@ def read_cfg(mod="non_contrastive"):
     # , ['ds_1_2_options', 'train_ds_options'],
     FLAGS.dataloader = 'ds_1_2_options'
     FLAGS.wandb_project_name = "distributed_training_benchmark"
-    FLAGS.wandb_run_name = "Resnet18_baseline_model_Prefetch_No_GPU_Thread_10_cls_no_option_no_cached_FP16"
+    FLAGS.wandb_run_name = "Resnet18_baseline_model_Prefetch_No_GPU_Thread_1000_cls_option_cached_FP32"
     FLAGS.wandb_mod = "run"
 
     FLAGS.Middle_layer_output = None
@@ -26,7 +26,7 @@ def read_cfg(mod="non_contrastive"):
     # two options [fixed_value, schedule] schedule recommend from BYOL
     FLAGS.moving_average = "schedule"
     # ['fp16', 'fp32'],  # fp32 is original precision
-    FLAGS.mixprecision = 'fp16'
+    FLAGS.mixprecision = 'fp32'
 
     FLAGS.base_lr = 0.5
 
@@ -36,7 +36,7 @@ def read_cfg(mod="non_contrastive"):
     FLAGS.weighted_loss = 0.5
     FLAGS.resnet_depth = 18
     FLAGS.train_epochs = 50
-    FLAGS.num_classes = 10
+    FLAGS.num_classes = 1000
 
     FLAGS.train_batch_size = 128
     FLAGS.val_batch_size = 128

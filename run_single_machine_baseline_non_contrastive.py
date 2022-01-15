@@ -507,11 +507,11 @@ def main():
                     target_model.set_weights(target_encoder_weights)
 
                     # if (global_step.numpy()+ 1) % checkpoint_steps==0:
-                    if step == 10 and epoch == 0:
-                        tf.profiler.experimental.start(FLAGS.model_dir)
-                    if step == 60 and epoch == 0:
-                        print("stop profile")
-                        tf.profiler.experimental.stop()
+                    # if step == 10 and epoch == 0:
+                    #     tf.profiler.experimental.start(FLAGS.model_dir)
+                    # if step == 60 and epoch == 0:
+                    #     print("stop profile")
+                    #     tf.profiler.experimental.stop()
 
                     with summary_writer.as_default():
                         cur_step = global_step.numpy()
