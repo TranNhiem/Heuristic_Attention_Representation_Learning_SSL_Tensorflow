@@ -27,14 +27,16 @@ from learning_rate_optimizer import get_optimizer
 from tensorflow.keras import mixed_precision
 from visualize import Visualize
 
-# if FLAGS.mixprecision == "fp16":
-#     mixed_precision.set_global_policy('mixed_float16')
 
 #FLAGS = flags.FLAGS
 
 from config.absl_mock import Mock_Flag
 flag = Mock_Flag()
 FLAGS = flag.FLAGS
+
+if ((FLAGS.mixprecision == "fp16") and (FLAGS.precision_method == "API")):
+    mixed_precision.set_global_policy('mixed_float16')
+
 
 def build_optimizer(lr_schedule):
     '''
@@ -112,6 +114,7 @@ def build_optimizer_multi_machine(lr_schedule):
     #optimizer_mix_percision = mixed_precision.LossScaleOptimizer(optimizer)
 
     return optimizer_mix_percision
+
 
 def add_weight_decay(model, adjust_per_optimizer=True):
     """Compute weight decay from flags."""
@@ -660,7 +663,7 @@ class online_model(tf.keras.models.Model):
         #     width_multiplier=FLAGS.width_multiplier,
         #     cifar_stem=FLAGS.image_size <= 32)
         self.resnet_model = resnet_modify(resnet_depth=FLAGS.resnet_depth,
-                                         width_multiplier=FLAGS.width_multiplier)
+                                          width_multiplier=FLAGS.width_multiplier)
         # Projcetion head
         self._projection_head = ProjectionHead()
         self.globalaveragepooling = tf.keras.layers.GlobalAveragePooling2D()
@@ -724,7 +727,7 @@ class target_model(tf.keras.models.Model):
         #     width_multiplier=FLAGS.width_multiplier,
         #     cifar_stem=FLAGS.image_size <= 32)
         self.resnet_model = resnet_modify(resnet_depth=FLAGS.resnet_depth,
-                                         width_multiplier=FLAGS.width_multiplier)
+                                          width_multiplier=FLAGS.width_multiplier)
         # Projcetion head
         self._projection_head = ProjectionHead()
         self.globalaveragepooling = tf.keras.layers.GlobalAveragePooling2D()
@@ -773,15 +776,17 @@ class target_model(tf.keras.models.Model):
 
 
 class Downsample_Layear(tf.keras.layers.Layer):
-    def __init__(self,mod,**kwargs):
+    def __init__(self, mod, **kwargs):
         super(Downsample_Layear, self).__init__(**kwargs)
         self.mod = mod
         self.globalaveragepooling = tf.keras.layers.GlobalAveragePooling2D()
-        self.maxpooling = tf.keras.layers.MaxPooling2D(pool_size = (2,2), strides = FLAGS.downsample_magnification)
-        self.avergepooling = tf.keras.layers.AveragePooling2D(pool_size = (2,2), strides = FLAGS.downsample_magnification)
+        self.maxpooling = tf.keras.layers.MaxPooling2D(
+            pool_size=(2, 2), strides=FLAGS.downsample_magnification)
+        self.avergepooling = tf.keras.layers.AveragePooling2D(
+            pool_size=(2, 2), strides=FLAGS.downsample_magnification)
         self.flatten = tf.keras.layers.Flatten()
 
-    def call(self,x,k=1):
+    def call(self, x, k=1):
         # if k == 1:
         #     x = self.globalaveragepooling(x)
         # el
@@ -801,7 +806,7 @@ class Downsample_Layear(tf.keras.layers.Layer):
 class Binary_online_model(tf.keras.models.Model):
     """Resnet model with projection or supervised layer."""
 
-    def __init__(self, num_classes, Backbone="Resnet", Upsample = True,Downsample = "maxpooling", **kwargs):
+    def __init__(self, num_classes, Backbone="Resnet", Upsample=True, Downsample="maxpooling", **kwargs):
         super(Binary_online_model, self).__init__(**kwargs)
         self.Upsample = FLAGS.feature_upsample
         self.magnification = 1
@@ -813,7 +818,7 @@ class Binary_online_model(tf.keras.models.Model):
             else:
                 self.encoder = resnet_modify(resnet_depth=FLAGS.resnet_depth,
                                              width_multiplier=FLAGS.width_multiplier,
-                                             Middle_layer_output = [FLAGS.Middle_layer_output])
+                                             Middle_layer_output=[FLAGS.Middle_layer_output])
         else:
             raise ValueError(f"Didn't have this {Backbone} model")
 
@@ -835,7 +840,7 @@ class Binary_online_model(tf.keras.models.Model):
         if FLAGS.train_mode == 'finetune' or FLAGS.lineareval_while_pretraining:
             self.supervised_head = SupervisedHead(num_classes)
 
-        self.downsample_layear=Downsample_Layear(Downsample)
+        self.downsample_layear = Downsample_Layear(Downsample)
 
     def call(self, inputs, training):
 
@@ -857,7 +862,8 @@ class Binary_online_model(tf.keras.models.Model):
             feature_map = self.encoder(inputs, training=training)
             print("feature_map output size : ", feature_map.shape)
         else:
-            final_feature_map, feature_map = self.encoder(inputs, training=training)
+            final_feature_map, feature_map = self.encoder(
+                inputs, training=training)
             feature_map = feature_map[0]
             print("middle_map output size : ", feature_map.shape)
             print("final_feature_map output size : ", final_feature_map.shape)
@@ -877,18 +883,20 @@ class Binary_online_model(tf.keras.models.Model):
         if FLAGS.train_mode == 'pretrain':
             # object and background indexer
             obj, back = self.indexer([feature_map_upsample, mask])
-            obj, _ = self.projection_head(self.downsample_layear(obj,self.magnification)
-                                          , training=training)
-            back, _ = self.projection_head(self.downsample_layear(back,self.magnification)
-                                          , training=training)
+            obj, _ = self.projection_head(self.downsample_layear(
+                obj, self.magnification), training=training)
+            back, _ = self.projection_head(self.downsample_layear(
+                back, self.magnification), training=training)
 
         if final_feature_map != None and FLAGS.non_contrast_binary_loss == "sum_symetrize_l2_loss_object_backg_add_original":
-            final_feature_map = self.downsample_layear(final_feature_map,self.magnification)
+            final_feature_map = self.downsample_layear(
+                final_feature_map, self.magnification)
             print(final_feature_map.shape)
-            projection_head_outputs, supervised_head_inputs = self.full_image_projection_head(final_feature_map, training=training)
+            projection_head_outputs, supervised_head_inputs = self.full_image_projection_head(
+                final_feature_map, training=training)
         else:
-            projection_head_outputs, supervised_head_inputs = self.projection_head(self.downsample_layear(feature_map_upsample,self.magnification)
-                                                                               , training=training)
+            projection_head_outputs, supervised_head_inputs = self.projection_head(
+                self.downsample_layear(feature_map_upsample, self.magnification), training=training)
 
         if FLAGS.train_mode == 'finetune':
             print(supervised_head_inputs)
@@ -903,7 +911,8 @@ class Binary_online_model(tf.keras.models.Model):
             supervised_head_outputs = self.supervised_head(
                 tf.stop_gradient(supervised_head_inputs), training)
 
-            return obj, back, projection_head_outputs, supervised_head_outputs #,feature_map_upsample
+            # ,feature_map_upsample
+            return obj, back, projection_head_outputs, supervised_head_outputs
 
         else:
             return obj, back, projection_head_outputs, None
@@ -917,7 +926,7 @@ class Binary_online_model(tf.keras.models.Model):
 class Binary_target_model(tf.keras.models.Model):
     """Resnet model with projection or supervised layer."""
 
-    def __init__(self, num_classes, Backbone="Resnet", Upsample = True,Downsample = "maxpooling",  **kwargs):
+    def __init__(self, num_classes, Backbone="Resnet", Upsample=True, Downsample="maxpooling",  **kwargs):
         super(Binary_target_model, self).__init__(**kwargs)
         self.Upsample = FLAGS.feature_upsample
         self.magnification = 1
@@ -929,7 +938,7 @@ class Binary_target_model(tf.keras.models.Model):
             else:
                 self.encoder = resnet_modify(resnet_depth=FLAGS.resnet_depth,
                                              width_multiplier=FLAGS.width_multiplier,
-                                             Middle_layer_output = [FLAGS.Middle_layer_output])
+                                             Middle_layer_output=[FLAGS.Middle_layer_output])
         else:
             raise ValueError(f"Didn't have this {Backbone} model")
 
@@ -973,7 +982,8 @@ class Binary_target_model(tf.keras.models.Model):
             feature_map = self.encoder(inputs, training=training)
             print("feature_map output size : ", feature_map.shape)
         else:
-            final_feature_map, feature_map = self.encoder(inputs, training=training)
+            final_feature_map, feature_map = self.encoder(
+                inputs, training=training)
             feature_map = feature_map[0]
             print("middle_map output size : ", feature_map.shape)
             print("final_feature_map output size : ", final_feature_map.shape)
@@ -993,19 +1003,23 @@ class Binary_target_model(tf.keras.models.Model):
         if FLAGS.train_mode == 'pretrain':
             # object and background indexer
             obj, back = self.indexer([feature_map_upsample, mask])
-            obj, _ = self.projection_head(self.downsample_layear(obj,self.magnification), training=training)
-            back, _ = self.projection_head(self.downsample_layear(back,self.magnification), training=training)
+            obj, _ = self.projection_head(self.downsample_layear(
+                obj, self.magnification), training=training)
+            back, _ = self.projection_head(self.downsample_layear(
+                back, self.magnification), training=training)
             # if FLAGS.visualize:
             #     self.visualize.plot_feature_map("obj",obj)
             #     self.visualize.plot_feature_map("back",obj)
 
         if final_feature_map != None and FLAGS.non_contrast_binary_loss == "sum_symetrize_l2_loss_object_backg_add_original":
-            final_feature_map = self.downsample_layear(final_feature_map,self.magnification)
+            final_feature_map = self.downsample_layear(
+                final_feature_map, self.magnification)
             print(final_feature_map.shape)
-            projection_head_outputs, supervised_head_inputs = self.full_image_projection_head(final_feature_map, training=training)
+            projection_head_outputs, supervised_head_inputs = self.full_image_projection_head(
+                final_feature_map, training=training)
         else:
-            projection_head_outputs, supervised_head_inputs = self.projection_head(self.downsample_layear(feature_map_upsample,self.magnification)
-                                                                               , training=training)
+            projection_head_outputs, supervised_head_inputs = self.projection_head(
+                self.downsample_layear(feature_map_upsample, self.magnification), training=training)
         if FLAGS.train_mode == 'finetune':
             supervised_head_outputs = self.supervised_head(
                 supervised_head_inputs, training)
