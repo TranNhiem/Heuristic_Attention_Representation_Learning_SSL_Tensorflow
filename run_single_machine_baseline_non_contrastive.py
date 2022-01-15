@@ -66,7 +66,7 @@ def main():
                                                     train_label=FLAGS.train_label, val_label=FLAGS.val_label, subset_class_num=FLAGS.num_classes)
 
     train_ds = train_dataset.simclr_inception_style_crop()
-    #train_ds = iter(train_ds)
+    train_ds = train_ds.repeat()
     val_ds = train_dataset.supervised_validation()
 
     num_train_examples, num_eval_examples = train_dataset.get_data_size()
@@ -464,7 +464,7 @@ def main():
             for epoch in range(FLAGS.train_epochs):
                 total_loss = 0.0
                 num_batches = 0
-                for step, (ds_one, ds_two) in enumerate(iter(train_ds)):
+                for step, (ds_one, ds_two) in enumerate(train_ds):
 
                     total_loss += distributed_train_step(ds_one, ds_two)
                     num_batches += 1
