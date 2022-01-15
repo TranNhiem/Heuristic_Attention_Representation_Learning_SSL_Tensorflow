@@ -31,10 +31,12 @@ from visualize import Visualize
 #FLAGS = flags.FLAGS
 
 from config.absl_mock import Mock_Flag
+from config.experiment_config import read_cfg
+read_cfg()
 flag = Mock_Flag()
 FLAGS = flag.FLAGS
 
-if FLAGS.precision_method == "API":
+if FLAGS.precision_method == 'API':
     mixed_precision.set_global_policy('mixed_float16')
 
 
