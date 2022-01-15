@@ -19,6 +19,10 @@ import model_for_non_contrastive_framework as all_model
 import objective as obj_lib
 from imutils import paths
 
+from tensorflow.keras import mixed_precision
+policy = mixed_precision.Policy('mixed_float16')
+mixed_precision.set_global_policy(policy)
+
 # Setting GPU
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if gpus:
@@ -368,9 +372,9 @@ def main():
                     #     weight_decay_loss)
 
                     weight_decay_metric.update_state(weight_decay_loss)
-                    if FLAGS.precision_method == "API":
-                        weight_decay_loss = tf.cast(
-                            weight_decay_loss, 'float16')
+                    # if FLAGS.precision_method == "API":
+                    #     weight_decay_loss = tf.cast(
+                    #         weight_decay_loss, 'float16')
                     loss += weight_decay_loss
                     total_loss_metric.update_state(loss)
 

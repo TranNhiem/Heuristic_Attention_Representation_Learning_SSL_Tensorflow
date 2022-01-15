@@ -36,8 +36,8 @@ read_cfg()
 flag = Mock_Flag()
 FLAGS = flag.FLAGS
 
-if FLAGS.precision_method == 'API':
-    mixed_precision.set_global_policy('mixed_float16')
+# if FLAGS.precision_method == 'API':
+#     mixed_precision.set_global_policy('mixed_float16')
 
 
 def build_optimizer(lr_schedule):
