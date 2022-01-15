@@ -316,9 +316,9 @@ def main():
                     # supervised_loss=None
                     if supervised_head_output_1 is not None:
                         if FLAGS.train_mode == 'pretrain' and FLAGS.lineareval_while_pretraining:
-                            if FLAGS.precision_method == "API":
-                                lable_one = tf.cast(lable_one, 'float16')
-                                lable_two = tf.cast(lable_two, 'float16')
+                            # if FLAGS.precision_method == "API":
+                            #     lable_one = tf.cast(lable_one, 'float16')
+                            #     lable_two = tf.cast(lable_two, 'float16')
 
                             outputs = tf.concat(
                                 [supervised_head_output_1, supervised_head_output_2], 0)
@@ -341,9 +341,9 @@ def main():
 
                         '''Attention'''
                         # Noted Consideration Aggregate (Supervised + Contrastive Loss) --> Update the Model Gradient
-                        if FLAGS.precision_method == "API":
+                        # if FLAGS.precision_method == "API":
+                        #     scale_sup_loss = tf.cast(scale_sup_loss, 'float16')
 
-                            scale_sup_loss = tf.cast(scale_sup_loss, 'float16')
                         if FLAGS.aggregate_loss == "contrastive_supervised":
                             if loss is None:
                                 loss = scale_sup_loss
@@ -577,7 +577,6 @@ def main():
 #     'checkpoint', None,
 #     'Loading from the given checkpoint for fine-tuning if a finetuning '
 #     'checkpoint does not already exist in model_dir.')
-
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
