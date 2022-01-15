@@ -316,9 +316,12 @@ def main():
                     # supervised_loss=None
                     if supervised_head_output_1 is not None:
                         if FLAGS.train_mode == 'pretrain' and FLAGS.lineareval_while_pretraining:
+                            if FLAGS.precision_method == "API":
+                                lable_one = tf.cast(label_one, 'float16')
 
                             outputs = tf.concat(
                                 [supervised_head_output_1, supervised_head_output_2], 0)
+
                             supervise_lable = tf.concat(
                                 [lable_one, lable_two], 0)
 
@@ -337,6 +340,9 @@ def main():
 
                         '''Attention'''
                         # Noted Consideration Aggregate (Supervised + Contrastive Loss) --> Update the Model Gradient
+                        if FLAGS.precision_method == "API":
+
+                            scale_sup_loss = tf.cast(scale_sup_loss, 'float16')
                         if FLAGS.aggregate_loss == "contrastive_supervised":
                             if loss is None:
                                 loss = scale_sup_loss
@@ -352,6 +358,7 @@ def main():
                         else:
                             raise ValueError(
                                 " Loss aggregate is invalid please check FLAGS.aggregate_loss")
+
                     weight_decay_loss = all_model.add_weight_decay(
                         online_model, adjust_per_optimizer=True)
 
