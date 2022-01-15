@@ -478,14 +478,14 @@ def main():
                         cur_step = global_step.numpy()
                         beta = 1 - (1-beta_base) * \
                             (math.cos(math.pi * cur_step / train_steps) + 1) / 2
+                    with tf.xla.experimental.jit_scope():
+                        target_encoder_weights = target_model.get_weights()
+                        online_encoder_weights = online_model.get_weights()
 
-                    target_encoder_weights = target_model.get_weights()
-                    online_encoder_weights = online_model.get_weights()
-
-                    for i in range(len(online_encoder_weights)):
-                        target_encoder_weights[i] = beta * target_encoder_weights[i] + (
-                            1-beta) * online_encoder_weights[i]
-                    target_model.set_weights(target_encoder_weights)
+                        for i in range(len(online_encoder_weights)):
+                            target_encoder_weights[i] = beta * target_encoder_weights[i] + (
+                                1-beta) * online_encoder_weights[i]
+                        target_model.set_weights(target_encoder_weights)
 
                     # if (global_step.numpy()+ 1) % checkpoint_steps==0:
                     if step == 10 and epoch == 0:
