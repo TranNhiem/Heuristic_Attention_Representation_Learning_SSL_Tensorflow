@@ -341,7 +341,8 @@ def Configure_Model_Training():
     )
     flags.DEFINE_enum(
         # API is using mixed precision from Keras
-        'precision_method', 'API',  ['API', 'custome'],
+        'precision_method', 'custome',  [
+            'API', 'custome'],  # API is Under Development --> Sill Bugs
         'Method to apply mixed precision in training'
     )
 
