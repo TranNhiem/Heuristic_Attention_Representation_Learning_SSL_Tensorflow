@@ -368,6 +368,9 @@ def main():
                     #     weight_decay_loss)
 
                     weight_decay_metric.update_state(weight_decay_loss)
+                    if FLAGS.precision_method == "API":
+                        weight_decay_loss = tf.cast(
+                            weight_decay_loss, 'float16')
                     loss += weight_decay_loss
                     total_loss_metric.update_state(loss)
 
@@ -574,6 +577,7 @@ def main():
 #     'checkpoint', None,
 #     'Loading from the given checkpoint for fine-tuning if a finetuning '
 #     'checkpoint does not already exist in model_dir.')
+
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
