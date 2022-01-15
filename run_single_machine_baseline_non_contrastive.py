@@ -66,7 +66,7 @@ def main():
                                                     train_label=FLAGS.train_label, val_label=FLAGS.val_label, subset_class_num=FLAGS.num_classes)
 
     train_ds = train_dataset.simclr_inception_style_crop()
-    train_ds = iter(train_ds)
+    #train_ds = iter(train_ds)
     val_ds = train_dataset.supervised_validation()
 
     num_train_examples, num_eval_examples = train_dataset.get_data_size()
