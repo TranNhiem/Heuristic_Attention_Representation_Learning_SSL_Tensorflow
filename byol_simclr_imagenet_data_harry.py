@@ -325,7 +325,8 @@ class imagenet_dataset_single_machine():
     def simclr_inception_style_crop_image_mask(self):
 
         ds = (tf.data.Dataset.from_tensor_slices((self.x_train_image_mask, self.x_train_lable))
-              .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)), num_parallel_calls=AUTO).cache()
+              # .cache()
+              .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)), num_parallel_calls=AUTO)
               )
         # .shuffle(self.BATCH_SIZE * 100, seed=self.seed)\
 
