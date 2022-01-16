@@ -34,7 +34,7 @@ flag.save_config(os.path.join(FLAGS.model_dir, "config.cfg"))
 # For setting GPUs Thread reduce kernel Luanch Delay
 # https://github.com/tensorflow/tensorflow/issues/25724
 os.environ['TF_GPU_THREAD_MODE'] = 'gpu_private'
-os.environ['TF_GPU_THREAD_COUNT'] = '2'
+# os.environ['TF_GPU_THREAD_COUNT'] = '1'
 
 
 def main():
@@ -197,6 +197,7 @@ def main():
             @tf.function
             def distributed_loss(o1, o2, b1, b2, f1=None, f2=None, alpha=0.5, weight=0.5):
                 per_example_loss = 0
+
                 if FLAGS.non_contrast_binary_loss == 'original_add_backgroud':
                     ob1 = tf.concat([o1, b1], axis=0)
                     ob2 = tf.concat([o2, b2], axis=0)

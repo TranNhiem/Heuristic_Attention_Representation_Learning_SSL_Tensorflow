@@ -344,7 +344,7 @@ class imagenet_dataset_single_machine():
 
         train_ds_one = (tf.data.Dataset.from_tensor_slices((self.x_train_image_mask, self.x_train_lable))
                         .shuffle(self.BATCH_SIZE * 100, seed=self.seed)
-                        # .map(self.parse_images_label,  num_parallel_calls=AUTO)
+
                         .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)),
                              num_parallel_calls=AUTO)  # .cache(FLAGS.cached_file)
                         .map(lambda x, y, z: (simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z),
@@ -355,7 +355,6 @@ class imagenet_dataset_single_machine():
 
         train_ds_two = (tf.data.Dataset.from_tensor_slices((self.x_train_image_mask, self.x_train_lable))
                         .shuffle(self.BATCH_SIZE * 100, seed=self.seed)
-                        # .map(self.parse_images_label,  num_parallel_calls=AUTO)
                         .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)),
                              num_parallel_calls=AUTO)  # .cache(FLAGS.cached_file)
                         .map(lambda x, y, z: (simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z),
@@ -376,9 +375,6 @@ class imagenet_dataset_single_machine():
         if FLAGS.dataloader == "train_ds_options":
             logging.info("Train_ds dataloader with option")
             train_ds.with_options(options)
-
-        # else:
-        #     logging.info(" dataloader without option")
 
         # adding the distribute data to GPUs
         train_ds = self.strategy.experimental_distribute_dataset(train_ds)
