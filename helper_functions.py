@@ -133,6 +133,7 @@ def try_restore_from_checkpoint(model, global_step, optimizer):
                 FLAGS.checkpoint).expect_partial()
     else:
         logging.info('You are Not Restore from Checkpoint: %s', latest_ckpt)
+        
     if FLAGS.zero_init_logits_layer:
         print("in2")
         model = checkpoint_manager2.checkpoint.model
