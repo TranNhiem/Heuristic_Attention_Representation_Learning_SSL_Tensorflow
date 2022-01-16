@@ -344,6 +344,13 @@ def Configure_Model_Training():
         'mixprecision', "fp32", ['fp16', 'fp32'],  # fp32 is original precision
         'Mixprecision helps for speeding up training by reducing time aggregate gradient'
     )
+
+    flags.DEFINE_enum(
+        'XLA_compiler', "model_only", [
+            'original', 'model_only', ],
+        'XLA Compiler for Fusing Operation or Clustering some Operations for faster training'
+    )
+
     flags.DEFINE_enum(
         # API is using mixed precision from Keras
         'precision_method', 'custome',  [

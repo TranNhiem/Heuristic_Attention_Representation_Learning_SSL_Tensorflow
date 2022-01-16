@@ -6,6 +6,7 @@ def read_cfg(mod="non_contrastive"):
     read_cfg_base(mod)
     flag = Mock_Flag()
     FLAGS = flag.FLAGS
+
     '''This Cache File still Under development'''
     FLAGS.cached_file_val = '/data1/cached_file/val_cached_1/'
     FLAGS.cached_file = '/data1/cached_file/train_cached'
@@ -13,7 +14,7 @@ def read_cfg(mod="non_contrastive"):
     # , ['ds_1_2_options', 'train_ds_options'],
     FLAGS.dataloader = 'ds_1_2_options'
     FLAGS.wandb_project_name = "distributed_training_benchmark"
-    FLAGS.wandb_run_name = "Resnet18_MaskCo_Prefetch_GPU_Thread_10_cls_option_cached_FP16"
+    FLAGS.wandb_run_name = "Resnet18_MaskCo_Prefetch_GPU_Thread_10_cls_option_cached_FP16_XLA"
     FLAGS.wandb_mod = "run"
     FLAGS.restore_checkpoint = False  # Restore Checkpoint or Not
 
@@ -30,6 +31,9 @@ def read_cfg(mod="non_contrastive"):
     FLAGS.moving_average = "schedule"
     # ['fp16', 'fp32'],  # fp32 is original precision
     FLAGS.mixprecision = 'fp16'
+    # , [ 'original', 'model_only', ],
+    FLAGS.XLA_compiler = "model_only"
+
     FLAGS.base_lr = 0.5
 
     # sum_symetrize_l2_loss_object_backg_add_original
@@ -46,5 +50,5 @@ def read_cfg(mod="non_contrastive"):
     FLAGS.train_batch_size = 128
     FLAGS.val_batch_size = 128
 
-    FLAGS.model_dir = "/data1/resnet_byol/resnet18/MaskCo_Prefetch_GPU_Thread_10_cls_option_cached_FP16"
+    FLAGS.model_dir = "/data1/resnet_byol/resnet18/MaskCo_Prefetch_GPU_Thread_10_cls_option_cached_FP16_XLA"
     #FLAGS.train_mode = "finetune"
