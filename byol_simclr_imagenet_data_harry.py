@@ -1,6 +1,6 @@
 from config.absl_mock import Mock_Flag
 import os
-#from absl import flags
+# from absl import flags
 import tensorflow as tf
 from imutils import paths
 from byol_simclr_multi_croping_augmentation import simclr_augment_randcrop_global_views, simclr_augment_inception_style, \
@@ -12,7 +12,7 @@ import re
 
 AUTO = tf.data.AUTOTUNE
 # AUTO = 64
-#FLAGS = flags.FLAGS
+# FLAGS = flags.FLAGS
 
 flag = Mock_Flag()
 FLAGS = flag.FLAGS
@@ -20,7 +20,7 @@ FLAGS = flag.FLAGS
 # Experimental options
 options = tf.data.Options()
 options.experimental_optimization.noop_elimination = True
-#options.experimental_optimization.map_vectorization.enabled = True
+# options.experimental_optimization.map_vectorization.enabled = True
 options.experimental_optimization.map_and_batch_fusion = True
 options.experimental_optimization.map_parallelization = True
 options.experimental_optimization.apply_default_optimizations = True
@@ -33,13 +33,13 @@ class imagenet_dataset_single_machine():
     def __init__(self, img_size, train_batch, val_batch, strategy, train_path=None, train_label=None, val_path=None, val_label=None, bi_mask=False,
                  mask_path=None, subset_class_num=None):
         '''
-        args: 
+        args:
         img_size: Image training size
         train_batch: Distributed Batch_size for training multi-GPUs
 
-        image_path: Directory to train data 
+        image_path: Directory to train data
         val_path:   Directory to validation or testing data
-        subset_class_num: subset class 
+        subset_class_num: subset class
 
         '''
 
@@ -67,7 +67,7 @@ class imagenet_dataset_single_machine():
             self.x_train = dataset[len(self.x_val) + 1:]
             for image_path in self.x_train:
                 label = re.split(r"/|\|//|\\", image_path)[-2]
-                #label = image_path.split("/")[-2]
+                # label = image_path.split("/")[-2]
                 numeric_train_cls.append(self.label[label])
             for image_path in self.x_val:
                 label = re.split(r"/|\|//|\\", image_path)[-2]
@@ -181,12 +181,13 @@ class imagenet_dataset_single_machine():
         image_path, mask_path = image_mask_path[0], image_mask_path[1]
         img = tf.io.read_file(image_path)
         img = tf.io.decode_jpeg(img, channels=3)
-        img = tf.image.convert_image_dtype(img, tf.float32)
+        #img = tf.image.convert_image_dtype(img, tf.float32)
         img = tf.image.resize(img, (IMG_SIZE, IMG_SIZE))
 
         bi_mask = tf.io.read_file(mask_path)
         bi_mask = tf.io.decode_jpeg(bi_mask, channels=1)
         bi_mask = tf.image.resize(bi_mask, (IMG_SIZE, IMG_SIZE))
+
         return img, bi_mask, lable
 
     @classmethod
@@ -315,7 +316,7 @@ class imagenet_dataset_single_machine():
         # else:
         #     logging.info(" dataloader without option")
 
-        #train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
+        # train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
         # adding the distribute data to GPUs
         train_ds = self.strategy.experimental_distribute_dataset(train_ds)
 
@@ -324,16 +325,23 @@ class imagenet_dataset_single_machine():
     def simclr_inception_style_crop_image_mask(self):
 
         ds = (tf.data.Dataset.from_tensor_slices((self.x_train_image_mask, self.x_train_lable))
-              .shuffle(self.BATCH_SIZE * 100, seed=self.seed)
               .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)), num_parallel_calls=AUTO).cache()
               )
         # .shuffle(self.BATCH_SIZE * 100, seed=self.seed)\
 
-        train_ds_one = ds.map(lambda x, y, z: (simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z),
-                              num_parallel_calls=AUTO).batch(self.BATCH_SIZE, num_parallel_calls=AUTO).prefetch(AUTO)
+        train_ds_one = (ds.shuffle(self.BATCH_SIZE * 100, seed=self.seed)
+                        .map(lambda x, y, z: (simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z),
+                             num_parallel_calls=AUTO)
+                        .batch(self.BATCH_SIZE, num_parallel_calls=AUTO)
+                        .prefetch(AUTO)
+                        )
 
-        train_ds_two = ds.map(lambda x, y, z: (simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z),
-                              num_parallel_calls=AUTO).batch(self.BATCH_SIZE, num_parallel_calls=AUTO).prefetch(AUTO)
+        train_ds_two = (ds.shuffle(self.BATCH_SIZE * 100, seed=self.seed)
+                        .map(lambda x, y, z: (simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z),
+                             num_parallel_calls=AUTO)
+                        .batch(self.BATCH_SIZE, num_parallel_calls=AUTO)
+                        .prefetch(AUTO)
+                        )
 
         # train_ds_one = (tf.data.Dataset.from_tensor_slices((self.x_train_image_mask, self.x_train_lable))
         #                 .shuffle(self.BATCH_SIZE * 100, seed=self.seed)
