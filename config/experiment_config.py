@@ -11,7 +11,7 @@ def read_cfg(mod="non_contrastive"):
     # , ['ds_1_2_options', 'train_ds_options'],
     FLAGS.dataloader = 'ds_1_2_options'
     FLAGS.wandb_project_name = "distributed_training_benchmark"
-    FLAGS.wandb_run_name = "Resnet18_baseline_model_Prefetch_No_GPU_Thread_1000_cls_option_cached_FP32"
+    FLAGS.wandb_run_name = "Resnet18_MaskCo_Prefetch_GPU_Thread_10_cls_option_cached_FP16"
     FLAGS.wandb_mod = "run"
 
     FLAGS.Middle_layer_output = None
@@ -41,5 +41,5 @@ def read_cfg(mod="non_contrastive"):
     FLAGS.train_batch_size = 128
     FLAGS.val_batch_size = 128
 
-    FLAGS.model_dir = "/data1/resnet_byol/resnet18/baseline_Prefetch_No_GPU_Thread_1000_cls_no_option_no_cached_FP16"
+    FLAGS.model_dir = "/data1/resnet_byol/resnet18/MaskCo_Prefetch_GPU_Thread_10_cls_option_cached_FP16"
     #FLAGS.train_mode = "finetune"

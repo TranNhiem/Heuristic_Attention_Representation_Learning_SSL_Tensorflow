@@ -31,7 +31,10 @@ if not os.path.isdir(FLAGS.model_dir):
     os.makedirs(FLAGS.model_dir)
 flag.save_config(os.path.join(FLAGS.model_dir, "config.cfg"))
 
+# For setting GPUs Thread reduce kernel Luanch Delay
+# https://github.com/tensorflow/tensorflow/issues/25724
 os.environ['TF_GPU_THREAD_MODE'] = 'gpu_private'
+os.environ['TF_GPU_THREAD_COUNT'] = '2'
 
 
 def main():
@@ -64,7 +67,7 @@ def main():
     epoch_steps = int(round(num_train_examples / train_global_batch))
 
     checkpoint_steps = (FLAGS.checkpoint_steps or (
-            FLAGS.checkpoint_epochs * epoch_steps))
+        FLAGS.checkpoint_epochs * epoch_steps))
 
     logging.info("# Subset_training class %d", FLAGS.num_classes)
     logging.info('# train examples: %d', num_train_examples)
@@ -211,7 +214,8 @@ def main():
                         o1, o2, b1, b2, f1, f2, alpha=alpha, temperature=FLAGS.temperature, weight_loss=weight)
 
                 # total sum loss //Global batch_size
-                loss = tf.reduce_sum(per_example_loss) * (1. / train_global_batch)
+                loss = tf.reduce_sum(per_example_loss) * \
+                    (1. / train_global_batch)
                 return loss, logits_ab, labels
 
             @tf.function
@@ -227,12 +231,12 @@ def main():
                 loss 2=  L2_loss*[online_model(image2), target_model(image_1)]
                 symetrize_loss= (loss 1+ loss_2)/ 2
                 '''
-                ### Currently Our Loss function is Asymetrize L2_Loss
+                # Currently Our Loss function is Asymetrize L2_Loss
                 with tf.GradientTape(persistent=True) as tape:
 
                     if FLAGS.loss_type == "symmetrized":
                         # -------------------------------------------------------------
-                        ## Passing image 1, image 2 to Online Encoder , Target Encoder
+                        # Passing image 1, image 2 to Online Encoder , Target Encoder
                         # -------------------------------------------------------------
 
                         obj_1, backg_1, proj_head_output_1, supervised_head_output_1 = online_model(
@@ -248,13 +252,15 @@ def main():
                             [images_mask_two[0], tf.expand_dims(images_mask_two[1], axis=-1)], training=True)
 
                         # -------------------------------------------------------------
-                        ## Passing Image 1, Image 2 to Target Encoder,  Online Encoder
+                        # Passing Image 1, Image 2 to Target Encoder,  Online Encoder
                         # -------------------------------------------------------------
                         obj_2_online, backg_2_online, proj_head_output_2_online, _ = online_model(
                             [images_mask_two[0], tf.expand_dims(images_mask_two[1], axis=-1)], training=True)
                         # Vector Representation from Online encoder go into Projection head again
-                        obj_2_online = prediction_model(obj_2_online, training=True)
-                        backg_2_online = prediction_model(backg_2_online, training=True)
+                        obj_2_online = prediction_model(
+                            obj_2_online, training=True)
+                        backg_2_online = prediction_model(
+                            backg_2_online, training=True)
 
                         proj_head_output_2_online = prediction_model(
                             proj_head_output_2_online, training=True)
@@ -275,7 +281,7 @@ def main():
                                 obj_2_online, obj_1_target, backg_2_online, backg_1_target, proj_head_output_2_online,
                                 proj_head_output_1_target, alpha, weight_loss)
 
-                            ## Total loss
+                            # Total loss
                             loss = (loss_1 + loss_2) / 2
 
                             if loss is None:
@@ -322,7 +328,8 @@ def main():
                                                                   labels)
 
                     else:
-                        raise ValueError('invalid loss type check your loss type')
+                        raise ValueError(
+                            'invalid loss type check your loss type')
 
                         # Compute the Supervised train Loss
                     '''Consider Sperate Supervised Loss'''
@@ -386,7 +393,7 @@ def main():
                 if FLAGS.mixprecision == "fp16":
                     logging.info("you implement mix_percision_16_Fp")
 
-                    ##Method 1
+                    # Method 1
                     # # Reduce loss Precision to 16 Bits
                     # scaled_loss = optimizer.get_scaled_loss(loss)
 
@@ -404,9 +411,11 @@ def main():
                     # optimizer.apply_gradients(
                     #     zip(gradients_unscale, prediction_model.trainable_variables))
 
-                    ## Method 2
-                    fp32_grads = tape.gradient(loss, online_model.trainable_variables)
-                    fp16_grads = [tf.cast(grad, 'float16') for grad in fp32_grads]
+                    # Method 2
+                    fp32_grads = tape.gradient(
+                        loss, online_model.trainable_variables)
+                    fp16_grads = [tf.cast(grad, 'float16')
+                                  for grad in fp32_grads]
                     all_reduce_fp16_grads = tf.distribute.get_replica_context(
                     ).all_reduce(tf.distribute.ReduceOp.SUM, fp16_grads)
                     all_reduce_fp32_grads = [
@@ -421,7 +430,8 @@ def main():
                     # Method 2
                     fp32_grads = tape.gradient(
                         loss, prediction_model.trainable_variables)
-                    fp16_grads = [tf.cast(grad, 'float16') for grad in fp32_grads]
+                    fp16_grads = [tf.cast(grad, 'float16')
+                                  for grad in fp32_grads]
                     all_reduce_fp16_grads = tf.distribute.get_replica_context(
                     ).all_reduce(tf.distribute.ReduceOp.SUM, fp16_grads)
                     all_reduce_fp32_grads = [
@@ -436,7 +446,8 @@ def main():
                     logging.info("you implement original_Fp precision")
 
                     # Update Encoder and Projection head weight
-                    grads = tape.gradient(loss, online_model.trainable_variables)
+                    grads = tape.gradient(
+                        loss, online_model.trainable_variables)
                     optimizer.apply_gradients(
                         zip(grads, online_model.trainable_variables))
 
@@ -488,22 +499,23 @@ def main():
                         beta_base = 0.996
                         cur_step = global_step.numpy()
                         beta = 1 - (1 - beta_base) * \
-                               (cos(pi * cur_step / train_steps) + 1) / 2
+                            (cos(pi * cur_step / train_steps) + 1) / 2
 
                     target_encoder_weights = target_model.get_weights()
                     online_encoder_weights = online_model.get_weights()
 
                     for i in range(len(online_encoder_weights)):
                         target_encoder_weights[i] = beta * target_encoder_weights[i] + (
-                                1 - beta) * online_encoder_weights[i]
+                            1 - beta) * online_encoder_weights[i]
                     target_model.set_weights(target_encoder_weights)
 
-                    # if (global_step.numpy()+ 1) % checkpoint_steps==0:
-                    # if step == 10 and epoch == 0:
-                    #     tf.profiler.experimental.start(FLAGS.model_dir)
-                    # if step == 60 and epoch == 0:
-                    #     print("stop profile")
-                    #     tf.profiler.experimental.stop()
+                    # if (global_step.numpy() + 1) % checkpoint_steps == 0:
+
+                    if step == 10 and epoch == 0:
+                        tf.profiler.experimental.start(FLAGS.model_dir)
+                    if step == 60 and epoch == 0:
+                        print("stop profile")
+                        tf.profiler.experimental.stop()
 
                     with summary_writer.as_default():
                         cur_step = global_step.numpy()
