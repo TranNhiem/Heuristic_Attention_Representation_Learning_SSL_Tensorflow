@@ -329,9 +329,10 @@ def Configure_Model_Training():
         'Alpha value is configuration the weighted of Object and Background in Model Total Loss.'
     )
     flags.DEFINE_enum(
-        'alpha_schedule', 'cosine_schedule', ['cosine_schedule', 'custom_schedule'],
+        'alpha_schedule', 'cosine_schedule', [
+            'cosine_schedule', 'custom_schedule'],
         'Scheduling alpha value to control the weight loss between Foreground and Backgroud')
-        
+
     flags.DEFINE_float(
         # Weighted loss is the scaling term between  [weighted_loss]*Binary & [1-weighted_loss]*original contrastive loss)
         'weighted_loss', 0.8,
@@ -383,6 +384,10 @@ def Configure_Saving_and_Restore_Model():
     # Loading Model
 
     # Restore model weights only, but not global step and optimizer states
+    flags.DEFINE_boolean(
+        'restore_checkpoint', False,
+        'If True, Try to restore check point from latest or Given directory.')
+
     flags.DEFINE_string(
         'checkpoint', None,
         'Loading from the given checkpoint for fine-tuning if a finetuning '

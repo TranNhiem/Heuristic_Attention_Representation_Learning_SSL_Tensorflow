@@ -17,6 +17,7 @@ from config.absl_mock import Mock_Flag
 flag = Mock_Flag()
 FLAGS = flag.FLAGS
 
+
 def get_salient_tensors_dict(include_projection_head):
     """Returns a dictionary of tensors."""
     graph = tf.compat.v1.get_default_graph()
@@ -68,6 +69,7 @@ def build_saved_model(model, include_projection_head=True):
 
 # configure Json format saving file
 
+
 def json_serializable(val):
     #
     try:
@@ -101,6 +103,7 @@ def save(model, global_step):
 
 # Restore the checkpoint forom the file
 
+
 def try_restore_from_checkpoint(model, global_step, optimizer):
     """Restores the latest ckpt if it exists, otherwise check FLAGS.checkpoint."""
     checkpoint = tf.train.Checkpoint(
@@ -110,22 +113,26 @@ def try_restore_from_checkpoint(model, global_step, optimizer):
         directory=FLAGS.model_dir,
         max_to_keep=FLAGS.keep_checkpoint_max)
     latest_ckpt = checkpoint_manager.latest_checkpoint
-    if latest_ckpt:
-        # Restore model weights, global step, optimizer states
-        logging.info('Restoring from latest checkpoint: %s', latest_ckpt)
-        checkpoint_manager.checkpoint.restore(latest_ckpt).expect_partial()
 
-    elif FLAGS.checkpoint:
-        print("in")
-        # Restore model weights only, but not global step and optimizer states
-        logging.info('Restoring from given checkpoint: %s', FLAGS.checkpoint)
-        checkpoint_manager2 = tf.train.CheckpointManager(
-            tf.train.Checkpoint(model=model),
-            directory=FLAGS.model_dir,
-            max_to_keep=FLAGS.keep_checkpoint_max)
-        checkpoint_manager2.checkpoint.restore(
-            FLAGS.checkpoint).expect_partial()
+    if FLAGS.restore_checkpoint:
+        if latest_ckpt:
+            # Restore model weights, global step, optimizer states
+            logging.info('Restoring from latest checkpoint: %s', latest_ckpt)
+            checkpoint_manager.checkpoint.restore(latest_ckpt).expect_partial()
 
+        elif FLAGS.checkpoint:
+            print("in")
+            # Restore model weights only, but not global step and optimizer states
+            logging.info('Restoring from given checkpoint: %s',
+                         FLAGS.checkpoint)
+            checkpoint_manager2 = tf.train.CheckpointManager(
+                tf.train.Checkpoint(model=model),
+                directory=FLAGS.model_dir,
+                max_to_keep=FLAGS.keep_checkpoint_max)
+            checkpoint_manager2.checkpoint.restore(
+                FLAGS.checkpoint).expect_partial()
+    else:
+        logging.info('You are Not Restore from Checkpoint: %s', latest_ckpt)
     if FLAGS.zero_init_logits_layer:
         print("in2")
         model = checkpoint_manager2.checkpoint.model
@@ -174,6 +181,7 @@ def _restore_latest_or_from_pretrain(checkpoint_manager):
 
 # Perform Testing Step Here
 
+
 def perform_evaluation(model, val_ds, val_steps, ckpt, strategy):
     """Perform evaluation.--> Only Inference to measure the pretrain model representation"""
 
@@ -197,7 +205,7 @@ def perform_evaluation(model, val_ds, val_steps, ckpt, strategy):
             regularization_loss, label_top_1_accuracy, label_top_5_accuracy
         ]
 
-        #Restore model checkpoint
+        # Restore model checkpoint
         logging.info('Restoring from %s', ckpt)
         checkpoint = tf.train.Checkpoint(
             model=model, global_step=tf.Variable(0, dtype=tf.int64))

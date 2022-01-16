@@ -481,6 +481,7 @@ def main():
 
                     # Update Two different Alpha Schedule for increasing Values
                     if FLAGS.alpha_schedule == "cosine_schedule":
+                        logging.info("Implementation beta momentum uses Cosine Function")
                         alpha_base = 0.5
                         cur_step = global_step.numpy()
                         alpha = 1 - (1 - alpha_base) * \
@@ -505,6 +506,7 @@ def main():
                         beta = 0.99
                     if FLAGS.moving_average == "schedule":
                         # This update the Beta value schedule along with Trainign steps Follow BYOL
+                        logging.info("Implementation beta momentum uses Cosine Function")
                         beta_base = 0.996
                         cur_step = global_step.numpy()
                         beta = 1 - (1 - beta_base) * \
