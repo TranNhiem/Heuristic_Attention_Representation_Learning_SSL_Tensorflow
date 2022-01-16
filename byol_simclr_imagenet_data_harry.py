@@ -331,15 +331,15 @@ class imagenet_dataset_single_machine():
 
         train_ds_one = ds.shuffle(self.BATCH_SIZE * 100, seed=self.seed)\
             .map(lambda x, y, z: (simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z),
-                 num_parallel_calls=AUTO)
-        .batch(self.BATCH_SIZE, num_parallel_calls=AUTO)
-        .prefetch(AUTO)
+                 num_parallel_calls=AUTO)\
+            .batch(self.BATCH_SIZE, num_parallel_calls=AUTO)\
+            .prefetch(AUTO)
 
         train_ds_two = ds.shuffle(self.BATCH_SIZE * 100, seed=self.seed) \
             .map(lambda x, y, z: (simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z),
-                 num_parallel_calls=AUTO)
-        .batch(self.BATCH_SIZE, num_parallel_calls=AUTO)
-        .prefetch(AUTO)
+                 num_parallel_calls=AUTO)\
+            .batch(self.BATCH_SIZE, num_parallel_calls=AUTO)\
+            .prefetch(AUTO)
 
         # train_ds_one = (tf.data.Dataset.from_tensor_slices((self.x_train_image_mask, self.x_train_lable))
         #                 .shuffle(self.BATCH_SIZE * 100, seed=self.seed)
