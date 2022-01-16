@@ -32,7 +32,7 @@ def read_cfg(mod="non_contrastive"):
     # ['fp16', 'fp32'],  # fp32 is original precision
     FLAGS.mixprecision = 'fp16'
     # , [ 'original', 'model_only', ],
-    FLAGS.XLA_compiler = "model_only"
+    FLAGS.XLA_compiler = "original"
 
     FLAGS.base_lr = 0.5
 
