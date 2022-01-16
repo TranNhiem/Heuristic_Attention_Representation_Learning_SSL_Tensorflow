@@ -31,12 +31,15 @@ def read_cfg(mod="non_contrastive"):
     FLAGS.base_lr = 0.5
 
     # sum_symetrize_l2_loss_object_backg_add_original
-    FLAGS.non_contrast_binary_loss = "sum_symetrize_l2_loss_object_backg_add_original"
+    FLAGS.non_contrast_binary_loss = "sum_symetrize_l2_loss_object_backg"
     FLAGS.alpha = 1
+    # cosine schedule will increasing depending on training steps
+    # ['cosine_schedule', 'custom_schedule'],
+    FLAGS.alpha_schedule = "cosine_schedule"
     FLAGS.weighted_loss = 0.5
     FLAGS.resnet_depth = 18
     FLAGS.train_epochs = 50
-    FLAGS.num_classes = 1000
+    FLAGS.num_classes = 10
 
     FLAGS.train_batch_size = 128
     FLAGS.val_batch_size = 128

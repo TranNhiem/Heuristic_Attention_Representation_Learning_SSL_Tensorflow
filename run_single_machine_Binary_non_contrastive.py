@@ -209,6 +209,7 @@ def main():
                     # each GPU loss per_replica batch loss
                     per_example_loss, logits_ab, labels = sum_symetrize_l2_loss_object_backg(
                         o1, o2, b1, b2, alpha=alpha, temperature=FLAGS.temperature)
+                
                 elif FLAGS.non_contrast_binary_loss == 'sum_symetrize_l2_loss_object_backg_add_original':
                     per_example_loss, logits_ab, labels = sum_symetrize_l2_loss_object_backg_add_original(
                         o1, o2, b1, b2, f1, f2, alpha=alpha, temperature=FLAGS.temperature, weight_loss=weight)
@@ -478,14 +479,22 @@ def main():
                 print("Epoch", epoch, "...")
                 for step, (ds_one, ds_two) in enumerate(train_ds):
 
-                    if epoch + 1 <= 0.7 * FLAGS.train_epochs:
-                        alpha = 0.5
-                        # weight_loss = 0.5
-                    elif epoch + 1 <= 0.9 * FLAGS.train_epochs:
-                        alpha = 0.7
-                        # weight_loss = 0.7
-                    else:
-                        alpha = 0.9
+                    # Update Two different Alpha Schedule for increasing Values
+                    if FLAGS.alpha_schedule == "cosine_schedule":
+                        alpha_base = 0.5
+                        cur_step = global_step.numpy()
+                        alpha = 1 - (1 - alpha_base) * \
+                            (cos(pi * cur_step / train_steps) + 1) / 2
+
+                    if FLAGS.alpha_schedule == "custom_schedule":
+                        if epoch + 1 <= 0.7 * FLAGS.train_epochs:
+                            alpha = 0.5
+                            # weight_loss = 0.5
+                        elif epoch + 1 <= 0.9 * FLAGS.train_epochs:
+                            alpha = 0.7
+                            # weight_loss = 0.7
+                        else:
+                            alpha = 0.9
 
                     total_loss += distributed_train_step(
                         ds_one, ds_two, alpha, FLAGS.weighted_loss)

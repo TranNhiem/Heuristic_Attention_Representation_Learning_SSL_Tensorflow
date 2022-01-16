@@ -328,6 +328,10 @@ def Configure_Model_Training():
         'alpha', 0.5,
         'Alpha value is configuration the weighted of Object and Background in Model Total Loss.'
     )
+    flags.DEFINE_enum(
+        'alpha_schedule', 'cosine_schedule', ['cosine_schedule', 'custom_schedule'],
+        'Scheduling alpha value to control the weight loss between Foreground and Backgroud')
+        
     flags.DEFINE_float(
         # Weighted loss is the scaling term between  [weighted_loss]*Binary & [1-weighted_loss]*original contrastive loss)
         'weighted_loss', 0.8,
