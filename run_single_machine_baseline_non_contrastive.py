@@ -51,7 +51,7 @@ flag.save_config(os.path.join(FLAGS.model_dir, "config.cfg"))
 # For setting GPUs Thread reduce kernel Luanch Delay
 # https://github.com/tensorflow/tensorflow/issues/25724
 os.environ['TF_GPU_THREAD_MODE'] = 'gpu_private'
-os.environ['TF_GPU_THREAD_COUNT'] = '2'
+os.environ['TF_GPU_THREAD_COUNT'] = '1'
 
 
 def main():
@@ -69,8 +69,8 @@ def main():
                                                     mask_path=FLAGS.mask_path, bi_mask=False,
                                                     train_label=FLAGS.train_label, val_label=FLAGS.val_label, subset_class_num=FLAGS.num_classes)
 
-    train_ds = train_dataset.simclr_inception_style_crop()
-    #train_ds = train_ds.repeat()
+    train_ds = train_dataset.simclr_random_global_crop()
+
     val_ds = train_dataset.supervised_validation()
 
     num_train_examples, num_eval_examples = train_dataset.get_data_size()
@@ -100,7 +100,7 @@ def main():
     # Weight&Bias Tracking Experiment
     configs = {
 
-        "Model_Arch": "ResNet50",
+        "Model_Arch": "ResNet" + str(FLAGS.resnet_depth),
         "Training mode": "Baseline Non_Contrastive",
         "DataAugmentation_types": "SimCLR_Inception_style_Croping",
         "Dataset": "ImageNet1k",
@@ -506,12 +506,12 @@ def main():
                             1-beta) * online_encoder_weights[i]
                     target_model.set_weights(target_encoder_weights)
 
-                    # if (global_step.numpy()+ 1) % checkpoint_steps==0:
-                    # if step == 10 and epoch == 0:
-                    #     tf.profiler.experimental.start(FLAGS.model_dir)
-                    # if step == 60 and epoch == 0:
-                    #     print("stop profile")
-                    #     tf.profiler.experimental.stop()
+                    if step == 10 and epoch == 1:
+                        print("start profile")
+                        tf.profiler.experimental.start(FLAGS.model_dir)
+                    if step == 60 and epoch == 1:
+                        print("stop profile")
+                        tf.profiler.experimental.stop()
 
                     with summary_writer.as_default():
                         cur_step = global_step.numpy()
