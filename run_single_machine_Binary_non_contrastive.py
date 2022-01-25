@@ -34,7 +34,7 @@ flag.save_config(os.path.join(FLAGS.model_dir, "config.cfg"))
 # For setting GPUs Thread reduce kernel Luanch Delay
 # https://github.com/tensorflow/tensorflow/issues/25724
 os.environ['TF_GPU_THREAD_MODE'] = 'gpu_private'
-os.environ['TF_GPU_THREAD_COUNT'] = '1'
+os.environ['TF_GPU_THREAD_COUNT'] = '2'
 
 
 def main():
@@ -302,7 +302,7 @@ def main():
                                                                           loss, logits_o_ab,
                                                                           labels)
 
-                        if FLAGS.XLA_compiler == "original":
+                        else:
 
                             # -------------------------------------------------------------
                             # Passing image 1, image 2 to Online Encoder , Target Encoder
@@ -314,7 +314,8 @@ def main():
                             obj_1 = prediction_model(obj_1, training=True)
                             backg_1 = prediction_model(backg_1, training=True)
 
-                            proj_head_output_1 = prediction_model(proj_head_output_1, training=True)
+                            proj_head_output_1 = prediction_model(
+                                proj_head_output_1, training=True)
 
                             obj_2, backg_2, proj_head_output_2, supervised_head_output_2 = target_model(
                                 [images_mask_two[0], tf.expand_dims(images_mask_two[1], axis=-1)], training=True)
@@ -334,7 +335,8 @@ def main():
                                 proj_head_output_2_online, training=True)
 
                             obj_1_target, backg_1_target, proj_head_output_1_target, _ = \
-                                target_model([images_mask_one[0], tf.expand_dims(images_mask_one[1], axis=-1)], training=True)
+                                target_model([images_mask_one[0], tf.expand_dims(
+                                    images_mask_one[1], axis=-1)], training=True)
 
                             # Compute Contrastive Train Loss -->
                             loss = None
@@ -595,7 +597,7 @@ def main():
                     # Update weight of Target Encoder Every Step
                     if FLAGS.moving_average == "fixed_value":
                         beta = 0.99
-                    if FLAGS.moving_average == "schedule":
+                    elif FLAGS.moving_average == "schedule":
                         # This update the Beta value schedule along with Trainign steps Follow BYOL
                         logging.info(
                             "Implementation beta momentum uses Cosine Function")
@@ -603,6 +605,8 @@ def main():
                         cur_step = global_step.numpy()
                         beta = 1 - (1 - beta_base) * \
                             (cos(pi * cur_step / train_steps) + 1) / 2
+                    else:
+                        raise ValueError("Invalid Option of Moving average")
 
                     target_encoder_weights = target_model.get_weights()
                     online_encoder_weights = online_model.get_weights()

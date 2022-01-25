@@ -208,7 +208,7 @@ class imagenet_dataset_single_machine():
                   .shuffle(self.val_batch * 100, seed=self.seed)
                   .map(lambda x, y: (self.parse_images_lable_pair(x, y)), num_parallel_calls=AUTO)
                   .map(lambda x, y: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE)), y),
-                       num_parallel_calls=AUTO,)#.cache(FLAGS.cached_file_val)
+                       num_parallel_calls=AUTO,)  # .cache(FLAGS.cached_file_val)
                   .map(lambda x, y: (supervised_augment_eval(x, FLAGS.IMG_height, FLAGS.IMG_width, FLAGS.randaug_transform, FLAGS.randaug_magnitude),
                                      y), num_parallel_calls=AUTO)
                   .batch(self.BATCH_SIZE)
@@ -312,7 +312,7 @@ class imagenet_dataset_single_machine():
               .map(lambda x, y: (self.parse_images_lable_pair(x, y)))
               .map(lambda x, y: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE)), y),
                    # num_parallel_calls=AUTO,
-                   )#.cache(filename=os.path.join(FLAGS.cached_file, 'train'))
+                   )  # .cache(filename=os.path.join(FLAGS.cached_file, 'train'))
               )
         train_ds_one = (ds.map(lambda x, y: (simclr_augment_randcrop_global_views(x, self.IMG_SIZE), y),
                                num_parallel_calls=AUTO).batch(self.BATCH_SIZE)
@@ -407,20 +407,19 @@ class imagenet_dataset_single_machine():
         ds = tf.data.Dataset.from_tensor_slices((self.x_train_image_mask, self.x_train_lable))\
             .shuffle(self.BATCH_SIZE * 100, seed=self.seed)\
             .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)),
-                 num_parallel_calls=AUTO)  # .cache(FLAGS.cached_file)
+                 num_parallel_calls=AUTO)  # .cache()
 
         train_ds_one = (ds.map(lambda x, y, z: (simclr_augment_randcrop_global_view_image_mask(x, y, self.IMG_SIZE), z),
-                             num_parallel_calls=AUTO)
+                               num_parallel_calls=AUTO)
                         .batch(self.BATCH_SIZE)
                         .prefetch(20)
                         )
 
         train_ds_two = (ds.map(lambda x, y, z: (simclr_augment_randcrop_global_view_image_mask(x, y, self.IMG_SIZE), z),
-                             num_parallel_calls=AUTO)
+                               num_parallel_calls=AUTO)
                         .batch(self.BATCH_SIZE)
                         .prefetch(20)
                         )
-
 
         if FLAGS.dataloader == "ds_1_2_options":
             logging.info("Train_ds_one and two  with option")
@@ -428,15 +427,6 @@ class imagenet_dataset_single_machine():
             train_ds_two.with_options(options)
 
         train_ds = tf.data.Dataset.zip((train_ds_one, train_ds_two))
-
-        if FLAGS.dataloader == "train_ds_options":
-            logging.info("Train_ds dataloader with option")
-            train_ds.with_options(options)
-
-        # else:
-        #     logging.info(" dataloader without option")
-
-        # adding the distribute data to GPUs
         train_ds = self.strategy.experimental_distribute_dataset(train_ds)
 
         return train_ds
