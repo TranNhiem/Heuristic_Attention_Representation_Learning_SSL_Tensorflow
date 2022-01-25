@@ -34,7 +34,7 @@ flag.save_config(os.path.join(FLAGS.model_dir, "config.cfg"))
 # For setting GPUs Thread reduce kernel Luanch Delay
 # https://github.com/tensorflow/tensorflow/issues/25724
 os.environ['TF_GPU_THREAD_MODE'] = 'gpu_private'
-# os.environ['TF_GPU_THREAD_COUNT'] = '1'
+os.environ['TF_GPU_THREAD_COUNT'] = '2'
 
 
 def main():
@@ -52,7 +52,7 @@ def main():
                                                     train_label=FLAGS.train_label, val_label=FLAGS.val_label,
                                                     subset_class_num=FLAGS.num_classes)
 
-    train_ds = train_dataset.simclr_inception_style_crop_image_mask()
+    train_ds = train_dataset.simclr_random_global_crop_image_mask()
 
     val_ds = train_dataset.supervised_validation()
 
@@ -302,7 +302,7 @@ def main():
                                                                           loss, logits_o_ab,
                                                                           labels)
 
-                        if FLAGS.XLA_compiler == "original":
+                        else:
 
                             # -------------------------------------------------------------
                             # Passing image 1, image 2 to Online Encoder , Target Encoder
@@ -334,8 +334,9 @@ def main():
                             proj_head_output_2_online = prediction_model(
                                 proj_head_output_2_online, training=True)
 
-                            obj_1_target, backg_1_target, proj_head_output_1_target, _ = target_model(
-                                [images_mask_one[0], tf.expand_dims(images_mask_one[1], axis=-1)], training=True)
+                            obj_1_target, backg_1_target, proj_head_output_1_target, _ = \
+                                target_model([images_mask_one[0], tf.expand_dims(
+                                    images_mask_one[1], axis=-1)], training=True)
 
                             # Compute Contrastive Train Loss -->
                             loss = None
@@ -429,7 +430,6 @@ def main():
                     else:
                         if supervised_head_output_1 is not None:
                             if FLAGS.train_mode == 'pretrain' and FLAGS.lineareval_while_pretraining:
-
                                 outputs = tf.concat(
                                     [supervised_head_output_1, supervised_head_output_2], 0)
                                 supervise_lable = tf.concat(
@@ -549,6 +549,7 @@ def main():
                         loss, prediction_model.trainable_variables)
                     optimizer.apply_gradients(
                         zip(grads, prediction_model.trainable_variables))
+                
                 else:
                     raise ValueError(
                         "Invalid Implement optimization floating precision")
@@ -597,7 +598,7 @@ def main():
                     # Update weight of Target Encoder Every Step
                     if FLAGS.moving_average == "fixed_value":
                         beta = 0.99
-                    if FLAGS.moving_average == "schedule":
+                    elif FLAGS.moving_average == "schedule":
                         # This update the Beta value schedule along with Trainign steps Follow BYOL
                         logging.info(
                             "Implementation beta momentum uses Cosine Function")
@@ -605,6 +606,8 @@ def main():
                         cur_step = global_step.numpy()
                         beta = 1 - (1 - beta_base) * \
                             (cos(pi * cur_step / train_steps) + 1) / 2
+                    else:
+                        raise ValueError("Invalid Option of Moving average")
 
                     target_encoder_weights = target_model.get_weights()
                     online_encoder_weights = online_model.get_weights()
@@ -615,11 +618,11 @@ def main():
 
                     # if (global_step.numpy() + 1) % checkpoint_steps == 0:
 
-                    if step == 10 and epoch == 0:
-                        tf.profiler.experimental.start(FLAGS.model_dir)
-                    if step == 60 and epoch == 0:
-                        print("stop profile")
-                        tf.profiler.experimental.stop()
+                    # if step == 10 and epoch == 1:
+                    #     tf.profiler.experimental.start(FLAGS.model_dir)
+                    # if step == 30 and epoch == 1:
+                    #     print("stop profile")
+                    #     tf.profiler.experimental.stop()
 
                     with summary_writer.as_default():
                         cur_step = global_step.numpy()

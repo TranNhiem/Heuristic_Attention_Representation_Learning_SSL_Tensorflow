@@ -218,7 +218,7 @@ def perform_evaluation(model, val_ds, val_steps, ckpt, strategy):
     @tf.function
     def single_step(features, labels):
         # Logits output
-        print("start v")
+        print("start eval")
         _, supervised_head_outputs = model(features, training=False)
         assert supervised_head_outputs is not None
         outputs = supervised_head_outputs
