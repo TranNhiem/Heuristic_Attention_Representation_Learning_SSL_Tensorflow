@@ -85,7 +85,7 @@ def main():
         linear_layear = all_model.LinearLayer(FLAGS.num_classes)
         model.built = True
         model.build((1, 224, 224, 3))
-        model.load_weights("/data1/share/resnet_byol/restnet50/Baseline_(7_7_2048)_200epoch/encoder_model_199.h5")
+        model.load_weights("")
 
         model = resnet(
             resnet_depth=FLAGS.resnet_depth,
@@ -96,11 +96,11 @@ def main():
 
 
         model.summary()
-        model.load_weights("/data1/share/resnet_byol/resnet50/Baseline_(7_7_2048)_100epoch_symloss/encoder_model_99.h5")
-        try:
-            model.load_weights("/data1/share/resnet_byol/resnet50/Baseline_(7_7_2048)_100epoch_symloss/encoder_model_99.h5")
-        except:
-            print(" is not exist.")
+        # model.load_weights("/data1/share/resnet_byol/resnet50/Baseline_(7_7_2048)_100epoch_symloss/encoder_model_99.h5")
+        # try:
+        #     model.load_weights("/data1/share/resnet_byol/resnet50/Baseline_(7_7_2048)_100epoch_symloss/encoder_model_99.h5")
+        # except:
+        #     print(" is not exist.")
 
         # online_model = all_model.online_model(FLAGS.num_classes)
         # online_model.resnet_model.built = True

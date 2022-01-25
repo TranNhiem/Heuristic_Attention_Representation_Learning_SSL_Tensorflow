@@ -34,7 +34,7 @@ flag.save_config(os.path.join(FLAGS.model_dir, "config.cfg"))
 # For setting GPUs Thread reduce kernel Luanch Delay
 # https://github.com/tensorflow/tensorflow/issues/25724
 os.environ['TF_GPU_THREAD_MODE'] = 'gpu_private'
-# os.environ['TF_GPU_THREAD_COUNT'] = '1'
+os.environ['TF_GPU_THREAD_COUNT'] = '1'
 
 
 def main():
@@ -52,7 +52,7 @@ def main():
                                                     train_label=FLAGS.train_label, val_label=FLAGS.val_label,
                                                     subset_class_num=FLAGS.num_classes)
 
-    train_ds = train_dataset.simclr_inception_style_crop_image_mask()
+    train_ds = train_dataset.simclr_random_global_crop_image_mask()
 
     val_ds = train_dataset.supervised_validation()
 
@@ -314,8 +314,7 @@ def main():
                             obj_1 = prediction_model(obj_1, training=True)
                             backg_1 = prediction_model(backg_1, training=True)
 
-                            proj_head_output_1 = prediction_model(
-                                proj_head_output_1, training=True)
+                            proj_head_output_1 = prediction_model(proj_head_output_1, training=True)
 
                             obj_2, backg_2, proj_head_output_2, supervised_head_output_2 = target_model(
                                 [images_mask_two[0], tf.expand_dims(images_mask_two[1], axis=-1)], training=True)
@@ -334,8 +333,8 @@ def main():
                             proj_head_output_2_online = prediction_model(
                                 proj_head_output_2_online, training=True)
 
-                            obj_1_target, backg_1_target, proj_head_output_1_target, _ = target_model(
-                                [images_mask_one[0], tf.expand_dims(images_mask_one[1], axis=-1)], training=True)
+                            obj_1_target, backg_1_target, proj_head_output_1_target, _ = \
+                                target_model([images_mask_one[0], tf.expand_dims(images_mask_one[1], axis=-1)], training=True)
 
                             # Compute Contrastive Train Loss -->
                             loss = None
@@ -429,7 +428,6 @@ def main():
                     else:
                         if supervised_head_output_1 is not None:
                             if FLAGS.train_mode == 'pretrain' and FLAGS.lineareval_while_pretraining:
-
                                 outputs = tf.concat(
                                     [supervised_head_output_1, supervised_head_output_2], 0)
                                 supervise_lable = tf.concat(
@@ -615,11 +613,11 @@ def main():
 
                     # if (global_step.numpy() + 1) % checkpoint_steps == 0:
 
-                    if step == 10 and epoch == 0:
-                        tf.profiler.experimental.start(FLAGS.model_dir)
-                    if step == 60 and epoch == 0:
-                        print("stop profile")
-                        tf.profiler.experimental.stop()
+                    # if step == 10 and epoch == 1:
+                    #     tf.profiler.experimental.start(FLAGS.model_dir)
+                    # if step == 30 and epoch == 1:
+                    #     print("stop profile")
+                    #     tf.profiler.experimental.stop()
 
                     with summary_writer.as_default():
                         cur_step = global_step.numpy()

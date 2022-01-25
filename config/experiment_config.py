@@ -14,13 +14,12 @@ def read_cfg(mod="non_contrastive"):
     # , ['ds_1_2_options', 'train_ds_options'],
     FLAGS.dataloader = 'ds_1_2_options'
     FLAGS.wandb_project_name = "heuristic_attention_representation_learning_Paper"
-    FLAGS.wandb_run_name = "Baseline_random_crop_(14_14_2048)_100epoch_symloss"
+    FLAGS.wandb_run_name = "Baseline_random_crop_(7_7_2048)_100epoch_symloss"
     FLAGS.wandb_mod = "run"
     FLAGS.restore_checkpoint = True  # Restore Checkpoint or Not
 
-    FLAGS.Middle_layer_output = None
     FLAGS.original_loss_stop_gradient = False
-    FLAGS.Encoder_block_strides = {'1': 2, '2': 1, '3': 2, '4': 2, '5': 1}
+    FLAGS.Encoder_block_strides = {'1': 2, '2': 1, '3': 2, '4': 2, '5': 2}
     FLAGS.Encoder_block_channel_output = {
         '1': 1, '2': 1, '3': 1, '4': 1, '5': 1}
     FLAGS.Middle_layer_output = None
@@ -41,8 +40,8 @@ def read_cfg(mod="non_contrastive"):
     FLAGS.alpha = 1
     # cosine schedule will increasing depending on training steps
     # ['cosine_schedule', 'custom_schedule'],
-    FLAGS.alpha_schedule = "cosine_schedule"
-    FLAGS.weighted_loss = 0.5
+    FLAGS.alpha_schedule = "custom_schedule"
+    FLAGS.weighted_loss = 0.3
     FLAGS.resnet_depth = 50
     FLAGS.train_epochs = 100
     FLAGS.num_classes = 1000
@@ -50,5 +49,5 @@ def read_cfg(mod="non_contrastive"):
     FLAGS.train_batch_size = 128
     FLAGS.val_batch_size = 128
 
-    FLAGS.model_dir = "/data1/resnet_byol/resnet50/Baseline_random_crop_(14_14_2048)_100epoch_symloss"
+    FLAGS.model_dir = "/data1/resnet_byol/resnet50/Baseline_random_crop_(7_7_2048)_100epoch_symloss"
     #FLAGS.train_mode = "finetune"

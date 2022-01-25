@@ -99,7 +99,6 @@ def main():
     # Configure Wandb Training
     # Weight&Bias Tracking Experiment
     configs = {
-
         "Model_Arch": "ResNet" + str(FLAGS.resnet_depth),
         "Training mode": "Baseline Non_Contrastive",
         "DataAugmentation_types": "SimCLR_Inception_style_Croping",
@@ -320,13 +319,8 @@ def main():
                     # supervised_loss=None
                     if supervised_head_output_1 is not None:
                         if FLAGS.train_mode == 'pretrain' and FLAGS.lineareval_while_pretraining:
-                            # if FLAGS.precision_method == "API":
-                            #     lable_one = tf.cast(lable_one, 'float16')
-                            #     lable_two = tf.cast(lable_two, 'float16')
-
                             outputs = tf.concat(
                                 [supervised_head_output_1, supervised_head_output_2], 0)
-
                             supervise_lable = tf.concat(
                                 [lable_one, lable_two], 0)
 
@@ -480,9 +474,11 @@ def main():
 
             # Train the model here
             # tf.profiler.experimental.start(FLAGS.model_dir)
+
             for epoch in range(FLAGS.train_epochs):
                 total_loss = 0.0
                 num_batches = 0
+                print("Epoch", epoch, "...")
                 for step, (ds_one, ds_two) in enumerate(train_ds):
 
                     total_loss += distributed_train_step(ds_one, ds_two)
