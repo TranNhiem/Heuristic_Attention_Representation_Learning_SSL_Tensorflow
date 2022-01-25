@@ -549,6 +549,7 @@ def main():
                         loss, prediction_model.trainable_variables)
                     optimizer.apply_gradients(
                         zip(grads, prediction_model.trainable_variables))
+                
                 else:
                     raise ValueError(
                         "Invalid Implement optimization floating precision")

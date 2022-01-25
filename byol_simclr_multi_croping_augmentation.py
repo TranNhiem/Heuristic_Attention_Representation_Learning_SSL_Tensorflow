@@ -525,7 +525,6 @@ def simclr_augment_inception_style_image_mask_tf_py(image, mask, IMG_SIZE, z):
 # *****************************************************
 CROP_PROPORTION = 0.875  # Standard for ImageNet.
 
-
 def croping_for_eval(image, height, width, crop=True):
     """Preprocesses the given image for evaluation.
     Args:

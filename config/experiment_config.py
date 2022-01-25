@@ -8,13 +8,11 @@ def read_cfg(mod="non_contrastive"):
     FLAGS = flag.FLAGS
 
     '''This Cache File still Under development'''
-    FLAGS.cached_file_val = '/data1/cached_file/val_cached_1/'
-    FLAGS.cached_file = '/data1/cached_file/train_cached_baseline'
 
     # , ['ds_1_2_options', 'train_ds_options'],
     FLAGS.dataloader = 'ds_1_2_options'
     FLAGS.wandb_project_name = "heuristic_attention_representation_learning_Paper"
-    FLAGS.wandb_run_name = "Baseline_random_crop_(7_7_2048)_100epoch_symloss"
+    FLAGS.wandb_run_name = "testing_binarymask_run"
     FLAGS.wandb_mod = "run"
     FLAGS.restore_checkpoint = True  # Restore Checkpoint or Not
 
@@ -36,18 +34,18 @@ def read_cfg(mod="non_contrastive"):
     FLAGS.base_lr = 0.5
 
 
-    FLAGS.non_contrast_binary_loss = "baseline loss" # sum_symetrize_l2_loss_object_backg_add_original
+    FLAGS.non_contrast_binary_loss = "sum_symetrize_l2_loss_object_backg_add_original" # sum_symetrize_l2_loss_object_backg_add_original
     FLAGS.alpha = 1
     # cosine schedule will increasing depending on training steps
     # ['cosine_schedule', 'custom_schedule'],
     FLAGS.alpha_schedule = "custom_schedule"
     FLAGS.weighted_loss = 0.3
     FLAGS.resnet_depth = 50
-    FLAGS.train_epochs = 100
-    FLAGS.num_classes = 1000
+    FLAGS.train_epochs = 20
+    FLAGS.num_classes = 10
 
     FLAGS.train_batch_size = 128
     FLAGS.val_batch_size = 128
 
-    FLAGS.model_dir = "/data1/resnet_byol/resnet50/Baseline_random_crop_(7_7_2048)_100epoch_symloss"
+    FLAGS.model_dir = "/data1/resnet_byol/resnet50/test_binarymask_run"
     #FLAGS.train_mode = "finetune"

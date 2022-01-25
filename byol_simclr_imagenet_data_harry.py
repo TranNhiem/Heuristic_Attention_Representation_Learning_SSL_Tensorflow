@@ -412,13 +412,13 @@ class imagenet_dataset_single_machine():
         train_ds_one = (ds.map(lambda x, y, z: (simclr_augment_randcrop_global_view_image_mask(x, y, self.IMG_SIZE), z),
                                num_parallel_calls=AUTO)
                         .batch(self.BATCH_SIZE)
-                        .prefetch(20)
+                        .prefetch(AUTO)
                         )
 
         train_ds_two = (ds.map(lambda x, y, z: (simclr_augment_randcrop_global_view_image_mask(x, y, self.IMG_SIZE), z),
                                num_parallel_calls=AUTO)
                         .batch(self.BATCH_SIZE)
-                        .prefetch(20)
+                        .prefetch(AUTO)
                         )
 
         if FLAGS.dataloader == "ds_1_2_options":
