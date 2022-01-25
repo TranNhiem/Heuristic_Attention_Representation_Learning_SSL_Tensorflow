@@ -222,10 +222,10 @@ class imagenet_dataset_single_machine():
 
         return val_ds
 
-    def get_base_train_dataset(self,mask = False):
+    def get_base_train_dataset(self, mask=False):
         dataset, info = tfds.load(
             "imagenet2012",
-            data_dir = "/data1/1K_New/",
+            data_dir="/data1/1K_New/",
             # decoders={"image": tfds.decode.SkipDecoding()},
             split="train",
             with_info=True,
@@ -234,12 +234,12 @@ class imagenet_dataset_single_machine():
 
         if mask:
             def preprocessing(data):
-                return tf.image.resize(tf.image.convert_image_dtype(data["image"], tf.float32),(self.IMG_SIZE, self.IMG_SIZE)), tf.one_hot(data["label"],1000)
-            ds = (#tf.data.Dataset.from_tensor_slices((self.x_train, self.x_train_lable))
-                  dataset.shuffle(self.BATCH_SIZE * 100, seed=self.seed)
-                  .map(preprocessing, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-                  .cache()  # filename=os.path.join(FLAGS.cached_file, 'train'))
-                  )
+                return tf.image.resize(tf.image.convert_image_dtype(data["image"], tf.float32), (self.IMG_SIZE, self.IMG_SIZE)), tf.one_hot(data["label"], 1000)
+            ds = (  # tf.data.Dataset.from_tensor_slices((self.x_train, self.x_train_lable))
+                dataset.shuffle(self.BATCH_SIZE * 100, seed=self.seed)
+                .map(preprocessing, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+                .cache()  # filename=os.path.join(FLAGS.cached_file, 'train'))
+            )
             return ds, info
         else:
             def preprocessing(data):
@@ -253,10 +253,9 @@ class imagenet_dataset_single_machine():
             )
             return ds, info
 
-
     def simclr_inception_style_crop(self):
 
-        ds , info = self.get_base_train_dataset()
+        ds, info = self.get_base_train_dataset()
         # ds = (tf.data.Dataset.from_tensor_slices((self.x_train, self.x_train_lable))
         #       .map(lambda x, y: (self.parse_images_lable_pair(x, y)), num_parallel_calls=AUTO)
         #       .map(lambda x, y: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE)), y),
@@ -316,12 +315,12 @@ class imagenet_dataset_single_machine():
                    )#.cache(filename=os.path.join(FLAGS.cached_file, 'train'))
               )
         train_ds_one = (ds.map(lambda x, y: (simclr_augment_randcrop_global_views(x, self.IMG_SIZE), y),
-                             num_parallel_calls=AUTO).batch(self.BATCH_SIZE)
+                               num_parallel_calls=AUTO).batch(self.BATCH_SIZE)
                         .prefetch(20)
                         )
 
         train_ds_two = (ds.map(lambda x, y: (simclr_augment_randcrop_global_views(x, self.IMG_SIZE), y),
-                             num_parallel_calls=AUTO).batch(self.BATCH_SIZE)
+                               num_parallel_calls=AUTO).batch(self.BATCH_SIZE)
                         .prefetch(20)
                         )
 
