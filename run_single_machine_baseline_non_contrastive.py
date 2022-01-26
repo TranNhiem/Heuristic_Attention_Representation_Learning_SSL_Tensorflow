@@ -69,7 +69,7 @@ def main():
                                                     mask_path=FLAGS.mask_path, bi_mask=False,
                                                     train_label=FLAGS.train_label, val_label=FLAGS.val_label, subset_class_num=FLAGS.num_classes)
 
-    train_ds = train_dataset.simclr_random_global_crop()
+    train_ds = train_dataset.simclr_inception_style_crop()
 
     val_ds = train_dataset.supervised_validation()
 
@@ -81,8 +81,7 @@ def main():
         math.ceil(num_eval_examples / val_global_batch))
 
     epoch_steps = int(round(num_train_examples / train_global_batch))
-    checkpoint_steps = (FLAGS.checkpoint_steps or (
-        FLAGS.checkpoint_epochs * epoch_steps))
+    checkpoint_steps = (FLAGS.checkpoint_steps or (FLAGS.checkpoint_epochs * epoch_steps))
 
     logging.info("# Subset_training class %d", FLAGS.num_classes)
     logging.info('# train examples: %d', num_train_examples)
@@ -196,8 +195,8 @@ def main():
                     x1, x2,  temperature=FLAGS.temperature)
 
                 # total sum loss //Global batch_size
-                loss = tf.reduce_sum(per_example_loss) * \
-                    (1./train_global_batch)
+                #(0.8/1024)*8
+                loss = tf.reduce_sum(per_example_loss) * (1./train_global_batch)### harry try : (1./8)
                 return loss, logits_ab, labels
 
             @tf.function
