@@ -9,7 +9,7 @@ def read_cfg(mod="non_contrastive"):
 
     '''This Cache File still Under development'''
 
-    # , ['ds_1_2_options', 'train_ds_options'],
+    # , ['ds_1_2_options', 'no_option'],
     FLAGS.dataloader = 'ds_1_2_options'
     FLAGS.wandb_project_name = "heuristic_attention_representation_learning_Paper_correction"
     FLAGS.wandb_run_name = "restnet18_Hybrid_loss_(7*7*2048)_100epoch_alpha_schedule_symloss_correction"

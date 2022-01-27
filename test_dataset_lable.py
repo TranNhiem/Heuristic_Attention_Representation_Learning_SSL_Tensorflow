@@ -19,20 +19,21 @@ read_cfg()
 flag = Mock_Flag()
 FLAGS = flag.FLAGS
 
-# gpus = tf.config.experimental.list_physical_devices('GPU')
-# if gpus:
+gpus = tf.config.experimental.list_physical_devices('GPU')
+if gpus:
 
-#     try:
-#         tf.config.experimental.set_visible_devices(gpus[0:2], 'GPU')
-#         logical_gpus = tf.config.experimental.list_logical_devices('GPU')
-#         print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPU")
-#     except RuntimeError as e:
-#         print(e)
-
-
+    try:
+        tf.config.experimental.set_visible_devices(gpus[0], 'GPU')
+        logical_gpus = tf.config.experimental.list_logical_devices('GPU')
+        print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPU")
+    except RuntimeError as e:
+        print(e)
 
 
-strategy=None
+
+
+#strategy=None
+strategy = tf.distribute.MirroredStrategy()
 train_global_batch = 10
 val_global_batch = 10
 image_size = 224
@@ -40,6 +41,7 @@ bi_mask = False
 
 train_global_batch = 10
 val_global_batch = 10
+
 # train_dataset = imagenet_dataset_single_machine(img_size=FLAGS.image_size, train_batch=train_global_batch,  val_batch=val_global_batch,
 #                                                 strategy=strategy, train_path=FLAGS.train_path,
 #                                                 val_path=FLAGS.val_path,
@@ -57,8 +59,9 @@ train_dataset = imagenet_dataset_single_machine(img_size=FLAGS.image_size, train
                                                 train_label=FLAGS.train_label, val_label=FLAGS.val_label,
                                                 subset_class_num=FLAGS.num_classes)
 
-train_ds = train_dataset.simclr_inception_style_crop_image_mask()
 
+#train_ds = train_dataset.simclr_inception_style_crop_image_mask()
+train_ds= train_dataset.simclr_random_global_crop_image_mask()
 
 ds_1 = []
 ds_2 =[]
@@ -110,4 +113,5 @@ for n in range(8):
     # ax = plt.subplot(2, 10, n + 11)
     # plt.imshow(tf.squeeze(mask[n])/255)  # .numpy().astype("int")
     plt.axis("off")
+
 plt.show()
