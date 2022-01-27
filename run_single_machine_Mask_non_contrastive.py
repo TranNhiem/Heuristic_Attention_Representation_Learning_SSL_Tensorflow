@@ -14,7 +14,8 @@ from learning_rate_optimizer import WarmUpAndCosineDecay
 import metrics
 from helper_functions import *
 from byol_simclr_imagenet_data_harry import imagenet_dataset_single_machine
-from self_supervised_losses import byol_symetrize_loss
+from self_supervised_losses import byol_symetrize_loss, symetrize_l2_loss_object_level_whole_image, \
+    sum_symetrize_l2_loss_object_backg, sum_symetrize_l2_loss_object_backg_add_original
 import model_for_non_contrastive_framework as all_model
 import objective as obj_lib
 from imutils import paths
@@ -51,25 +52,22 @@ flag.save_config(os.path.join(FLAGS.model_dir, "config.cfg"))
 # For setting GPUs Thread reduce kernel Luanch Delay
 # https://github.com/tensorflow/tensorflow/issues/25724
 os.environ['TF_GPU_THREAD_MODE'] = 'gpu_private'
-os.environ['TF_GPU_THREAD_COUNT'] = '1'
+os.environ['TF_GPU_THREAD_COUNT'] = '2'
 
 
 def main():
-    # if len(argv) > 1:
-    #     raise app.UsageError('Too many command-line arguments.')
-
-    # Preparing dataset
-    # Imagenet path prepare localy
     strategy = tf.distribute.MirroredStrategy()
     train_global_batch = FLAGS.train_batch_size * strategy.num_replicas_in_sync
     val_global_batch = FLAGS.val_batch_size * strategy.num_replicas_in_sync
-    train_dataset = imagenet_dataset_single_machine(img_size=FLAGS.image_size, train_batch=train_global_batch,  val_batch=val_global_batch,
+    train_dataset = imagenet_dataset_single_machine(img_size=FLAGS.image_size, train_batch=train_global_batch,
+                                                    val_batch=val_global_batch,
                                                     strategy=strategy, train_path=FLAGS.train_path,
                                                     val_path=FLAGS.val_path,
-                                                    mask_path=FLAGS.mask_path, bi_mask=False,
-                                                    train_label=FLAGS.train_label, val_label=FLAGS.val_label, subset_class_num=FLAGS.num_classes)
+                                                    mask_path=FLAGS.mask_path, bi_mask=True,
+                                                    train_label=FLAGS.train_label, val_label=FLAGS.val_label,
+                                                    subset_class_num=FLAGS.num_classes)
 
-    train_ds = train_dataset.simclr_inception_style_crop()
+    train_ds = train_dataset.simclr_inception_style_crop_image_mask()
 
     val_ds = train_dataset.supervised_validation()
 
@@ -91,9 +89,11 @@ def main():
 
     # Configure the Encoder Architecture.
     with strategy.scope():
-        online_model = all_model.online_model(FLAGS.num_classes)
+        online_model = all_model.Binary_online_model(
+            FLAGS.num_classes, Upsample=FLAGS.feature_upsample, Downsample=FLAGS.downsample_mod)
         prediction_model = all_model.prediction_head_model()
-        target_model = all_model.online_model(FLAGS.num_classes)
+        target_model = all_model.Binary_target_model(
+            FLAGS.num_classes, Upsample=FLAGS.feature_upsample, Downsample=FLAGS.downsample_mod)
 
     # Configure Wandb Training
     # Weight&Bias Tracking Experiment
@@ -112,7 +112,7 @@ def main():
         "Subset_dataset": FLAGS.num_classes,
         "Loss type": FLAGS.aggregate_loss,
         "opt": FLAGS.up_scale,
-        "Encoder output size": str(list(FLAGS.Encoder_block_strides.values()).count("1") * 7),
+        "Encoder output size": str(list(FLAGS.Encoder_block_strides.values()).count(1) * 7),
     }
 
     wandb.init(project=FLAGS.wandb_project_name, name=FLAGS.wandb_run_name, mode=FLAGS.wandb_mod,
@@ -187,78 +187,88 @@ def main():
 
             # Scale loss  --> Aggregating all Gradients
             @tf.function
-            def distributed_loss(x1, x2):
+            def distributed_loss(o1, o2, b1, b2, f1=None, f2=None, alpha=0.5, weight=0.5):
+                per_example_loss = 0
 
-                # each GPU loss per_replica batch loss
-                per_example_loss, logits_ab, labels = byol_symetrize_loss(
-                    x1, x2,  temperature=FLAGS.temperature)
+                if FLAGS.non_contrast_binary_loss == 'original_add_backgroud':
+                    ob1 = tf.concat([o1, b1], axis=0)
+                    ob2 = tf.concat([o2, b2], axis=0)
+                    # each GPU loss per_replica batch loss
+                    per_example_loss, logits_ab, labels = byol_symetrize_loss(
+                        ob1, ob2, temperature=FLAGS.temperature)
+
+                elif FLAGS.non_contrast_binary_loss == 'sum_symetrize_l2_loss_object_backg':
+
+                    # each GPU loss per_replica batch loss
+                    per_example_loss, logits_ab, labels = sum_symetrize_l2_loss_object_backg(
+                        o1, o2, b1, b2, alpha=alpha, temperature=FLAGS.temperature)
+
+                elif FLAGS.non_contrast_binary_loss == 'sum_symetrize_l2_loss_object_backg_add_original':
+                    per_example_loss, logits_ab, labels = sum_symetrize_l2_loss_object_backg_add_original(
+                        o1, o2, b1, b2, f1, f2, alpha=alpha, temperature=FLAGS.temperature, weight_loss=weight)
 
                 # total sum loss //Global batch_size
-                #(0.8/1024)*8
-                loss = tf.reduce_sum(per_example_loss) * (1./train_global_batch)### harry try : (1./8)
+                loss = tf.reduce_sum(per_example_loss) * (1. / train_global_batch)
                 return loss, logits_ab, labels
 
             @tf.function
-            def train_step(ds_one, ds_two):
+            def train_step(ds_one, ds_two, alpha, weight_loss):
                 # Get the data from
-                images_one, lable_one = ds_one
-                images_two, lable_two = ds_two
+                images_mask_one, lable_1, = ds_one  # lable_one
+                images_mask_two, lable_2, = ds_two  # lable_two
 
                 with tf.GradientTape(persistent=True) as tape:
 
                     if FLAGS.loss_type == "symmetrized":
-                        logging.info("You implement Symmetrized loss")
-                        '''
-                        Symetrize the loss --> Need to switch image_1, image_2 to (Online -- Target Network)
-                        loss 1= L2_loss*[online_model(image1), target_model(image_2)]
-                        loss 2=  L2_loss*[online_model(image2), target_model(image_1)]
-                        symetrize_loss= (loss 1+ loss_2)/ 2
-
-                        '''
-
                         # -------------------------------------------------------------
                         # Passing image 1, image 2 to Online Encoder , Target Encoder
                         # -------------------------------------------------------------
 
-                        # Online
-                        proj_head_output_1, supervised_head_output_1 = online_model(
-                            images_one, training=True)
+                        obj_1, backg_1, proj_head_output_1, supervised_head_output_1 = online_model(
+                            [images_mask_one[0], tf.expand_dims(images_mask_one[1], axis=-1)], training=True)
+                        # Vector Representation from Online encoder go into Projection head again
+                        obj_1 = prediction_model(obj_1, training=True)
+                        backg_1 = prediction_model(backg_1, training=True)
+
                         proj_head_output_1 = prediction_model(
                             proj_head_output_1, training=True)
 
-                        # Target
-                        proj_head_output_2, supervised_head_output_2 = target_model(
-                            images_two, training=True)
+                        obj_2, backg_2, proj_head_output_2, supervised_head_output_2 = target_model(
+                            [images_mask_two[0], tf.expand_dims(images_mask_two[1], axis=-1)], training=True)
 
                         # -------------------------------------------------------------
                         # Passing Image 1, Image 2 to Target Encoder,  Online Encoder
                         # -------------------------------------------------------------
-
-                        # online
-                        proj_head_output_2_online, _ = online_model(
-                            images_two, training=True)
+                        obj_2_online, backg_2_online, proj_head_output_2_online, _ = online_model(
+                            [images_mask_two[0], tf.expand_dims(images_mask_two[1], axis=-1)], training=True)
                         # Vector Representation from Online encoder go into Projection head again
+                        obj_2_online = prediction_model(
+                            obj_2_online, training=True)
+                        backg_2_online = prediction_model(
+                            backg_2_online, training=True)
+
                         proj_head_output_2_online = prediction_model(
                             proj_head_output_2_online, training=True)
 
-                        # Target
-                        proj_head_output_1_target, _ = target_model(
-                            images_one, training=True)
+                        obj_1_target, backg_1_target, proj_head_output_1_target, _ = \
+                            target_model([images_mask_one[0], tf.expand_dims(
+                                images_mask_one[1], axis=-1)], training=True)
 
                         # Compute Contrastive Train Loss -->
                         loss = None
                         if proj_head_output_1 is not None:
-                            # Compute Contrastive Loss model
                             # Loss of the image 1, 2 --> Online, Target Encoder
-                            loss_1_2, logits_ab, labels = distributed_loss(
-                                proj_head_output_1, proj_head_output_2)
+                            loss_1, logits_o_ab, labels = distributed_loss(
+                                obj_1, obj_2, backg_1, backg_2, proj_head_output_1, proj_head_output_2, alpha,
+                                weight_loss)
 
                             # Loss of the image 2, 1 --> Online, Target Encoder
-                            loss_2_1, logits_ab_2, labels_2 = distributed_loss(
-                                proj_head_output_2_online, proj_head_output_1_target)
+                            loss_2, logits_o_ab_2, labels_2 = distributed_loss(
+                                obj_2_online, obj_1_target, backg_2_online, backg_1_target, proj_head_output_2_online,
+                                proj_head_output_1_target, alpha, weight_loss)
 
-                            # symetrized loss
-                            loss = (loss_1_2 + loss_2_1)/2
+                            # Total loss
+                            loss = (loss_1 + loss_2) / 2
 
                             if loss is None:
                                 loss = loss
@@ -269,32 +279,27 @@ def main():
                             metrics.update_pretrain_metrics_train(contrast_loss_metric,
                                                                   contrast_acc_metric,
                                                                   contrast_entropy_metric,
-                                                                  loss, logits_ab,
+                                                                  loss, logits_o_ab,
                                                                   labels)
 
                     elif FLAGS.loss_type == "asymmetrized":
-                        logging.info("You implement Asymmetrized loss")
-                        # -------------------------------------------------------------
-                        # Passing image 1, image 2 to Online Encoder , Target Encoder
-                        # -------------------------------------------------------------
-
-                        # Online
-                        proj_head_output_1, supervised_head_output_1 = online_model(
-                            images_one, training=True)
+                        obj_1, backg_1, proj_head_output_1, supervised_head_output_1 = online_model(
+                            [images_mask_one[0], tf.expand_dims(images_mask_one[1], axis=-1)], training=True)
+                        # Vector Representation from Online encoder go into Projection head again
+                        obj_1 = prediction_model(obj_1, training=True)
+                        backg_1 = prediction_model(backg_1, training=True)
                         proj_head_output_1 = prediction_model(
                             proj_head_output_1, training=True)
 
-                        # Target
-                        proj_head_output_2, supervised_head_output_2 = target_model(
-                            images_two, training=True)
+                        obj_2, backg_2, proj_head_output_2, supervised_head_output_2 = target_model(
+                            [images_mask_two[0], tf.expand_dims(images_mask_two[1], axis=-1)], training=True)
 
                         # Compute Contrastive Train Loss -->
                         loss = None
                         if proj_head_output_1 is not None:
-                            # Compute Contrastive Loss model
-                            # Loss of the image 1, 2 --> Online, Target Encoder
-                            loss, logits_ab, labels = distributed_loss(
-                                proj_head_output_1, proj_head_output_2)
+                            loss, logits_o_ab, labels = distributed_loss(
+                                obj_1, obj_2, backg_1, backg_2, proj_head_output_1, proj_head_output_2, alpha,
+                                weight_loss)
 
                             if loss is None:
                                 loss = loss
@@ -305,8 +310,9 @@ def main():
                             metrics.update_pretrain_metrics_train(contrast_loss_metric,
                                                                   contrast_acc_metric,
                                                                   contrast_entropy_metric,
-                                                                  loss, logits_ab,
+                                                                  loss, logits_o_ab,
                                                                   labels)
+
 
                     else:
                         raise ValueError(
@@ -320,7 +326,7 @@ def main():
                             outputs = tf.concat(
                                 [supervised_head_output_1, supervised_head_output_2], 0)
                             supervise_lable = tf.concat(
-                                [lable_one, lable_two], 0)
+                                [lable_1, lable_2], 0)
 
                             # Calculte the cross_entropy loss with Labels
                             sup_loss = obj_lib.add_supervised_loss(
@@ -373,19 +379,6 @@ def main():
                     logging.info('Trainable variables:')
                     for var in online_model.trainable_variables:
                         logging.info(var.name)
-
-                #     # Update Encoder and Projection head weight
-                # grads = tape.gradient(loss, online_model.trainable_variables)
-                # optimizer.apply_gradients(
-                #     zip(grads, online_model.trainable_variables))
-
-                # # Update Prediction Head model
-                # grads = tape.gradient(
-                #     loss, prediction_model.trainable_variables)
-                # optimizer.apply_gradients(
-                #     zip(grads, prediction_model.trainable_variables))
-                # del tape
-                # return loss
                 if FLAGS.mixprecision == "fp16":
                     logging.info("you implement mix_percision_16_Fp")
 
@@ -440,7 +433,6 @@ def main():
                         optimizer.apply_gradients(zip(
                             all_reduce_fp32_grads, prediction_model.trainable_variables),
                             experimental_aggregate_gradients=False)
-
                 elif FLAGS.mixprecision == "fp32":
                     logging.info("you implement original_Fp precision")
 
@@ -463,9 +455,9 @@ def main():
                 return loss
 
             @tf.function
-            def distributed_train_step(ds_one, ds_two):
+            def distributed_train_step(ds_one, ds_two, alpha, weight_loss):
                 per_replica_losses = strategy.run(
-                    train_step, args=(ds_one, ds_two))
+                    train_step, args=(ds_one, ds_two, alpha, weight_loss))
                 return strategy.reduce(tf.distribute.ReduceOp.SUM, per_replica_losses,
                                        axis=None)
             global_step = optimizer.iterations
@@ -479,37 +471,58 @@ def main():
                 print("Epoch", epoch, "...")
                 for step, (ds_one, ds_two) in enumerate(train_ds):
 
-                    total_loss += distributed_train_step(ds_one, ds_two)
+                    # Update Two different Alpha Schedule for increasing Values
+                    if FLAGS.alpha_schedule == "cosine_schedule":
+                        logging.info(
+                            "Implementation beta momentum uses Cosine Function")
+                        alpha_base = 0.5
+                        cur_step = global_step.numpy()
+                        alpha = 1 - (1 - alpha_base) * \
+                                (math.cos(math.pi * cur_step / train_steps) + 1) / 2
+
+                    if FLAGS.alpha_schedule == "custom_schedule":
+                        if epoch + 1 <= 0.7 * FLAGS.train_epochs:
+                            alpha = 0.5
+                            # weight_loss = 0.5
+                        elif epoch + 1 <= 0.9 * FLAGS.train_epochs:
+                            alpha = 0.7
+                            # weight_loss = 0.7
+                        else:
+                            alpha = 0.9
+
+                    total_loss += distributed_train_step(
+                        ds_one, ds_two, alpha, FLAGS.weighted_loss)
                     num_batches += 1
 
                     # Update weight of Target Encoder Every Step
                     if FLAGS.moving_average == "fixed_value":
                         beta = 0.99
-                    if FLAGS.moving_average == "schedule":
+                    elif FLAGS.moving_average == "schedule":
                         # This update the Beta value schedule along with Trainign steps Follow BYOL
+                        logging.info(
+                            "Implementation beta momentum uses Cosine Function")
                         beta_base = 0.996
                         cur_step = global_step.numpy()
-                        beta = 1 - (1-beta_base) * \
-                            (math.cos(math.pi * cur_step / train_steps) + 1) / 2
+                        beta = 1 - (1 - beta_base) * \
+                               (math.cos(math.pi * cur_step / train_steps) + 1) / 2
+                    else:
+                        raise ValueError("Invalid Option of Moving average")
 
                     target_encoder_weights = target_model.get_weights()
                     online_encoder_weights = online_model.get_weights()
-
                     for i in range(len(online_encoder_weights)):
                         target_encoder_weights[i] = beta * target_encoder_weights[i] + (
-                            1-beta) * online_encoder_weights[i]
+                            1 - beta) * online_encoder_weights[i]
                     target_model.set_weights(target_encoder_weights)
 
                     # if step == 10 and epoch == 1:
-                    #     print("start profile")
                     #     tf.profiler.experimental.start(FLAGS.model_dir)
-                    # if step == 60 and epoch == 1:
+                    # if step == 30 and epoch == 1:
                     #     print("stop profile")
                     #     tf.profiler.experimental.stop()
 
                     with summary_writer.as_default():
                         cur_step = global_step.numpy()
-
                         checkpoint_manager.save(cur_step)
                         logging.info('Completed: %d / %d steps',
                                      cur_step, train_steps)
@@ -519,38 +532,43 @@ def main():
                                           global_step)
                         summary_writer.flush()
 
-                epoch_loss = total_loss/num_batches
-
-                if (epoch+1) % 10 == 0:
+                epoch_loss = total_loss / num_batches
+                # Configure for Visualize the Model Training
+                if (epoch + 1) % 10 == 0:
+                    FLAGS.train_mode = 'finetune'
                     result = perform_evaluation(online_model, val_ds, eval_steps,
                                                 checkpoint_manager.latest_checkpoint, strategy)
                     wandb.log({
                         "eval/label_top_1_accuracy": result["eval/label_top_1_accuracy"],
                         "eval/label_top_5_accuracy": result["eval/label_top_5_accuracy"],
                     })
+                    FLAGS.train_mode = 'pretrain'
 
-                # Wandb Configure for Visualize the Model Training
                 wandb.log({
-                    "epochs": epoch+1,
+                    "epochs": epoch + 1,
+                    "train/alpha_value": alpha,
+                    "train/weight_loss_value": FLAGS.weighted_loss,
                     "train_contrast_loss": contrast_loss_metric.result(),
                     "train_contrast_acc": contrast_acc_metric.result(),
                     "train_contrast_acc_entropy": contrast_entropy_metric.result(),
                     "train/weight_decay": weight_decay_metric.result(),
                     "train/total_loss": epoch_loss,
-                    "train/supervised_loss":    supervised_loss_metric.result(),
-                    "train/supervised_acc": supervised_acc_metric.result()
+                    "train/supervised_loss": supervised_loss_metric.result(),
+                    "train/supervised_acc": supervised_acc_metric.result(),
                 })
+
                 for metric in all_metrics:
                     metric.reset_states()
                 # Saving Entire Model
-                if (epoch+1) % 20 == 0:
+
+                if (epoch + 1) % 20 == 0:
                     save_encoder = os.path.join(
                         FLAGS.model_dir, "encoder_model_" + str(epoch) + ".h5")
                     save_online_model = os.path.join(
                         FLAGS.model_dir, "online_model_" + str(epoch) + ".h5")
                     save_target_model = os.path.join(
                         FLAGS.model_dir, "target_model_" + str(epoch) + ".h5")
-                    online_model.resnet_model.save_weights(save_encoder)
+                    online_model.encoder.save_weights(save_encoder)
                     online_model.save_weights(save_online_model)
                     target_model.save_weights(save_target_model)
 

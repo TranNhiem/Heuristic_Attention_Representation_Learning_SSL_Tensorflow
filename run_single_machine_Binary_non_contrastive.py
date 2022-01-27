@@ -52,7 +52,7 @@ def main():
                                                     train_label=FLAGS.train_label, val_label=FLAGS.val_label,
                                                     subset_class_num=FLAGS.num_classes)
 
-    train_ds = train_dataset.simclr_random_global_crop_image_mask()
+    train_ds = train_dataset.simclr_inception_style_crop_image_mask()
 
     val_ds = train_dataset.supervised_validation()
 
@@ -86,14 +86,12 @@ def main():
     # Configure Wandb Training
     # Weight&Bias Tracking Experiment
     configs = {
-
-        "Model_Arch": "ResNet50",
+        "Model_Arch": "ResNet" + str(FLAGS.resnet_depth),
         "Training mode": "Binary_Non_Contrative_SSL",
         "DataAugmentation_types": "SimCLR_Inception_Croping_image_mask",
         "Speratation Features Upsampling Method": FLAGS.feature_upsample,
         "Dataset": "ImageNet1k",
         "object_backgroud_feature_Dsamp_method": FLAGS.downsample_mod,
-
         "IMG_SIZE": FLAGS.image_size,
         "Epochs": FLAGS.train_epochs,
         "Batch_size": train_global_batch,
@@ -102,10 +100,9 @@ def main():
         "Optimizer": FLAGS.optimizer,
         "SEED": FLAGS.SEED,
         "Subset_dataset": FLAGS.num_classes,
-
         "Loss configure": FLAGS.aggregate_loss,
         "Loss type": FLAGS.non_contrast_binary_loss,
-
+        "Encoder output size" : str(list(FLAGS.Encoder_block_strides.values()).count("1") * 7),
     }
 
     wandb.init(project=FLAGS.wandb_project_name, name=FLAGS.wandb_run_name, mode=FLAGS.wandb_mod,
@@ -216,8 +213,7 @@ def main():
                         o1, o2, b1, b2, f1, f2, alpha=alpha, temperature=FLAGS.temperature, weight_loss=weight)
 
                 # total sum loss //Global batch_size
-                loss = tf.reduce_sum(per_example_loss) * \
-                    (1. / train_global_batch)
+                loss = tf.reduce_sum(per_example_loss) * (1. / train_global_batch)
                 return loss, logits_ab, labels
 
             @tf.function
@@ -615,8 +611,6 @@ def main():
                         target_encoder_weights[i] = beta * target_encoder_weights[i] + (
                             1 - beta) * online_encoder_weights[i]
                     target_model.set_weights(target_encoder_weights)
-
-                    # if (global_step.numpy() + 1) % checkpoint_steps == 0:
 
                     # if step == 10 and epoch == 1:
                     #     tf.profiler.experimental.start(FLAGS.model_dir)

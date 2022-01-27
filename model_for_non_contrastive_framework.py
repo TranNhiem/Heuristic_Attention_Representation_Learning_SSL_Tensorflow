@@ -849,7 +849,6 @@ class Binary_online_model(tf.keras.models.Model):
         if FLAGS.train_mode == 'pretrain':
             mask = inputs[1]
             inputs = inputs[0]
-
         if training and FLAGS.train_mode == 'pretrain':
             if FLAGS.fine_tune_after_block > -1:
                 raise ValueError('Does not support layer freezing during pretraining,'

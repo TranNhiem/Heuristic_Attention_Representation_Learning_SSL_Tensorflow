@@ -249,8 +249,11 @@ class imagenet_dataset_single_machine():
             return ds, info
 
     def simclr_inception_style_crop(self):
+        ds = (tf.data.Dataset.from_tensor_slices((self.x_train, self.x_train_lable))
+              .map(lambda x, y: (self.parse_images_lable_pair(x, y)))
+              .map(lambda x, y: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE)), y),)
+              )
 
-        ds, info = self.get_base_train_dataset()
         train_ds_one = ds.map(lambda x, y: (simclr_augment_inception_style(
             x, self.IMG_SIZE), y), num_parallel_calls=AUTO).batch(self.BATCH_SIZE, num_parallel_calls=AUTO).prefetch(20)  # .prefetch(AUTO)
 
@@ -313,13 +316,13 @@ class imagenet_dataset_single_machine():
         train_ds_one = (ds.map(lambda x, y, z: (simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z),
                                num_parallel_calls=AUTO)
                         .batch(self.BATCH_SIZE)
-                        .prefetch(AUTO)
+                        .prefetch(25)
                         )
 
         train_ds_two = (ds.map(lambda x, y, z: (simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z),
                                num_parallel_calls=AUTO)
                         .batch(self.BATCH_SIZE)
-                        .prefetch(AUTO)
+                        .prefetch(25)
                         )
 
         if FLAGS.dataloader == "ds_1_2_options":

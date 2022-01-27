@@ -586,7 +586,7 @@ def sum_symetrize_l2_loss_object_backg_add_original(o_1, o_2, b_1, b_2,img_1, im
     object_loss, object_logits, lables_object = byol_symetrize_loss(o_1, o_2,temperature=temperature)
     backg_loss, backg_logits, lables_back= byol_symetrize_loss(b_1, b_2,temperature=temperature)
     total_loss = weight_loss * (alpha * object_loss + (1-alpha)*backg_loss) + (1-weight_loss)*img_loss
-    return total_loss, img_logits, img_object
+    return img_loss, img_logits, img_object
 
 
 '''Loss 2 SimSiam Model'''
