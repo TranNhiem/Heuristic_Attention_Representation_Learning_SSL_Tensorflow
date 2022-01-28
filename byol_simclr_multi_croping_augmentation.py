@@ -447,8 +447,8 @@ def simclr_augment_randcrop_global_view_image_mask(image, mask, IMG_SIZE):
     image = random_apply(color_jitter, p=0.8, x=image, )
     image = random_apply(color_drop, p=0.2, x=image, )
     image = random_apply(random_blur, p=1.0, x=image,)
-    mask = mask/255.
-    return image, mask
+    #mask = mask/255.
+    return image, tf.expand_dims(mask, axis=-1)
 
 @tf.function
 def simclr_augment_inception_style_image_mask(image, mask, IMG_SIZE):
@@ -457,7 +457,6 @@ def simclr_augment_inception_style_image_mask(image, mask, IMG_SIZE):
     # transformations (except for random crops) need to be applied
     # randomly to impose translational invariance. (Two Options implementation)
     #image= flip_random_crop(image, crop_size)
-
     stacked_image = tf.concat([image, mask], axis=2)
     stacked_image = inception_style_croping(stacked_image, IMG_SIZE, IMG_SIZE)
     # print(stacked_image.shape)
@@ -469,8 +468,8 @@ def simclr_augment_inception_style_image_mask(image, mask, IMG_SIZE):
     image = random_apply(color_jitter, p=0.8, x=image, )
     image = random_apply(color_drop, p=0.2, x=image, )
     image = random_apply(random_blur, p=1.0, x=image,)
-    mask = mask/255.
-    return image, mask
+    # mask = mask/255.
+    return image, tf.image.convert_image_dtype(tf.expand_dims(mask, axis=-1), tf.float16)
 
 
 @tf.function
@@ -494,7 +493,7 @@ def simclr_augment_randcrop_global_view_image_mask_tf_py(image, mask, IMG_SIZE, 
     image = random_apply(color_jitter, p=0.8, x=image, )
     image = random_apply(color_drop, p=0.2, x=image, )
     image = random_apply(random_blur, p=1.0, x=image,)
-    mask = mask/255.
+    # mask = mask/255.
     return image, mask, z
 
 @tf.function
@@ -516,7 +515,7 @@ def simclr_augment_inception_style_image_mask_tf_py(image, mask, IMG_SIZE, z):
     image = random_apply(color_jitter, p=0.8, x=image, )
     image = random_apply(color_drop, p=0.2, x=image, )
     image = random_apply(random_blur, p=1.0, x=image,)
-    mask = mask/255.
+    #mask = mask/255.
     return image, mask, z
 
 

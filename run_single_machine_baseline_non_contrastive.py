@@ -195,7 +195,7 @@ def main():
 
                 # total sum loss //Global batch_size
                 #(0.8/1024)*8
-                loss = tf.reduce_sum(per_example_loss) * (1./train_global_batch)### harry try : (1./8)
+                loss = tf.reduce_sum(per_example_loss) * (1./len(gpus))### harry try : (1./8)
                 return loss, logits_ab, labels
 
             @tf.function

@@ -34,7 +34,7 @@ flag.save_config(os.path.join(FLAGS.model_dir, "config.cfg"))
 # For setting GPUs Thread reduce kernel Luanch Delay
 # https://github.com/tensorflow/tensorflow/issues/25724
 os.environ['TF_GPU_THREAD_MODE'] = 'gpu_private'
-os.environ['TF_GPU_THREAD_COUNT'] = '2'
+os.environ['TF_GPU_THREAD_COUNT'] = '1'
 
 
 def main():
@@ -102,9 +102,8 @@ def main():
         "Subset_dataset": FLAGS.num_classes,
         "Loss configure": FLAGS.aggregate_loss,
         "Loss type": FLAGS.non_contrast_binary_loss,
-        "Encoder output size" : str(list(FLAGS.Encoder_block_strides.values()).count("1") * 7),
+        "Encoder output size" : str(list(FLAGS.Encoder_block_strides.values()).count(1) * 7),
     }
-
     wandb.init(project=FLAGS.wandb_project_name, name=FLAGS.wandb_run_name, mode=FLAGS.wandb_mod,
                sync_tensorboard=True, config=configs)
 
@@ -213,7 +212,7 @@ def main():
                         o1, o2, b1, b2, f1, f2, alpha=alpha, temperature=FLAGS.temperature, weight_loss=weight)
 
                 # total sum loss //Global batch_size
-                loss = tf.reduce_sum(per_example_loss) * (1. / train_global_batch)
+                loss = tf.reduce_sum(per_example_loss) * (1. / len(gpus))
                 return loss, logits_ab, labels
 
             @tf.function
@@ -239,9 +238,9 @@ def main():
                                 # -------------------------------------------------------------
                                 # Passing image 1, image 2 to Online Encoder , Target Encoder
                                 # -------------------------------------------------------------
-
+                                print(images_mask_one)
                                 obj_1, backg_1, proj_head_output_1, supervised_head_output_1 = online_model(
-                                    [images_mask_one[0], tf.expand_dims(images_mask_one[1], axis=-1)], training=True)
+                                    [images_mask_one[0], images_mask_one[1]], training=True)
                                 # Vector Representation from Online encoder go into Projection head again
                                 obj_1 = prediction_model(obj_1, training=True)
                                 backg_1 = prediction_model(
@@ -251,13 +250,13 @@ def main():
                                     proj_head_output_1, training=True)
 
                                 obj_2, backg_2, proj_head_output_2, supervised_head_output_2 = target_model(
-                                    [images_mask_two[0], tf.expand_dims(images_mask_two[1], axis=-1)], training=True)
+                                    [images_mask_two[0], images_mask_two[1]], training=True)
 
                                 # -------------------------------------------------------------
                                 # Passing Image 1, Image 2 to Target Encoder,  Online Encoder
                                 # -------------------------------------------------------------
                                 obj_2_online, backg_2_online, proj_head_output_2_online, _ = online_model(
-                                    [images_mask_two[0], tf.expand_dims(images_mask_two[1], axis=-1)], training=True)
+                                    [images_mask_two[0], images_mask_two[1]], training=True)
                                 # Vector Representation from Online encoder go into Projection head again
                                 obj_2_online = prediction_model(
                                     obj_2_online, training=True)
@@ -268,7 +267,7 @@ def main():
                                     proj_head_output_2_online, training=True)
 
                                 obj_1_target, backg_1_target, proj_head_output_1_target, _ = target_model(
-                                    [images_mask_one[0], tf.expand_dims(images_mask_one[1], axis=-1)], training=True)
+                                    [images_mask_one[0], images_mask_one[1]], training=True)
 
                                 # Compute Contrastive Train Loss -->
                                 loss = None
@@ -305,7 +304,7 @@ def main():
                             # -------------------------------------------------------------
 
                             obj_1, backg_1, proj_head_output_1, supervised_head_output_1 = online_model(
-                                [images_mask_one[0], tf.expand_dims(images_mask_one[1], axis=-1)], training=True)
+                                [images_mask_one[0], images_mask_one[1]], training=True)
                             # Vector Representation from Online encoder go into Projection head again
                             obj_1 = prediction_model(obj_1, training=True)
                             backg_1 = prediction_model(backg_1, training=True)
@@ -314,13 +313,13 @@ def main():
                                 proj_head_output_1, training=True)
 
                             obj_2, backg_2, proj_head_output_2, supervised_head_output_2 = target_model(
-                                [images_mask_two[0], tf.expand_dims(images_mask_two[1], axis=-1)], training=True)
+                                [images_mask_two[0], images_mask_two[1]], training=True)
 
                             # -------------------------------------------------------------
                             # Passing Image 1, Image 2 to Target Encoder,  Online Encoder
                             # -------------------------------------------------------------
                             obj_2_online, backg_2_online, proj_head_output_2_online, _ = online_model(
-                                [images_mask_two[0], tf.expand_dims(images_mask_two[1], axis=-1)], training=True)
+                                [images_mask_two[0], images_mask_two[1]], training=True)
                             # Vector Representation from Online encoder go into Projection head again
                             obj_2_online = prediction_model(
                                 obj_2_online, training=True)
@@ -331,8 +330,7 @@ def main():
                                 proj_head_output_2_online, training=True)
 
                             obj_1_target, backg_1_target, proj_head_output_1_target, _ = \
-                                target_model([images_mask_one[0], tf.expand_dims(
-                                    images_mask_one[1], axis=-1)], training=True)
+                                target_model([images_mask_one[0], images_mask_one[1]], training=True)
 
                             # Compute Contrastive Train Loss -->
                             loss = None
@@ -364,7 +362,7 @@ def main():
 
                     elif FLAGS.loss_type == "asymmetrized":
                         obj_1, backg_1, proj_head_output_1, supervised_head_output_1 = online_model(
-                            [images_mask_one[0], tf.expand_dims(images_mask_one[1], axis=-1)], training=True)
+                            [images_mask_one[0], images_mask_one[1]], training=True)
                         # Vector Representation from Online encoder go into Projection head again
                         obj_1 = prediction_model(obj_1, training=True)
                         backg_1 = prediction_model(backg_1, training=True)
@@ -372,7 +370,7 @@ def main():
                             proj_head_output_1, training=True)
 
                         obj_2, backg_2, proj_head_output_2, supervised_head_output_2 = target_model(
-                            [images_mask_two[0], tf.expand_dims(images_mask_two[1], axis=-1)], training=True)
+                            [images_mask_two[0], images_mask_two[1]], training=True)
 
                         # Compute Contrastive Train Loss -->
                         loss = None

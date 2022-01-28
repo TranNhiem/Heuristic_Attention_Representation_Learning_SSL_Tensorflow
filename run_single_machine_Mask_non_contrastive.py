@@ -312,8 +312,6 @@ def main():
                                                                   contrast_entropy_metric,
                                                                   loss, logits_o_ab,
                                                                   labels)
-
-
                     else:
                         raise ValueError(
                             'invalid loss type check your loss type')
@@ -450,7 +448,6 @@ def main():
                 else:
                     raise ValueError(
                         "Invalid Implement optimization floating precision")
-
                 del tape
                 return loss
 

@@ -175,7 +175,7 @@ class imagenet_dataset_single_machine():
 
         return img, lable
 
-    @tf.function
+    @classmethod
     def parse_images_mask_lable_pair(self, image_mask_path, lable, IMG_SIZE):
         # Loading and reading Image
         # print(image_mask_path[0])
@@ -189,10 +189,11 @@ class imagenet_dataset_single_machine():
         bi_mask = tf.io.read_file(mask_path)
         bi_mask = tf.io.decode_jpeg(bi_mask, channels=1)
         bi_mask = tf.image.resize(bi_mask, (IMG_SIZE, IMG_SIZE))
+        print(bi_mask)
 
         return img, bi_mask, lable
 
-    @tf.function
+    @classmethod
     def parse_images_label(self, image_path):
         img = tf.io.read_file(image_path)
         img = tf.io.decode_jpeg(img, channels=3)
@@ -308,23 +309,23 @@ class imagenet_dataset_single_machine():
         return train_ds
 
     def simclr_inception_style_crop_image_mask(self):
-
         ds = tf.data.Dataset.from_tensor_slices((self.x_train_image_mask, self.x_train_lable))\
-            .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)),
-                 num_parallel_calls=AUTO)
+            .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)), num_parallel_calls=AUTO)
             # .shuffle(self.BATCH_SIZE * 100, seed=self.seed)\
         train_ds_one = (ds.map(lambda x, y, z: (simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z),
                                num_parallel_calls=AUTO)
                         .batch(self.BATCH_SIZE)
-                        .prefetch(25)
+                        # .map(lambda x, y: ([x[0], tf.image.resize(tf.expand_dims(x[1], axis=-1), (7, 7))], y),
+                        #      num_parallel_calls=AUTO)
+                        .prefetch(AUTO)
                         )
-
         train_ds_two = (ds.map(lambda x, y, z: (simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z),
                                num_parallel_calls=AUTO)
                         .batch(self.BATCH_SIZE)
-                        .prefetch(25)
+                        # .map(lambda x, y: ([x[0], tf.image.resize(tf.expand_dims(x[1], axis=-1), (7, 7))], y),
+                        #      num_parallel_calls=AUTO)
+                        .prefetch(AUTO)
                         )
-
         if FLAGS.dataloader == "ds_1_2_options":
             logging.info("Train_ds_one and two  with option")
             train_ds_one.with_options(options)
