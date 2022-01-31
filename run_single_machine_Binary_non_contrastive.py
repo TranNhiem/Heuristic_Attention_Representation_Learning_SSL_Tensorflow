@@ -102,7 +102,7 @@ def main():
         "Subset_dataset": FLAGS.num_classes,
         "Loss configure": FLAGS.aggregate_loss,
         "Loss type": FLAGS.non_contrast_binary_loss,
-        "Encoder output size" : str(list(FLAGS.Encoder_block_strides.values()).count(1) * 7),
+        "Encoder output size" : str((math.pow(2,list(FLAGS.Encoder_block_strides.values()).count(1))-1) * 7),
     }
     wandb.init(project=FLAGS.wandb_project_name, name=FLAGS.wandb_run_name, mode=FLAGS.wandb_mod,
                sync_tensorboard=True, config=configs)
@@ -668,14 +668,13 @@ def main():
                     target_model.save_weights(save_target_model)
 
             logging.info('Training Complete ...')
-
         save_encoder = os.path.join(
             FLAGS.model_dir, "encoder_model_latest.h5")
         save_online_model = os.path.join(
             FLAGS.model_dir, "online_model_latest.h5")
         save_target_model = os.path.join(
             FLAGS.model_dir, "target_model_latest.h5")
-        online_model.resnet_model.save_weights(save_encoder)
+        online_model.encoder.save_weights(save_encoder)
         online_model.save_weights(save_online_model)
         target_model.save_weights(save_target_model)
 

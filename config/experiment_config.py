@@ -12,12 +12,12 @@ def read_cfg(mod="non_contrastive"):
     # , ['ds_1_2_options', 'no_option'],
     FLAGS.dataloader = 'ds_1_2_options'
     FLAGS.wandb_project_name = "heuristic_attention_representation_learning_Paper_correction"
-    FLAGS.wandb_run_name = "resnet18_Baseline_(14_14_2048)_100epoch_symloss"
+    FLAGS.wandb_run_name = "Hybrid_loss_(7*7*2048)_100epoch_alpha_schedule_symloss_correction_lr0.3"
     FLAGS.wandb_mod = "run"
     FLAGS.restore_checkpoint = True  # Restore Checkpoint or Not
 
     FLAGS.original_loss_stop_gradient = False
-    FLAGS.Encoder_block_strides = {'1': 2, '2': 1, '3': 2, '4': 2, '5': 1}
+    FLAGS.Encoder_block_strides = {'1': 2, '2': 1, '3': 2, '4': 2, '5': 2}
     FLAGS.Encoder_block_channel_output = {'1': 1, '2': 1, '3': 1, '4': 1, '5': 1}
     FLAGS.Middle_layer_output = None
 
@@ -29,20 +29,20 @@ def read_cfg(mod="non_contrastive"):
     FLAGS.mixprecision = 'fp32'
     # , [ 'original', 'model_only', ],
     FLAGS.XLA_compiler = "original"
-    FLAGS.base_lr = 0.5
+    FLAGS.base_lr = 0.3
 
-    FLAGS.non_contrast_binary_loss = "baseline loss" # sum_symetrize_l2_loss_object_backg_add_original
+    FLAGS.non_contrast_binary_loss = "sum_symetrize_l2_loss_object_backg_add_original" # sum_symetrize_l2_loss_object_backg_add_original
     FLAGS.alpha = 1
     # cosine schedule will increasing depending on training steps
     # ['cosine_schedule', 'custom_schedule'],
     FLAGS.alpha_schedule = "custom_schedule"
     FLAGS.weighted_loss = 0.5
-    FLAGS.resnet_depth = 18
+    FLAGS.resnet_depth = 50
     FLAGS.train_epochs = 100
-    FLAGS.num_classes = 100
+    FLAGS.num_classes = 1000
 
     FLAGS.train_batch_size = 128
     FLAGS.val_batch_size = 128
 
-    FLAGS.model_dir = "/data1/resnet_byol/resnet50_correction/resnet18_Baseline_(14_14_2048)_100epoch_symloss"
+    FLAGS.model_dir = "/data1/resnet_byol/resnet50_correction/Hybrid_loss_(7*7*2048)_100epoch_alpha_schedule_symloss_correction_lr0.3"
     #FLAGS.train_mode = "finetune"

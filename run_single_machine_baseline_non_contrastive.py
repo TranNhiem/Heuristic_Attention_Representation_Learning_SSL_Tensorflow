@@ -112,7 +112,7 @@ def main():
         "Subset_dataset": FLAGS.num_classes,
         "Loss type": FLAGS.aggregate_loss,
         "opt": FLAGS.up_scale,
-        "Encoder output size": str(list(FLAGS.Encoder_block_strides.values()).count("1") * 7),
+        "Encoder output size" : str((math.pow(2,list(FLAGS.Encoder_block_strides.values()).count(1))-1) * 7),
     }
 
     wandb.init(project=FLAGS.wandb_project_name, name=FLAGS.wandb_run_name, mode=FLAGS.wandb_mod,
