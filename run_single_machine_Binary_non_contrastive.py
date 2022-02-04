@@ -213,6 +213,8 @@ def main():
 
                 # total sum loss //Global batch_size
                 loss = tf.reduce_sum(per_example_loss) * (1. / len(gpus))
+                
+
                 return loss, logits_ab, labels
 
             @tf.function

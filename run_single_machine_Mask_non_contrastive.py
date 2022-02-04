@@ -15,7 +15,7 @@ import metrics
 from helper_functions import *
 from byol_simclr_imagenet_data_harry import imagenet_dataset_single_machine
 from self_supervised_losses import byol_symetrize_loss, symetrize_l2_loss_object_level_whole_image, \
-    sum_symetrize_l2_loss_object_backg, sum_symetrize_l2_loss_object_backg_add_original
+    sum_symetrize_l2_loss_object_backg, sum_symetrize_l2_loss_object_backg_add_original, byol_loss
 import model_for_non_contrastive_framework as all_model
 import objective as obj_lib
 from imutils import paths
@@ -79,7 +79,8 @@ def main():
         math.ceil(num_eval_examples / val_global_batch))
 
     epoch_steps = int(round(num_train_examples / train_global_batch))
-    checkpoint_steps = (FLAGS.checkpoint_steps or (FLAGS.checkpoint_epochs * epoch_steps))
+    checkpoint_steps = (FLAGS.checkpoint_steps or (
+        FLAGS.checkpoint_epochs * epoch_steps))
 
     logging.info("# Subset_training class %d", FLAGS.num_classes)
     logging.info('# train examples: %d', num_train_examples)
@@ -187,8 +188,8 @@ def main():
 
             # Scale loss  --> Aggregating all Gradients
             @tf.function
-            def distributed_loss(o1, o2, b1, b2, f1=None, f2=None, alpha=0.5, weight=0.5):
-                per_example_loss = 0
+            def distributed_loss_old(o1, o2, b1, b2, f1=None, f2=None, alpha=0.5, weight=0.5):
+                per_example_los = 0
 
                 if FLAGS.non_contrast_binary_loss == 'original_add_backgroud':
                     ob1 = tf.concat([o1, b1], axis=0)
@@ -208,7 +209,34 @@ def main():
                         o1, o2, b1, b2, f1, f2, alpha=alpha, temperature=FLAGS.temperature, weight_loss=weight)
 
                 # total sum loss //Global batch_size
-                loss = tf.reduce_sum(per_example_loss) * (1. / train_global_batch)
+                loss = tf.reduce_sum(per_example_loss) * \
+                    (1. / train_global_batch)
+                return loss, logits_ab, labels
+
+            @tf.function
+            def distributed_loss(o1, o2, b1, b2, f1=None, f2=None, alpha=0.5, weight=0.5):
+                per_example_los = 0
+
+                if FLAGS.non_contrast_binary_loss == 'original_add_backgroud':
+                    ob1 = tf.concat([o1, b1], axis=0)
+                    ob2 = tf.concat([o2, b2], axis=0)
+                    # each GPU loss per_replica batch loss
+                    per_example_loss, logits_ab, labels = byol_loss(
+                        ob1, ob2, temperature=FLAGS.temperature)
+
+                elif FLAGS.non_contrast_binary_loss == 'sum_symetrize_l2_loss_object_backg':
+
+                    # each GPU loss per_replica batch loss
+                    per_example_loss, logits_ab, labels = sum_symetrize_l2_loss_object_backg(
+                        o1, o2, b1, b2, alpha=alpha, temperature=FLAGS.temperature)
+
+                elif FLAGS.non_contrast_binary_loss == 'sum_symetrize_l2_loss_object_backg_add_original':
+                    per_example_loss, logits_ab, labels = sum_symetrize_l2_loss_object_backg_add_original(
+                        o1, o2, b1, b2, f1, f2, alpha=alpha, temperature=FLAGS.temperature, weight_loss=weight)
+
+                # total sum loss //Global batch_size
+                loss = 2 - 2*((per_example_loss) * (1. / train_global_batch))
+
                 return loss, logits_ab, labels
 
             @tf.function
@@ -475,7 +503,7 @@ def main():
                         alpha_base = 0.5
                         cur_step = global_step.numpy()
                         alpha = 1 - (1 - alpha_base) * \
-                                (math.cos(math.pi * cur_step / train_steps) + 1) / 2
+                            (math.cos(math.pi * cur_step / train_steps) + 1) / 2
 
                     if FLAGS.alpha_schedule == "custom_schedule":
                         if epoch + 1 <= 0.7 * FLAGS.train_epochs:
@@ -501,7 +529,7 @@ def main():
                         beta_base = 0.996
                         cur_step = global_step.numpy()
                         beta = 1 - (1 - beta_base) * \
-                               (math.cos(math.pi * cur_step / train_steps) + 1) / 2
+                            (math.cos(math.pi * cur_step / train_steps) + 1) / 2
                     else:
                         raise ValueError("Invalid Option of Moving average")
 
@@ -591,7 +619,8 @@ def main():
 #     'Loading from the given checkpoint for fine-tuning if a finetuning '
 #     'checkpoint does not already exist in model_dir.')
 
+
     # Pre-Training and Finetune
 if __name__ == '__main__':
-
+    
     main()
