@@ -525,7 +525,7 @@ def byol_loss(p, z, temperature):
     # Measure similarity
     similarities = tf.reduce_sum(tf.multiply(p, z), axis=1)
     #loss = 2 - 2 * tf.reduce_mean(similarities)
-    return loss, logits_ab, labels
+    return tf.multiply(p, z), logits_ab, labels
 
 
 

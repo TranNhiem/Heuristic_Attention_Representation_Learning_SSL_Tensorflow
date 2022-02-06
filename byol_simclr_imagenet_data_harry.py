@@ -33,7 +33,7 @@ options.experimental_threading.max_intra_op_parallelism = 1
 class imagenet_dataset_single_machine():
 
     def __init__(self, img_size, train_batch, val_batch, strategy, train_path=None, train_label=None, val_path=None, val_label=None, bi_mask=False,
-                 mask_path=None, subset_class_num=None):
+                 mask_path=None, subset_class_num=None, subset_percentage = None):
         '''
         args:
         img_size: Image training size
@@ -51,6 +51,8 @@ class imagenet_dataset_single_machine():
         self.strategy = strategy
         self.seed = FLAGS.SEED
         self.bi_mask = []
+        self.x_train = []
+        self.x_val = []
 
         self.label, self.class_name = self.get_label(train_label)
         numeric_train_cls = []
@@ -62,11 +64,10 @@ class imagenet_dataset_single_machine():
             raise ValueError(
                 f'The train_path and val_path is None, please cheeek')
         elif val_path is None:
-            dataset = list(paths.list_images(train_path))
-            dataset_len = len(dataset)
-            random.Random(FLAGS.SEED_data_split).shuffle(dataset)
-            self.x_val = dataset[0:int(dataset_len * 0.2)]
-            self.x_train = dataset[len(self.x_val) + 1:]
+            self.get_train_path(train_path,subset_percentage)
+            dataset_len = len(self.x_train)
+            self.x_val = self.x_train[0:int(dataset_len * 0.2)]
+            self.x_train = self.x_train[len(self.x_val) + 1:]
             for image_path in self.x_train:
                 label = re.split(r"/|\|//|\\", image_path)[-2]
                 # label = image_path.split("/")[-2]
@@ -74,10 +75,8 @@ class imagenet_dataset_single_machine():
             for image_path in self.x_val:
                 label = re.split(r"/|\|//|\\", image_path)[-2]
                 numeric_val_cls.append(self.label[label])
-
         else:
-            self.x_train = list(paths.list_images(train_path))
-
+            self.get_train_path(train_path,subset_percentage)
             self.x_val = list(paths.list_images(val_path))
             random.Random(FLAGS.SEED_data_split).shuffle(self.x_train)
             random.Random(FLAGS.SEED_data_split).shuffle(self.x_val)
@@ -131,6 +130,16 @@ class imagenet_dataset_single_machine():
             self.x_train_image_mask = np.stack(
                 (np.array(self.x_train), np.array(self.bi_mask)), axis=-1)
             print(self.x_train_image_mask.shape)
+
+    def get_train_path(self,train_path,subset_percentage):
+        dir_names = os.listdir(train_path)
+        for dir_name in dir_names:
+            full_path = os.path.join(train_path, dir_name)
+            if os.path.isdir(full_path):
+                class_image_path = list(paths.list_images(full_path))
+                if subset_percentage != None and len(class_image_path) > 10:
+                    class_image_path = class_image_path[0:int(len(class_image_path) * subset_percentage)]
+                self.x_train += class_image_path
 
     def get_label(self, label_txt_path=None):
         class_name = []

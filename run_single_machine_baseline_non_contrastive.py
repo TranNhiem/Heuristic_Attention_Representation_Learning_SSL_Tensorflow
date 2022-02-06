@@ -67,13 +67,15 @@ def main():
                                                     strategy=strategy, train_path=FLAGS.train_path,
                                                     val_path=FLAGS.val_path,
                                                     mask_path=FLAGS.mask_path, bi_mask=False,
-                                                    train_label=FLAGS.train_label, val_label=FLAGS.val_label, subset_class_num=FLAGS.num_classes)
+                                                    train_label=FLAGS.train_label, val_label=FLAGS.val_label,
+                                                    subset_class_num=FLAGS.num_classes,subset_percentage=FLAGS.subset_percentage)
 
     train_ds = train_dataset.simclr_inception_style_crop()
 
     val_ds = train_dataset.supervised_validation()
 
     num_train_examples, num_eval_examples = train_dataset.get_data_size()
+    print(num_train_examples, num_eval_examples)
 
     train_steps = FLAGS.eval_steps or int(
         num_train_examples * FLAGS.train_epochs // train_global_batch)*2

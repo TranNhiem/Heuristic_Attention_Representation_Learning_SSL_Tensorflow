@@ -54,6 +54,10 @@ def base_cfg():
         'num_classes', 1000,
         'Number of class in training data.')
 
+    flags.DEFINE_float(
+        'subset_percentage', 1.0,
+        'subset percentage of training data.')
+
     flags.DEFINE_enum(
         'dataloader', 'ds_1_2_options', ['ds_1_2_options', 'train_ds_options'],
         'The dataloader apply options.')
@@ -330,7 +334,7 @@ def Configure_Model_Training():
     )
     flags.DEFINE_enum(
         'alpha_schedule', 'cosine_schedule', [
-            'cosine_schedule', 'custom_schedule'],
+            'cosine_schedule', 'custom_schedule', 'fixed'],
         'Scheduling alpha value to control the weight loss between Foreground and Backgroud')
 
     flags.DEFINE_float(

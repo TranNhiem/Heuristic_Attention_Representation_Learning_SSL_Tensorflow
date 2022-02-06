@@ -50,7 +50,7 @@ def main():
                                                     val_path=FLAGS.val_path,
                                                     mask_path=FLAGS.mask_path, bi_mask=True,
                                                     train_label=FLAGS.train_label, val_label=FLAGS.val_label,
-                                                    subset_class_num=FLAGS.num_classes)
+                                                    subset_class_num=FLAGS.num_classes,subset_percentage=FLAGS.subset_percentage)
 
     train_ds = train_dataset.simclr_inception_style_crop_image_mask()
 
@@ -577,7 +577,7 @@ def main():
                         alpha = 1 - (1 - alpha_base) * \
                             (cos(pi * cur_step / train_steps) + 1) / 2
 
-                    if FLAGS.alpha_schedule == "custom_schedule":
+                    elif FLAGS.alpha_schedule == "custom_schedule":
                         if epoch + 1 <= 0.7 * FLAGS.train_epochs:
                             alpha = 0.5
                             # weight_loss = 0.5
@@ -586,6 +586,8 @@ def main():
                             # weight_loss = 0.7
                         else:
                             alpha = 0.9
+                    else:
+                        alpha = FLAGS.alpha
 
                     total_loss += distributed_train_step(
                         ds_one, ds_two, alpha, FLAGS.weighted_loss)
