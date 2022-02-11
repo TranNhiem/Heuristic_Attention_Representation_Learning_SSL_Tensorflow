@@ -501,7 +501,7 @@ def main():
                         logging.info(
                             "Implementation beta momentum uses Cosine Function")
                         alpha_base = 0.5
-                        cur_step = global_step.numpy()
+                        cur_step = float(global_step.numpy())
                         alpha = 1 - (1 - alpha_base) * \
                             (math.cos(math.pi * cur_step / train_steps) + 1) / 2
 
@@ -619,8 +619,7 @@ def main():
 #     'Loading from the given checkpoint for fine-tuning if a finetuning '
 #     'checkpoint does not already exist in model_dir.')
 
-
     # Pre-Training and Finetune
 if __name__ == '__main__':
-    
+
     main()
