@@ -317,10 +317,7 @@ def multi_node_try_restore_from_checkpoint(model, global_step, optimizer, task_t
     return checkpoint_manager, write_checkpoint_dir
 
 
-def main(argv):
-
-    if len(argv) > 1:
-        raise app.UsageError('Too many command-line arguments.')
+def main():
 
     # ------------------------------------------
     # Communication methods
@@ -355,7 +352,6 @@ def main(argv):
                                                     train_label=FLAGS.train_label, val_label=FLAGS.val_label,
                                                     subset_class_num=FLAGS.num_classes)
 
-
     train_multi_worker_dataset = strategy.distribute_datasets_from_function(
         lambda input_context: dataset_loader.simclr_inception_style_crop(input_context))
 
@@ -364,12 +360,10 @@ def main(argv):
 
     num_classes = FLAGS.num_classes
 
-
     num_train_examples, num_eval_examples = dataset_loader.get_data_size()
 
-
     train_steps = FLAGS.eval_steps or int(
-        num_train_examples * FLAGS.train_epochs // train_global_batch_size) *2
+        num_train_examples * FLAGS.train_epochs // train_global_batch_size) * 2
     eval_steps = FLAGS.eval_steps or int(
         math.ceil(num_eval_examples / val_global_batch_size))
 
@@ -560,7 +554,8 @@ def main(argv):
                                 labels=supervised_lable, logits=outputs)
                             # scale_sup_loss = tf.reduce_sum(
                             #     sup_loss) * (1. / train_global_batch_size)
-                            scale_sup_loss=tf.nn.compute_averageper_example_loss_loss(sup_loss, global_batch_size=train_global_batch_size)
+                            scale_sup_loss = tf.nn.compute_averageper_example_loss_loss(
+                                sup_loss, global_batch_size=train_global_batch_size)
 
                             # Reduce loss Precision to 16 Bits
 
@@ -573,27 +568,28 @@ def main(argv):
                                                                   supervised_lable, outputs)
 
                         '''Attention'''
-                        # Noted Consideration Aggregate (Supervised + Contrastive Loss) 
-                        # --> Update the Model Gradient base on Loss  
-                        # Option 1: Only use Contrast loss 
-                        # option 2: Contrast Loss + Supervised Loss 
-                        if FLAGS.aggregate_loss== "contrastive_supervised": 
+                        # Noted Consideration Aggregate (Supervised + Contrastive Loss)
+                        # --> Update the Model Gradient base on Loss
+                        # Option 1: Only use Contrast loss
+                        # option 2: Contrast Loss + Supervised Loss
+                        if FLAGS.aggregate_loss == "contrastive_supervised":
                             if loss is None:
                                 loss = scale_sup_loss
                             else:
                                 loss += scale_sup_loss
 
-                        elif FLAGS.aggregate_loss== "contrastive":
-                           
-                            supervise_loss=None
+                        elif FLAGS.aggregate_loss == "contrastive":
+
+                            supervise_loss = None
                             if supervise_loss is None:
                                 supervise_loss = scale_sup_loss
                             else:
                                 supervise_loss += scale_sup_loss
-                        else: 
-                            raise ValueError(" Loss aggregate is invalid please check FLAGS.aggregate_loss")
-                    
-                    # Consideration Remove L2 Regularization Loss 
+                        else:
+                            raise ValueError(
+                                " Loss aggregate is invalid please check FLAGS.aggregate_loss")
+
+                    # Consideration Remove L2 Regularization Loss
                     # --> This Only Use for Supervised Head
                     weight_decay_loss = all_model.add_weight_decay(
                         model, adjust_per_optimizer=True)
@@ -602,7 +598,7 @@ def main(argv):
                     #     weight_decay_loss)
 
                     weight_decay_metric.update_state(weight_decay_loss)
-                
+
                     loss += weight_decay_loss
                     # Contrast loss + Supervised loss + Regularize loss
                     total_loss_metric.update_state(loss)
@@ -683,7 +679,7 @@ def main(argv):
                         tf.summary.scalar('learning_rate', lr_schedule(tf.cast(global_step, dtype=tf.float32)),
                                           global_step)
                         summary_writer.flush()
-                
+
                 epoch_loss = total_loss/num_batches
                 # Wandb Configure for Visualize the Model Training
                 wandb.log({
@@ -701,7 +697,7 @@ def main(argv):
 
             logging.info('Training Complete ...')
             # Saving Entire Model
-            if epoch +1 == 50:
+            if epoch + 1 == 50:
                 save = './model_ckpt/resnet_simclr/encoder_resnet50_mlp_multi_nodes' + \
                     str(epoch) + ".h5"
                 model.save_weights(save)
@@ -713,4 +709,4 @@ def main(argv):
     # Pre-Training and Finetune
 if __name__ == '__main__':
 
-    app.run(main)
+    main()

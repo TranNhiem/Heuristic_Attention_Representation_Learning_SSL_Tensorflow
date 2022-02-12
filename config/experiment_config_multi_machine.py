@@ -9,7 +9,7 @@ def read_cfg(mod="non_contrastive"):
 
     '''This Cache File still Under development'''
     FLAGS.num_workers = 2
-    FLAGS.communication_method = "NCCL"
+    FLAGS.communication_method = "auto"
     FLAGS.collective_hint = False
     FLAGS.with_option = False
     FLAGS.wandb_project_name = "heuristic_attention_representation_learning_Paper_correction"
