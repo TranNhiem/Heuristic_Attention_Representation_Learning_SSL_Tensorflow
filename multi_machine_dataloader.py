@@ -435,3 +435,4 @@ if __name__ == "__main__":
 
     # print("num_train_examples : ", num_train_examples)
     # print("num_eval_examples : ", num_eval_examples)
+    main()
