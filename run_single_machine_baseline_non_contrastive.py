@@ -111,7 +111,7 @@ def main():
         "Temperature": FLAGS.temperature,
         "Optimizer": FLAGS.optimizer,
         "SEED": FLAGS.SEED,
-        "Subset_dataset": FLAGS.num_classes,
+        "Subset_dataset": f"Class : {FLAGS.num_classes}, Percentage : {FLAGS.subset_percentage*100}%",
         "Loss type": FLAGS.aggregate_loss,
         "opt": FLAGS.up_scale,
         "Encoder output size" : str((math.pow(2,list(FLAGS.Encoder_block_strides.values()).count(1))-1) * 7),
@@ -197,7 +197,8 @@ def main():
 
                 # total sum loss //Global batch_size
                 #(0.8/1024)*8
-                loss = tf.reduce_sum(per_example_loss) * (1./len(gpus))### harry try : (1./8)
+                #loss = tf.reduce_sum(per_example_loss) * (1./len(gpus))### harry try : (1./8)
+                loss = 2 - 2 * (tf.reduce_sum(per_example_loss) * (1./train_global_batch))
                 return loss, logits_ab, labels
 
             @tf.function

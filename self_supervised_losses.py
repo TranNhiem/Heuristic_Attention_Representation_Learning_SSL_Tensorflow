@@ -511,8 +511,9 @@ def byol_symetrize_loss(p, z, temperature):
     logits_ab = tf.matmul(p, z, transpose_b=True) / temperature
     # Measure similarity
     similarities = tf.reduce_sum(tf.multiply(p, z), axis=1)
-    loss = 2 - 2 * tf.reduce_mean(similarities)
-    return loss, logits_ab, labels
+    #loss = 2 - 2 * tf.reduce_mean(similarities)
+    print("loss shape : ", similarities.shape)
+    return similarities, logits_ab, labels
 
 
 def byol_loss(p, z, temperature):
@@ -551,8 +552,7 @@ def symetrize_l2_loss_object_level_whole_image(o_1, o_2, b_1, b_2, img_1, img_2,
     # Contrastive Loss for Whole Image Representation
     # ********* ----------------------- ***********
 
-    image_loss, whole_image_logits, lables_image = byol_loss(
-        img_1, img_2, temperature=temperature)
+    image_loss, whole_image_logits, lables_image = byol_symetrize_loss(img_1, img_2,temperature=temperature)
 
     # ********* ----------------------- ***********
     # Contrastive Loss for Whole Image Representation
@@ -561,8 +561,8 @@ def symetrize_l2_loss_object_level_whole_image(o_1, o_2, b_1, b_2, img_1, img_2,
     object_rep_1 = tf.concat([o_1, b_1], axis=0)
     object_rep_2 = tf.concat([o_2, b_2], axis=0)
 
-    object_loss, object_level_logits, lables_object_level = byol_loss(object_rep_1, object_rep_2,
-                                                                      temperature=temperature)
+    object_loss, object_level_logits, lables_object_level = byol_symetrize_loss(object_rep_1, object_rep_2,
+                                                                                temperature=temperature)
     total_loss = (weight_loss * object_loss + (1-weight_loss)*image_loss)/2
 
     # ,whole_image_logits ,lables_image,
@@ -578,10 +578,9 @@ def sum_symetrize_l2_loss_object_backg(o_1, o_2, b_1, b_2, alpha, temperature):
     3. Scaling Alpha value shound be for weighted loss between object and backgroud
     '''
 
-    object_loss, object_logits, lables_object = byol_loss(
-        o_1, o_2, temperature=temperature)
-    backg_loss, _, _ = byol_loss(
-        b_1, b_2, temperature=temperature)
+
+    object_loss, object_logits, lables_object = byol_symetrize_loss(o_1, o_2,temperature=temperature)
+    backg_loss, backg_logits, lables_back= byol_symetrize_loss(b_1, b_2,temperature=temperature)
     #total_loss = (alpha * object_loss + (1-alpha)*backg_loss)/2
     total_loss = (alpha * object_loss + (1-alpha)*backg_loss)
     # ,whole_image_logits ,lables_image,
@@ -596,14 +595,10 @@ def sum_symetrize_l2_loss_object_backg_add_original(o_1, o_2, b_1, b_2, img_1, i
         Similarity between object_1 and object_2, background_1 and background_2
     3. Scaling Alpha value shound be for weighted loss between object and backgroud
     '''
-    img_loss, img_logits, img_object = byol_loss(
-        img_1, img_2, temperature=temperature)
-    object_loss, object_logits, lables_object = byol_loss(
-        o_1, o_2, temperature=temperature)
-    backg_loss, backg_logits, lables_back = byol_loss(
-        b_1, b_2, temperature=temperature)
-    total_loss = weight_loss * \
-        (alpha * object_loss + (1-alpha)*backg_loss) + (1-weight_loss)*img_loss
+    img_loss, img_logits, img_object = byol_symetrize_loss(img_1, img_2, temperature=temperature)
+    object_loss, object_logits, lables_object = byol_symetrize_loss(o_1, o_2,temperature=temperature)
+    backg_loss, backg_logits, lables_back= byol_symetrize_loss(b_1, b_2,temperature=temperature)
+    total_loss = weight_loss * (alpha * object_loss + (1-alpha)*backg_loss) + (1-weight_loss)*img_loss
     return total_loss, img_logits, img_object
 
 

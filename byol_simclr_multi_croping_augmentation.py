@@ -381,7 +381,7 @@ def simclr_augment_randcrop(image, IMG_SIZE):
     #image= random_crop_flip_resize(image, IMG_SIZE)
     image = random_apply(color_jitter, p=0.8, x=image, )
     image = random_apply(color_drop, p=0.2, x=image, )
-    image = random_apply(random_blur, p=1.0, x=image,)
+    #image = random_apply(random_blur, p=1.0, x=image,)
     return image
 
 
@@ -446,7 +446,7 @@ def simclr_augment_randcrop_global_view_image_mask(image, mask, IMG_SIZE):
     # image= stacked_image[:,:,0:3]
     image = random_apply(color_jitter, p=0.8, x=image, )
     image = random_apply(color_drop, p=0.2, x=image, )
-    image = random_apply(random_blur, p=1.0, x=image,)
+    #image = random_apply(random_blur, p=1.0, x=image,)
     #mask = mask/255.
     return image, tf.expand_dims(mask, axis=-1)
 
@@ -467,7 +467,7 @@ def simclr_augment_inception_style_image_mask(image, mask, IMG_SIZE):
     # mask =inception_style_croping(mask, IMG_SIZE, IMG_SIZE)
     image = random_apply(color_jitter, p=0.8, x=image, )
     image = random_apply(color_drop, p=0.2, x=image, )
-    image = random_apply(random_blur, p=1.0, x=image,)
+    #image = random_apply(random_blur, p=1.0, x=image,)
     # mask = mask/255.
     return image, tf.image.convert_image_dtype(tf.expand_dims(mask, axis=-1), tf.float16)
 
