@@ -627,17 +627,21 @@ class Indexer(tf.keras.layers.Layer):
 
     def call(self, input):
         feature_map = input[0]
-        mask = input[1]
-        if feature_map.shape[1] != mask.shape[1] and feature_map.shape[2] != mask.shape[2]:
-            mask = tf.image.resize(
-                mask, (feature_map.shape[1], feature_map.shape[2]))
-        mask = tf.cast(mask, dtype=tf.bool)
-        mask = tf.cast(mask, dtype=feature_map.dtype)
-        obj = tf.multiply(feature_map, mask)
-        mask = tf.cast(mask, dtype=tf.bool)
-        mask = tf.logical_not(mask)
-        mask = tf.cast(mask, dtype=feature_map.dtype)
-        back = tf.multiply(feature_map, mask)
+        mask_obj = input[1]
+        mask_bak = input[2]
+        #if feature_map.shape[1] != mask.shape[1] and feature_map.shape[2] != mask.shape[2]:
+            # mask = tf.image.resize(
+            #     mask, (feature_map.shape[1], feature_map.shape[2]))
+
+        # mask = tf.cast(mask, dtype=tf.bool)
+        # mask = tf.cast(mask, dtype=feature_map.dtype)
+        # obj = tf.multiply(feature_map, mask)
+        # mask = tf.cast(mask, dtype=tf.bool)
+        # mask = tf.logical_not(mask)
+        # mask = tf.cast(mask, dtype=feature_map.dtype)
+        # back = tf.multiply(feature_map, mask)
+        obj = tf.multiply(feature_map, mask_obj)
+        back = tf.multiply(feature_map, mask_bak)
         return obj, back
 
 
@@ -847,7 +851,8 @@ class Binary_online_model(tf.keras.models.Model):
     def call(self, inputs, training):
 
         if FLAGS.train_mode == 'pretrain':
-            mask = inputs[1]
+            mask_obj = inputs[1]
+            mask_bak = inputs[2]
             inputs = inputs[0]
         if training and FLAGS.train_mode == 'pretrain':
             if FLAGS.fine_tune_after_block > -1:
@@ -871,7 +876,7 @@ class Binary_online_model(tf.keras.models.Model):
 
         if self.Upsample:
             # Pixel shuffle
-            self.magnification = mask.shape[1]/feature_map.shape[1]
+            self.magnification = mask_obj.shape[1]/feature_map.shape[1]
             feature_map_upsample = tf.nn.depth_to_space(
                 feature_map, self.magnification)  # PixelShuffle
         else:
@@ -883,7 +888,7 @@ class Binary_online_model(tf.keras.models.Model):
         # Add heads
         if FLAGS.train_mode == 'pretrain':
             # object and background indexer
-            obj, back = self.indexer([feature_map_upsample, mask])
+            obj, back = self.indexer([feature_map_upsample, mask_obj,mask_bak])
             obj, _ = self.projection_head(self.downsample_layear(
                 obj, self.magnification), training=training)
             back, _ = self.projection_head(self.downsample_layear(
@@ -964,10 +969,12 @@ class Binary_target_model(tf.keras.models.Model):
         self.downsample_layear = Downsample_Layear(Downsample)
 
     def call(self, inputs, training):
-
         if FLAGS.train_mode == 'pretrain':
-            mask = inputs[1]
+            mask_obj = inputs[1]
+            mask_bak = inputs[2]
             inputs = inputs[0]
+
+
 
         if training and FLAGS.train_mode == 'pretrain':
             if FLAGS.fine_tune_after_block > -1:
@@ -992,7 +999,7 @@ class Binary_target_model(tf.keras.models.Model):
         # Pixel shuffle
         if self.Upsample:
             # Pixel shuffle
-            self.magnification = mask.shape[1]/feature_map.shape[1]
+            self.magnification = mask_obj.shape[1]/feature_map.shape[1]
             feature_map_upsample = tf.nn.depth_to_space(
                 feature_map, self.magnification)  # PixelShuffle
         else:
@@ -1003,7 +1010,7 @@ class Binary_target_model(tf.keras.models.Model):
         # Add heads
         if FLAGS.train_mode == 'pretrain':
             # object and background indexer
-            obj, back = self.indexer([feature_map_upsample, mask])
+            obj, back = self.indexer([feature_map_upsample, mask_obj,mask_bak])
             obj, _ = self.projection_head(self.downsample_layear(
                 obj, self.magnification), training=training)
             back, _ = self.projection_head(self.downsample_layear(

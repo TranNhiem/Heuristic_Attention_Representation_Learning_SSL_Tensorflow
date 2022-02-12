@@ -12,7 +12,7 @@ def read_cfg(mod="non_contrastive"):
     # , ['ds_1_2_options', 'no_option'],
     FLAGS.dataloader = 'ds_1_2_options'
     FLAGS.wandb_project_name = "heuristic_attention_representation_learning_Paper_correction"
-    FLAGS.wandb_run_name = "Hybrid_loss_(7*7*2048)_100epoch_alpha_0.2_symloss_0.3subset"
+    FLAGS.wandb_run_name = "Final_Hybrid_loss_(7*7*512)_100epoch_alpha_schedule_symloss_correction_faster"
     FLAGS.wandb_mod = "run"
     FLAGS.restore_checkpoint = True  # Restore Checkpoint or Not
 
@@ -33,17 +33,17 @@ def read_cfg(mod="non_contrastive"):
 
     FLAGS.non_contrast_binary_loss = "sum_symetrize_l2_loss_object_backg_add_original" # sum_symetrize_l2_loss_object_backg_add_original
     # cosine schedule will increasing depending on training steps
-    # ['cosine_schedule', 'custom_schedule'],
-    FLAGS.alpha_schedule = "fixed"
-    FLAGS.alpha = 0.2
+    # ['cosine_schedule', 'custom_schedule' , 'fixed'],
+    FLAGS.alpha_schedule = "custom_schedule"
+    FLAGS.alpha = 0.5
     FLAGS.weighted_loss = 0.5
     FLAGS.resnet_depth = 50
-    FLAGS.train_epochs = 100
+    FLAGS.train_epochs = 1000
     FLAGS.num_classes = 1000
-    FLAGS.subset_percentage = 0.3
+    FLAGS.subset_percentage = 1.0
 
-    FLAGS.train_batch_size = 128
-    FLAGS.val_batch_size = 128
+    FLAGS.train_batch_size = 256
+    FLAGS.val_batch_size = 256
 
-    FLAGS.model_dir = "/data1/resnet_byol/resnet50_correction/Hybrid_loss_(7*7*2048)_100epoch_alpha_0.2_symloss_0.3subset"
+    FLAGS.model_dir = "/data1/resnet_byol/resnet50_correction/Final_Hybrid_loss_(7*7*512)_100epoch_alpha_schedule_symloss_correction_faster"
     #FLAGS.train_mode = "finetune"

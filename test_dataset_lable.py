@@ -53,22 +53,21 @@ val_global_batch = 10
 
 train_dataset = imagenet_dataset_single_machine(img_size=FLAGS.image_size, train_batch=train_global_batch,
                                                 val_batch=val_global_batch,
-                                                strategy=strategy, train_path=FLAGS.train_path,
-                                                val_path=FLAGS.val_path,
+                                                strategy=strategy, train_path=r"D:\OneDrive\鴻海\imagenet_1k_tiny\imagenet_1k_tiny\Image\train",
+                                                val_path=None,
                                                 mask_path=FLAGS.mask_path, bi_mask=True,
                                                 train_label=FLAGS.train_label, val_label=FLAGS.val_label,
                                                 subset_class_num=FLAGS.num_classes)
 
 
-#train_ds = train_dataset.simclr_inception_style_crop_image_mask()
-train_ds= train_dataset.simclr_random_global_crop_image_mask()
+train_ds = train_dataset.simclr_inception_style_crop_image_mask()
+# train_ds= train_dataset.simclr_random_global_crop_image_mask()
 
 ds_1 = []
 ds_2 =[]
 for _, (ds_one, ds_two) in enumerate(train_ds):
     ds_1 = ds_one
     ds_2 = ds_two
-
     break
 
 # image_mask, lable = ds
@@ -92,6 +91,7 @@ image=image[0]
 
 mask1=image1[1]
 image1=image1[0]
+
 plt.figure(figsize=(10, 5))
 for n in range(8):
     ax = plt.subplot(2, 4, n + 1)
