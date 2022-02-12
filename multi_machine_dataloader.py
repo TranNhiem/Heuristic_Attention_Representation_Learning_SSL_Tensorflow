@@ -208,6 +208,34 @@ class imagenet_dataset_multi_machine():
         label = tf.strings.split(image_path, os.path.sep)[4]
         return img, label
 
+    def prepare_mask(self, v1, v2):
+        images_mask_1, lable_1, = v1
+        images_mask_2, lable_2, = v2
+        img1 = images_mask_1[0]
+        mask1 = images_mask_1[1]
+        img2 = images_mask_2[0]
+        mask2 = images_mask_2[1]
+
+        mask1 = tf.image.resize(mask1, (7, 7))
+        mask2 = tf.image.resize(mask2, (7, 7))
+
+        mask1 = tf.cast(mask1, dtype=tf.bool)
+        mask1_obj = tf.cast(mask1, dtype=tf.float32)
+        mask1_bak = tf.logical_not(mask1)
+        mask1_bak = tf.cast(mask1_bak, dtype=tf.float32)
+
+        mask2 = tf.cast(mask2, dtype=tf.bool)
+        mask2_obj = tf.cast(mask2, dtype=tf.float32)
+        mask2_bak = tf.logical_not(mask2)
+        mask2_bak = tf.cast(mask2_bak, dtype=tf.float32)
+
+        # print(img1,mask1_obj,mask1_bak)
+        # images_mask_1 = tf.ragged.constant(tf.RaggedTensor.from_tensor([img1]),tf.RaggedTensor.from_tensor([mask1_obj,mask1_bak]))
+        # images_mask_2 = tf.RaggedTensor.from_tensor([img2])
+        # print(images_mask_1)
+
+        return (img1, mask1_obj, mask1_bak, lable_1), (img2, mask2_obj, mask2_bak, lable_2)
+
     def supervised_validation(self, input_context):
         '''This for Supervised validation training'''
         dis_tributed_batch = input_context.get_per_replica_batch_size(
@@ -338,7 +366,8 @@ class imagenet_dataset_multi_machine():
 
         train_ds = ds.map(lambda x, y, z: ((simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z),
                                            (simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z)),
-                          num_parallel_calls=AUTO)
+                          num_parallel_calls=AUTO) \
+            .map(lambda x, y: self.prepare_mask(x, y), num_parallel_calls=AUTO)
 
         if FLAGS.with_option:
             logging.info("You implement data loader with option")
@@ -371,7 +400,8 @@ class imagenet_dataset_multi_machine():
 
         train_ds = ds.map(lambda x, y, z: ((simclr_augment_randcrop_global_view_image_mask(x, y, self.IMG_SIZE), z),
                                            (simclr_augment_randcrop_global_view_image_mask(x, y, self.IMG_SIZE), z)),
-                          num_parallel_calls=AUTO)
+                          num_parallel_calls=AUTO) \
+            .map(lambda x, y: self.prepare_mask(x, y), num_parallel_calls=AUTO)
 
         if FLAGS.with_option:
             logging.info("You implement data loader with option")
