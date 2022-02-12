@@ -51,8 +51,8 @@ flag.save_config(os.path.join(FLAGS.model_dir, "config.cfg"))
 
 # For setting GPUs Thread reduce kernel Luanch Delay
 # https://github.com/tensorflow/tensorflow/issues/25724
-os.environ['TF_GPU_THREAD_MODE'] = 'gpu_private'
-os.environ['TF_GPU_THREAD_COUNT'] = '2'
+# os.environ['TF_GPU_THREAD_MODE'] = 'gpu_private'
+# os.environ['TF_GPU_THREAD_COUNT'] = '2'
 
 
 def main():
@@ -505,10 +505,10 @@ def main():
 
                         grads_online = tf.distribute.get_replica_context().all_reduce(
                             tf.distribute.ReduceOp.SUM, grads_online, options=hints)
-                    else: 
+                    else:
                         grads_online = tf.distribute.get_replica_context().all_reduce(
                             tf.distribute.ReduceOp.SUM, grads_online, )
-                    
+
                     optimizer.apply_gradients(
                         zip(grads_online, online_model.trainable_variables))
 
@@ -522,9 +522,9 @@ def main():
 
                         grads_pred = tf.distribute.get_replica_context().all_reduce(
                             tf.distribute.ReduceOp.SUM, grads_pred, options=hints)
-                    else: 
+                    else:
                         grads_pred = tf.distribute.get_replica_context().all_reduce(
-                                                    tf.distribute.ReduceOp.SUM, grads_pred, options=hints)
+                            tf.distribute.ReduceOp.SUM, grads_pred, options=hints)
                     optimizer.apply_gradients(
                         zip(grads_pred, prediction_model.trainable_variables))
                 else:
@@ -676,6 +676,7 @@ def main():
 #     'checkpoint', None,
 #     'Loading from the given checkpoint for fine-tuning if a finetuning '
 #     'checkpoint does not already exist in model_dir.')
+
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
