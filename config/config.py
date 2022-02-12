@@ -73,13 +73,13 @@ def base_cfg():
     flags.DEFINE_string(
         #'train_path', "/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/ILSVRC2012_img_train",
         #'train_path', '/data1/share/1K_New/train',
-        'train_path', '/data1/1K_New/train',
+        'train_path', '/data1/data1/1K_New/train',
 
         'Train dataset path.')
 
     flags.DEFINE_string(
         # 'val_path',"/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/val",
-        'val_path', '/data1/1K_New/val',
+        'val_path', '/data1/data1/1K_New/val',
         'Validaion dataset path.')
 
     # Mask_folder should locate in location and same level of train folder
@@ -381,7 +381,7 @@ def Configure_Model_Training():
 
 
 def multi_machine_config():
-
+    flags = Mock_Flag()
     flags.DEFINE_enum(
         'communication_method', 'NCCL', ["NCCL", "auto", "RING"],
         # RING implements ring-based collectives using gRPC as the cross-host communication layer.
@@ -403,14 +403,13 @@ def multi_machine_config():
     flags.DEFINE_boolean(
         'collective_hint', False,
         'collective hint use for batch aggregate graident')
-    
+
     flags.DEFINE_enum(
         'precision_method', 'custome', ["API", "custome", ],
         'Scale and aggregate gradient for each machine method')
     flags.DEFINE_boolean(
         'with_option', False,
         'with_option is for optimization loading data of each machine')
-    
 
 
 def Configure_Saving_and_Restore_Model():
