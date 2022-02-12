@@ -44,8 +44,7 @@ FLAGS = flag.FLAGS
 if not os.path.isdir(FLAGS.model_dir):
     print("creat : ", FLAGS.model_dir, FLAGS.cached_file_val, FLAGS.cached_file)
     os.makedirs(FLAGS.model_dir)
-    os.makedirs(FLAGS.cached_file_val, exist_ok=True)
-    os.makedirs(FLAGS.cached_file, exist_ok=True)
+
 
 flag.save_config(os.path.join(FLAGS.model_dir, "config.cfg"))
 
