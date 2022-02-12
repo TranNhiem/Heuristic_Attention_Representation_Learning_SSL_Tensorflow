@@ -324,14 +324,17 @@ def Configure_Model_Training():
         'non_contrast_binary_loss', 'sum_symetrize_l2_loss_object_backg', ["byol_harry_loss", "sum_symetrize_l2_loss_object_backg_add_original",
                                                                            'Original_loss_add_contrast_level_object', 'sum_symetrize_l2_loss_object_backg', 'original_add_backgroud'],
         'Consideration update Model with One Contrastive or sum up and (Contrastive + Supervised Loss).')
+
     flags.DEFINE_enum(
         'loss_type', 'symmetrized', ['symmetrized', 'asymmetrized'],
         'loss type between asymmetrize vs Symmetrize loss')
+
     flags.DEFINE_float(
         # Alpha Weighted loss (Objec & Background) [binary_mask_nt_xent_object_backgroud_sum_loss]
         'alpha', 0.5,
         'Alpha value is configuration the weighted of Object and Background in Model Total Loss.'
     )
+
     flags.DEFINE_enum(
         'alpha_schedule', 'cosine_schedule', [
             'cosine_schedule', 'custom_schedule', 'fixed'],
@@ -377,6 +380,39 @@ def Configure_Model_Training():
         'just the linear head.')
 
 
+def multi_machine_config():
+
+    flags.DEFINE_enum(
+        'communication_method', 'NCCL', ["NCCL", "auto", "RING"],
+        # RING implements ring-based collectives using gRPC as the cross-host communication layer.
+        # NCCL uses the NVIDIA Collective Communication Library to implement collectives.
+        # AUTO defers the choice to the runtime.
+        'multiple collective communication method')
+
+    flags.DEFINE_integer(
+        'num_workers', 2,
+        'number of machine use for training')
+
+    flags.DEFINE_integer(
+        'single_machine_train_batch_size', 1024,
+        'training bach_size of each machine training')
+
+    flags.DEFINE_integer(
+        'single_machine_val_batch_size', 1024,
+        'Validation bach_size of each machine training')
+    flags.DEFINE_boolean(
+        'collective_hint', False,
+        'collective hint use for batch aggregate graident')
+    
+    flags.DEFINE_enum(
+        'precision_method', 'custome', ["API", "custome", ],
+        'Scale and aggregate gradient for each machine method')
+    flags.DEFINE_boolean(
+        'with_option', False,
+        'with_option is for optimization loading data of each machine')
+    
+
+
 def Configure_Saving_and_Restore_Model():
     # Saving Model
     flags = Mock_Flag()
@@ -417,6 +453,7 @@ def non_contrastive_cfg():
     Linear_Evaluation()
     Learning_Rate_Optimizer_and_Training_Strategy()
     Encoder()
+    multi_machine_config()
     Projection_and_Prediction_head()
     Configure_Model_Training()
     Configure_Saving_and_Restore_Model()

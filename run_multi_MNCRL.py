@@ -1,5 +1,5 @@
 from config.absl_mock import Mock_Flag
-from config.experiment_config import read_cfg
+from config.experiment_config_multi_machine import read_cfg
 import os
 import json
 import math
@@ -25,16 +25,16 @@ from imutils import paths
 # mixed_precision.set_global_policy(policy)
 
 # Setting GPU
-gpus = tf.config.experimental.list_physical_devices('GPU')
-if gpus:
-    try:
-        for gpu in gpus:
-            tf.config.experimental.set_memory_growth(gpu, True)
-        tf.config.experimental.set_visible_devices(gpus[0:8], 'GPU')
-        logical_gpus = tf.config.experimental.list_logical_devices('GPU')
-        print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPU")
-    except RuntimeError as e:
-        print(e)
+# gpus = tf.config.experimental.list_physical_devices('GPU')
+# if gpus:
+#     try:
+#         for gpu in gpus:
+#             tf.config.experimental.set_memory_growth(gpu, True)
+#         tf.config.experimental.set_visible_devices(gpus[0:8], 'GPU')
+#         logical_gpus = tf.config.experimental.list_logical_devices('GPU')
+#         print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPU")
+#     except RuntimeError as e:
+#         print(e)
 
 
 read_cfg()
@@ -449,11 +449,17 @@ def main():
                             loss, online_model.trainable_variables)
                         fp16_grads_online = [
                             tf.cast(grad, 'float16')for grad in grads_online]
-                        all_reduce_fp16_grads_online = tf.distribute.get_replica_context(
-                        ).all_reduce(tf.distribute.ReduceOp.SUM, fp16_grads_online)
+
                         # Optional
-                        # hints = tf.distribute.experimental.CollectiveHints( bytes_per_pack=32 * 1024 * 1024)
-                        # all_reduce_fp16_grads = tf.distribute.get_replica_context().all_reduce(tf.distribute.ReduceOp.SUM, fp16_grads, options=hints)
+                        if FLAGS.collective_hint:
+                            hints = tf.distribute.experimental.CollectiveHints(
+                                bytes_per_pack=32 * 1024 * 1024)
+                            all_reduce_fp16_grads_online = tf.distribute.get_replica_context().all_reduce(
+                                tf.distribute.ReduceOp.SUM, fp16_grads_online, options=hints)
+                        else:
+                            all_reduce_fp16_grads_online = tf.distribute.get_replica_context(
+                            ).all_reduce(tf.distribute.ReduceOp.SUM, fp16_grads_online)
+
                         #all_reduce_fp32_grads = [tf.cast(grad, 'float32') for grad in all_reduce_fp16_grads]
                         all_reduce_fp32_grads_online = optimizer.get_unscaled_gradients(
                             all_reduce_fp16_grads_online)
@@ -467,8 +473,15 @@ def main():
                             loss, prediction_model.trainable_variables)
                         fp16_grads_pred = [
                             tf.cast(grad, 'float16')for grad in grads_pred]
-                        all_reduce_fp16_grads_pred = tf.distribute.get_replica_context(
-                        ).all_reduce(tf.distribute.ReduceOp.SUM, fp16_grads_pred)
+
+                        if FLAGS.collective_hint:
+                            hints = tf.distribute.experimental.CollectiveHints(
+                                bytes_per_pack=32 * 1024 * 1024)
+                            all_reduce_fp16_grads_pred = tf.distribute.get_replica_context().all_reduce(
+                                tf.distribute.ReduceOp.SUM, fp16_grads_pred, options=hints)
+                        else:
+                            all_reduce_fp16_grads_pred = tf.distribute.get_replica_context(
+                            ).all_reduce(tf.distribute.ReduceOp.SUM, fp16_grads_pred)
                         # Optional
                         # hints = tf.distribute.experimental.CollectiveHints( bytes_per_pack=32 * 1024 * 1024)
                         # all_reduce_fp16_grads = tf.distribute.get_replica_context().all_reduce(tf.distribute.ReduceOp.SUM, fp16_grads, options=hints)
@@ -486,13 +499,16 @@ def main():
                     # Update Encoder and Projection head weight
                     grads_online = tape.gradient(
                         loss, online_model.trainable_variables)
+                    if FLAGS.collective_hint:
+                        hints = tf.distribute.experimental.CollectiveHints(
+                            bytes_per_pack=25 * 1024 * 1024)
 
-                    hints = tf.distribute.experimental.CollectiveHints(
-                        bytes_per_pack=25 * 1024 * 1024)
-
-                    grads_pred = tf.distribute.get_replica_context().all_reduce(
-                        tf.distribute.ReduceOp.SUM, grads_online, options=hints)
-
+                        grads_online = tf.distribute.get_replica_context().all_reduce(
+                            tf.distribute.ReduceOp.SUM, grads_online, options=hints)
+                    else: 
+                        grads_online = tf.distribute.get_replica_context().all_reduce(
+                            tf.distribute.ReduceOp.SUM, grads_online, )
+                    
                     optimizer.apply_gradients(
                         zip(grads_online, online_model.trainable_variables))
 
@@ -500,12 +516,15 @@ def main():
                     grads_pred = tape.gradient(
                         loss, prediction_model.trainable_variables)
 
-                    hints = tf.distribute.experimental.CollectiveHints(
-                        bytes_per_pack=25 * 1024 * 1024)
+                    if FLAGS.collective_hint:
+                        hints = tf.distribute.experimental.CollectiveHints(
+                            bytes_per_pack=25 * 1024 * 1024)
 
-                    grads_pred = tf.distribute.get_replica_context().all_reduce(
-                        tf.distribute.ReduceOp.SUM, grads_pred, options=hints)
-
+                        grads_pred = tf.distribute.get_replica_context().all_reduce(
+                            tf.distribute.ReduceOp.SUM, grads_pred, options=hints)
+                    else: 
+                        grads_pred = tf.distribute.get_replica_context().all_reduce(
+                                                    tf.distribute.ReduceOp.SUM, grads_pred, options=hints)
                     optimizer.apply_gradients(
                         zip(grads_pred, prediction_model.trainable_variables))
                 else:
