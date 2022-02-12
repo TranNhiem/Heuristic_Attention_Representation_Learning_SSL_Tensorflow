@@ -299,7 +299,7 @@ class imagenet_dataset_multi_machine():
 
         if FLAGS.with_option:
             logging.info("You implement data loader with option")
-            train_ds.with_options(option)
+            train_ds.with_options(options)
         else:
             logging.info("You implement data loader Without option")
             train_ds = train_ds
@@ -327,7 +327,7 @@ class imagenet_dataset_multi_machine():
         ds = tf.data.Dataset.from_tensor_slices((self.x_train, self.x_train_lable)) \
             .map(lambda x, y: (self.parse_images_lable_pair(x, y))) \
             .shuffle(self.BATCH_SIZE * 100, seed=self.seed) \
-            .map(lambda x, y: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE)), y),).cache()
+            .map(lambda x, y: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE)), y),)#.cache()
 
         # option = tf.data.Options()
         # option.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.DATA
@@ -337,7 +337,7 @@ class imagenet_dataset_multi_machine():
 
         if FLAGS.with_option:
             logging.info("You implement data loader with option")
-            train_ds.with_options(option)
+            train_ds.with_options(options)
         else:
             logging.info("You implement data loader Without option")
             train_ds = train_ds
@@ -362,7 +362,7 @@ class imagenet_dataset_multi_machine():
 
         ds = tf.data.Dataset.from_tensor_slices((self.x_train_image_mask, self.x_train_lable)) \
             .shuffle(self.BATCH_SIZE * 100, seed=self.seed) \
-            .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)), num_parallel_calls=AUTO).cache()
+            .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)), num_parallel_calls=AUTO)  # .cache()
 
         train_ds = ds.map(lambda x, y, z: ((simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z),
                                            (simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z)),
@@ -371,7 +371,7 @@ class imagenet_dataset_multi_machine():
 
         if FLAGS.with_option:
             logging.info("You implement data loader with option")
-            train_ds.with_options(option)
+            train_ds.with_options(options)
         else:
             logging.info("You implement data loader Without option")
             train_ds = train_ds
@@ -396,7 +396,7 @@ class imagenet_dataset_multi_machine():
         # option.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.DATA
         ds = tf.data.Dataset.from_tensor_slices((self.x_train_image_mask, self.x_train_lable)) \
             .shuffle(self.BATCH_SIZE * 100, seed=self.seed) \
-            .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)), num_parallel_calls=AUTO).cache()
+            .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)), num_parallel_calls=AUTO)  # .cache()
 
         train_ds = ds.map(lambda x, y, z: ((simclr_augment_randcrop_global_view_image_mask(x, y, self.IMG_SIZE), z),
                                            (simclr_augment_randcrop_global_view_image_mask(x, y, self.IMG_SIZE), z)),
@@ -405,7 +405,7 @@ class imagenet_dataset_multi_machine():
 
         if FLAGS.with_option:
             logging.info("You implement data loader with option")
-            train_ds.with_options(option)
+            train_ds.with_options(options)
         else:
             logging.info("You implement data loader Without option")
             train_ds = train_ds
@@ -435,4 +435,4 @@ if __name__ == "__main__":
 
     # print("num_train_examples : ", num_train_examples)
     # print("num_eval_examples : ", num_eval_examples)
-    pass
+    print("test")
