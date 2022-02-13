@@ -380,7 +380,7 @@ def main():
                                 labels=supervised_lable, logits=outputs)
                             # scale_sup_loss = tf.reduce_sum(
                             #     sup_loss) * (1. / train_global_batch_size)
-                            scale_sup_loss = tf.nn.compute_averageper_example_loss_loss(
+                            scale_sup_loss = tf.nn.compute_averageper_example_loss(
                                 sup_loss, global_batch_size=train_global_batch_size)
 
                             # Reduce loss Precision to 16 Bits
