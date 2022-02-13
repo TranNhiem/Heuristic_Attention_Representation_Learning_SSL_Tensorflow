@@ -73,13 +73,13 @@ def base_cfg():
     flags.DEFINE_string(
         #'train_path', "/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/ILSVRC2012_img_train",
         #'train_path', '/data1/share/1K_New/train',
-        'train_path', '/data1/SSL_TEAM/1K_New/train',
+        'train_path', '/data1/data1/1K_New/train',
 
         'Train dataset path.')
 
     flags.DEFINE_string(
         # 'val_path',"/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/val",
-        'val_path', '/data1/SSL_TEAM/1K_New/val',
+        'val_path', '/data1/data1/1K_New/val',
         'Validaion dataset path.')
 
     # Mask_folder should locate in location and same level of train folder
@@ -452,9 +452,9 @@ def non_contrastive_cfg():
     Linear_Evaluation()
     Learning_Rate_Optimizer_and_Training_Strategy()
     Encoder()
-    multi_machine_config()
     Projection_and_Prediction_head()
     Configure_Model_Training()
+    multi_machine_config()
     Configure_Saving_and_Restore_Model()
     visualization()
 
