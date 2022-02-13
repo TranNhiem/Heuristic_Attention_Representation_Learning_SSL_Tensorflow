@@ -5,7 +5,7 @@ import tensorflow as tf
 from learning_rate_optimizer import WarmUpAndCosineDecay
 import os
 from self_supervised_losses import nt_xent_symetrize_loss_simcrl, nt_xent_asymetrize_loss_v2
-from byol_simclr_imagenet_data_harry import imagenet_dataset_multi_machine
+from multi_machine_dataloader import imagenet_dataset_multi_machine
 import metrics
 import model as all_model
 import objective as obj_lib
@@ -98,13 +98,13 @@ flags.DEFINE_integer(
     'Number of epochs to train for.')
 
 flags.DEFINE_string(
-    'train_path', "/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/ILSVRC2012_img_train",
+    'train_path', "/data1/data1/1K_New/train",
     'Train dataset path.')
 
 flags.DEFINE_string(
-    'val_path', "/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/val",
+    'val_path', "/data1/data1/1K_New/val",
     'Validaion dataset path.')
-## Mask_folder should locate in location and same level of train folder
+# Mask_folder should locate in location and same level of train folder
 flags.DEFINE_string(
     'mask_path', "train_binary_mask_by_USS",
     'Mask path.')
@@ -155,7 +155,7 @@ flags.DEFINE_enum(
 
     # if Change the Optimizer please change --
     'optimizer', 'LARSW', ['Adam', 'SGD', 'LARS', 'AdamW', 'SGDW', 'LARSW',
-                          'AdamGC', 'SGDGC', 'LARSGC', 'AdamW_GC', 'SGDW_GC', 'LARSW_GC'],
+                           'AdamGC', 'SGDGC', 'LARSGC', 'AdamW_GC', 'SGDW_GC', 'LARSW_GC'],
     'How to scale the learning rate as a function of batch size.')
 
 flags.DEFINE_enum(
@@ -165,7 +165,8 @@ flags.DEFINE_enum(
     # 3. optimizer_GD fir  ['AdamGC', 'SGDGC', 'LARSGC']
     # 4. optimizer_W_GD for ['AdamW_GC', 'SGDW_GC', 'LARSW_GC']
 
-    'optimizer_type', 'optimizer_weight_decay', ['original', 'optimizer_weight_decay','optimizer_GD','optimizer_W_GD' ],
+    'optimizer_type', 'optimizer_weight_decay', [
+        'original', 'optimizer_weight_decay', 'optimizer_GD', 'optimizer_W_GD'],
     'Optimizer type corresponding to Configure of optimizer')
 
 flags.DEFINE_float(
@@ -625,11 +626,13 @@ def main(argv):
     train_global_batch_size = per_worker_train_batch_size * FLAGS.num_workers
     val_global_batch_size = per_worker_val_batch_size * FLAGS.num_workers
 
-    dataset_loader = imagenet_dataset_multi_machine(img_size=FLAGS.image_size, train_batch=train_global_batch_size,  val_batch=val_global_batch_size,
+    dataset_loader = imagenet_dataset_multi_machine(img_size=FLAGS.image_size, train_batch=train_global_batch_size,
+                                                    val_batch=val_global_batch_size,
                                                     strategy=strategy, train_path=FLAGS.train_path,
                                                     val_path=FLAGS.val_path,
-                                                    mask_path=FLAGS.mask_path, bi_mask=True)
-
+                                                    mask_path=FLAGS.mask_path, bi_mask=False,
+                                                    train_label=FLAGS.train_label, val_label=FLAGS.val_label,
+                                                    subset_class_num=FLAGS.num_classes)
 
     train_multi_worker_dataset = strategy.distribute_datasets_from_function(
         lambda input_context: dataset_loader.simclr_inception_style_crop(input_context))
@@ -637,14 +640,12 @@ def main(argv):
     val_multi_worker_dataset = strategy.distribute_datasets_from_function(
         lambda input_context: dataset_loader.supervised_validation(input_context))
 
-    num_classes = FLAGS.num_classes
-
+    num_train_examples, num_eval_examples = dataset_loader.get_data_size()
 
     num_train_examples, num_eval_examples = dataset_loader.get_data_size()
 
-
     train_steps = FLAGS.eval_steps or int(
-        num_train_examples * FLAGS.train_epochs // train_global_batch_size) *2
+        num_train_examples * FLAGS.train_epochs // train_global_batch_size) * 2
     eval_steps = FLAGS.eval_steps or int(
         math.ceil(num_eval_examples / val_global_batch_size))
 
@@ -835,7 +836,8 @@ def main(argv):
                                 labels=supervised_lable, logits=outputs)
                             # scale_sup_loss = tf.reduce_sum(
                             #     sup_loss) * (1. / train_global_batch_size)
-                            scale_sup_loss=tf.nn.compute_averageper_example_loss_loss(sup_loss, global_batch_size=train_global_batch_size)
+                            scale_sup_loss = tf.nn.compute_averageper_example_loss_loss(
+                                sup_loss, global_batch_size=train_global_batch_size)
 
                             # Reduce loss Precision to 16 Bits
 
@@ -848,27 +850,28 @@ def main(argv):
                                                                   supervised_lable, outputs)
 
                         '''Attention'''
-                        # Noted Consideration Aggregate (Supervised + Contrastive Loss) 
-                        # --> Update the Model Gradient base on Loss  
-                        # Option 1: Only use Contrast loss 
-                        # option 2: Contrast Loss + Supervised Loss 
-                        if FLAGS.aggregate_loss== "contrastive_supervised": 
+                        # Noted Consideration Aggregate (Supervised + Contrastive Loss)
+                        # --> Update the Model Gradient base on Loss
+                        # Option 1: Only use Contrast loss
+                        # option 2: Contrast Loss + Supervised Loss
+                        if FLAGS.aggregate_loss == "contrastive_supervised":
                             if loss is None:
                                 loss = scale_sup_loss
                             else:
                                 loss += scale_sup_loss
 
-                        elif FLAGS.aggregate_loss== "contrastive":
-                           
-                            supervise_loss=None
+                        elif FLAGS.aggregate_loss == "contrastive":
+
+                            supervise_loss = None
                             if supervise_loss is None:
                                 supervise_loss = scale_sup_loss
                             else:
                                 supervise_loss += scale_sup_loss
-                        else: 
-                            raise ValueError(" Loss aggregate is invalid please check FLAGS.aggregate_loss")
-                    
-                    # Consideration Remove L2 Regularization Loss 
+                        else:
+                            raise ValueError(
+                                " Loss aggregate is invalid please check FLAGS.aggregate_loss")
+
+                    # Consideration Remove L2 Regularization Loss
                     # --> This Only Use for Supervised Head
                     weight_decay_loss = all_model.add_weight_decay(
                         model, adjust_per_optimizer=True)
@@ -877,7 +880,7 @@ def main(argv):
                     #     weight_decay_loss)
 
                     weight_decay_metric.update_state(weight_decay_loss)
-                
+
                     loss += weight_decay_loss
                     # Contrast loss + Supervised loss + Regularize loss
                     total_loss_metric.update_state(loss)
@@ -958,7 +961,7 @@ def main(argv):
                         tf.summary.scalar('learning_rate', lr_schedule(tf.cast(global_step, dtype=tf.float32)),
                                           global_step)
                         summary_writer.flush()
-                
+
                 epoch_loss = total_loss/num_batches
                 # Wandb Configure for Visualize the Model Training
                 wandb.log({
@@ -976,7 +979,7 @@ def main(argv):
 
             logging.info('Training Complete ...')
             # Saving Entire Model
-            if epoch +1 == 50:
+            if epoch + 1 == 50:
                 save = './model_ckpt/resnet_simclr/encoder_resnet50_mlp_multi_nodes' + \
                     str(epoch) + ".h5"
                 model.save_weights(save)

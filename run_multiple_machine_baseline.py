@@ -839,6 +839,7 @@ with strategy.scope():
                             tf.distribute.ReduceOp.SUM, grads_pred, options=hints)
                     optimizer.apply_gradients(
                         zip(grads_pred, prediction_model.trainable_variables))
+                
                 else:
                     raise ValueError(
                         "Invalid Implement optimization floating precision")
