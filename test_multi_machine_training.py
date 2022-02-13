@@ -283,9 +283,11 @@ elif args.communication_method == "auto":
 
 else:
     raise ValueError("Invalid implemenation commnuciation")
-strategy = tf.distribute.MultiWorkerMirroredStrategy(
+
+# strategy = tf.distribute.MultiWorkerMirroredStrategy(
+#     communication_options=communication_options)
+strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy(
     communication_options=communication_options)
-# strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy()
 
 with strategy.scope():
 
