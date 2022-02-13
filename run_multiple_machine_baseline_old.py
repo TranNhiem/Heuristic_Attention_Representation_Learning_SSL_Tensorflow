@@ -632,7 +632,7 @@ def main(argv):
                                                     val_path=FLAGS.val_path,
                                                     mask_path=FLAGS.mask_path, bi_mask=False,
                                                     train_label=FLAGS.train_label, val_label=FLAGS.val_label,
-                                                    subset_class_num=FLAGS.num_classes)
+                                                    subset_class_num=10, subset_percentage=1.0)
 
     train_multi_worker_dataset = strategy.distribute_datasets_from_function(
         lambda input_context: dataset_loader.simclr_inception_style_crop(input_context))
