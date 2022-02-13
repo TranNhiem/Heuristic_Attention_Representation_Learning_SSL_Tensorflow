@@ -524,6 +524,7 @@ def main():
                     # Update Encoder and Projection head weight
                     grads_online = tape.gradient(
                         loss, online_model.trainable_variables)
+
                     if FLAGS.collective_hint:
                         hints = tf.distribute.experimental.CollectiveHints(
                             bytes_per_pack=25 * 1024 * 1024)
@@ -549,7 +550,7 @@ def main():
                             tf.distribute.ReduceOp.SUM, grads_pred, options=hints)
                     else:
                         grads_pred = tf.distribute.get_replica_context().all_reduce(
-                            tf.distribute.ReduceOp.SUM, grads_pred, options=hints)
+                            tf.distribute.ReduceOp.SUM, grads_pred)
                     optimizer.apply_gradients(
                         zip(grads_pred, prediction_model.trainable_variables))
                 else:
