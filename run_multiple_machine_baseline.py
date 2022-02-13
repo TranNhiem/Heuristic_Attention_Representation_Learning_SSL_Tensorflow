@@ -64,7 +64,7 @@ def main():
             implementation=tf.distribute.experimental.CollectiveCommunication.AUTO)
 
     strategy = tf.distribute.MultiWorkerMirroredStrategy(
-        communication_options=communication_options)
+    )
 
     # ------------------------------------------
     # Preparing dataset
@@ -229,7 +229,7 @@ def main():
                 return loss, logits_ab, labels
 
             @tf.function
-            def train_step(ds_one, ds_two):
+            def train_step_fc(ds_one, ds_two):
                 # Get the data from
                 images_one, lable_one = ds_one
                 images_two, lable_two = ds_two
@@ -559,10 +559,10 @@ def main():
                 del tape
                 return loss
 
-            @tf.function
+            # @tf.function
             def distributed_train_step(ds_one, ds_two):
                 per_replica_losses = strategy.run(
-                    train_step, args=(ds_one, ds_two))
+                    train_step_fc, args=(ds_one, ds_two))
                 return strategy.reduce(tf.distribute.ReduceOp.SUM, per_replica_losses, axis=None)
 
             # ------------------------------------------
@@ -618,8 +618,8 @@ def main():
 
                 epoch_loss = total_loss/num_batches
 
-                if (epoch+1) % 10 == 0:
-                    result = perform_evaluation(online_model, val_ds, eval_steps,
+                if (epoch+1) % 2 == 0:
+                    result = perform_evaluation(online_model, val_multi_worker_dataset, eval_steps,
                                                 checkpoint_manager.latest_checkpoint, strategy)
                     wandb.log({
                         "eval/label_top_1_accuracy": result["eval/label_top_1_accuracy"],
