@@ -5,7 +5,7 @@ import tensorflow as tf
 from learning_rate_optimizer import WarmUpAndCosineDecay
 import os
 from self_supervised_losses import nt_xent_symetrize_loss_simcrl, nt_xent_asymetrize_loss_v2
-from byol_simclr_imagenet_data_harry import imagenet_dataset_multi_machine
+from multi_machine_dataloader import imagenet_dataset_multi_machine
 import metrics
 import model as all_model
 import objective as obj_lib
@@ -21,6 +21,7 @@ from multiprocessing import util
 #FLAGS = flags.FLAGS
 
 import config
+
 FLAGS = config.Flage()
 FLAGS = FLAGS.flage.FLAGS
 # ***********************************************************
@@ -98,11 +99,11 @@ flags.DEFINE_integer(
     'Number of epochs to train for.')
 
 flags.DEFINE_string(
-    'train_path', "/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/ILSVRC2012_img_train",
+    'train_path', "/data1/data1/1K_New/train",
     'Train dataset path.')
 
 flags.DEFINE_string(
-    'val_path', "/mnt/sharefolder/Datasets/SSL_dataset/ImageNet/1K_New/val",
+    'val_path', "/data1/data1/1K_New/val",
     'Validaion dataset path.')
 # Mask_folder should locate in location and same level of train folder
 flags.DEFINE_string(
@@ -632,7 +633,7 @@ def main(argv):
                                                     val_path=FLAGS.val_path,
                                                     mask_path=FLAGS.mask_path, bi_mask=False,
                                                     train_label=FLAGS.train_label, val_label=FLAGS.val_label,
-                                                    subset_class_num=FLAGS.num_classes)
+                                                    subset_class_num=10, subset_percentage=1.0)
 
     train_multi_worker_dataset = strategy.distribute_datasets_from_function(
         lambda input_context: dataset_loader.simclr_inception_style_crop(input_context))
