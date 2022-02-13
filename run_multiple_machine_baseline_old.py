@@ -21,6 +21,7 @@ from multiprocessing import util
 #FLAGS = flags.FLAGS
 
 import config
+
 FLAGS = config.Flage()
 FLAGS = FLAGS.flage.FLAGS
 # ***********************************************************
