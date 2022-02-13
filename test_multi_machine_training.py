@@ -286,8 +286,7 @@ else:
 
 # strategy = tf.distribute.MultiWorkerMirroredStrategy(
 #     communication_options=communication_options)
-strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy(
-    communication_options=communication_options)
+strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy()
 
 with strategy.scope():
 
