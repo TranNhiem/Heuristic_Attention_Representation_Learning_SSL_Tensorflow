@@ -234,7 +234,7 @@ def main():
                 images_one, lable_one = ds_one
                 images_two, lable_two = ds_two
 
-                with tf.GradientTape() as tape:
+                with tf.GradientTape(persistent=True) as tape:
 
                     if FLAGS.loss_type == "symmetrized":
                         logging.info("You implement Symmetrized loss")
