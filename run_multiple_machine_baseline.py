@@ -42,8 +42,8 @@ flag.save_config(os.path.join(FLAGS.model_dir, "config.cfg"))
 
 # For setting GPUs Thread reduce kernel Luanch Delay
 # https://github.com/tensorflow/tensorflow/issues/25724
-os.environ['TF_GPU_THREAD_MODE'] = 'gpu_private'
-os.environ['TF_GPU_THREAD_COUNT'] = '1'
+# os.environ['TF_GPU_THREAD_MODE'] = 'gpu_private'
+# os.environ['TF_GPU_THREAD_COUNT'] = '1'
 
 
 # Helper function to save and resore model.
@@ -839,7 +839,7 @@ with strategy.scope():
                             tf.distribute.ReduceOp.SUM, grads_pred, options=hints)
                     optimizer.apply_gradients(
                         zip(grads_pred, prediction_model.trainable_variables))
-                
+
                 else:
                     raise ValueError(
                         "Invalid Implement optimization floating precision")
