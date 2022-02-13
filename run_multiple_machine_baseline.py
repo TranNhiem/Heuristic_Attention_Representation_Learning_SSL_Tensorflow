@@ -36,7 +36,7 @@ FLAGS = flag.FLAGS
 if not os.path.isdir(FLAGS.model_dir):
     print("creat : ", FLAGS.model_dir, FLAGS.cached_file_val, FLAGS.cached_file)
     os.makedirs(FLAGS.model_dir)
-  
+
 
 flag.save_config(os.path.join(FLAGS.model_dir, "config.cfg"))
 
@@ -338,6 +338,7 @@ def main():
     # ------------------------------------------
     # Communication methods
     # ------------------------------------------
+
     if FLAGS.communication_method == "NCCL":
 
         communication_options = tf.distribute.experimental.CommunicationOptions(
@@ -368,11 +369,12 @@ def main():
                                                     train_label=FLAGS.train_label, val_label=FLAGS.val_label,
                                                     subset_class_num=FLAGS.num_classes)
 
-    train_multi_worker_dataset = strategy.distribute_datasets_from_function(
-        lambda input_context: dataset_loader.simclr_inception_style_crop(input_context))
+    with strategy.scope():
+        train_multi_worker_dataset = strategy.distribute_datasets_from_function(
+            lambda input_context: dataset_loader.simclr_inception_style_crop(input_context))
 
-    val_multi_worker_dataset = strategy.distribute_datasets_from_function(
-        lambda input_context: dataset_loader.supervised_validation(input_context))
+        val_multi_worker_dataset = strategy.distribute_datasets_from_function(
+            lambda input_context: dataset_loader.supervised_validation(input_context))
 
     num_train_examples, num_eval_examples = dataset_loader.get_data_size()
 
