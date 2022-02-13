@@ -18,11 +18,11 @@ FLAGS = flag.FLAGS
 # Experimental options
 # tf.data.experimental.DistributeOptions()
 options = tf.data.Options()
-options.experimental_optimization.noop_elimination = True
-# options.experimental_optimization.map_vectorization.enabled = True
-options.experimental_optimization.map_and_batch_fusion = True
-options.experimental_optimization.map_parallelization = True
-options.experimental_optimization.apply_default_optimizations = True
+# options.experimental_optimization.noop_elimination = True
+# # options.experimental_optimization.map_vectorization.enabled = True
+# options.experimental_optimization.map_and_batch_fusion = True
+# options.experimental_optimization.map_parallelization = True
+# options.experimental_optimization.apply_default_optimizations = True
 #options.experimental_deterministic = False
 # options.experimental_threading.max_intra_op_parallelism = 1
 # Shard policy using multi-machines training
@@ -292,7 +292,7 @@ class imagenet_dataset_multi_machine():
         ds = tf.data.Dataset.from_tensor_slices((self.x_train, self.x_train_lable)) \
             .map(lambda x, y: (self.parse_images_lable_pair(x, y))) \
             .shuffle(self.BATCH_SIZE * 100, seed=self.seed) \
-            .map(lambda x, y: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE)), y),)#.cache()
+            .map(lambda x, y: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE)), y),)  # .cache()
 
         train_ds = ds.map(lambda x, y: ((simclr_augment_inception_style(x, self.IMG_SIZE), y), (
             simclr_augment_inception_style(x, self.IMG_SIZE), y)), num_parallel_calls=AUTO)
