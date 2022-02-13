@@ -97,7 +97,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--mode', type=str, default="mix_pre_fp16_v1", choices=["mix_precision_fp16_", "mix_precision_fp16", "mix_pre_fp16_v1", "mix_pre_fp16_v1_", "mix_per_pack_NCCL"],
                     help='mix_precision_implementation or orignal mode')
 parser.add_argument('--communication_method', type=str,
-                    default="auto", choices=["NCCL", "auto", ])
+                    default="NCCL", choices=["NCCL", "auto", ])
 
 ################################################################################
 '''Data Processing -- 1.. tf.data 2.. Adding @tf function, 3..adding XAL (Lineat algebra accelerate) + Mix Precision'''
@@ -284,9 +284,9 @@ elif args.communication_method == "auto":
 else:
     raise ValueError("Invalid implemenation commnuciation")
 
-# strategy = tf.distribute.MultiWorkerMirroredStrategy(
-#     communication_options=communication_options)
-strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy()
+strategy = tf.distribute.MultiWorkerMirroredStrategy(
+    communication_options=communication_options)
+# strategy = tf.distribute.experimeal.MultiWorkerMirroredStrategy()
 
 with strategy.scope():
 
