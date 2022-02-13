@@ -32,16 +32,6 @@ read_cfg()
 flag = Mock_Flag()
 FLAGS = flag.FLAGS
 
-gpus = tf.config.experimental.list_physical_devices('GPU')
-if gpus:
-    try:
-        for gpu in gpus:
-            tf.config.experimental.set_memory_growth(gpu, True)
-        tf.config.experimental.set_visible_devices(gpus[0:8], 'GPU')
-        logical_gpus = tf.config.experimental.list_logical_devices('GPU')
-        print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPU")
-    except RuntimeError as e:
-        print(e)
 
 if not os.path.isdir(FLAGS.model_dir):
     print("creat : ", FLAGS.model_dir, FLAGS.cached_file_val, FLAGS.cached_file)
@@ -675,6 +665,7 @@ def main():
         online_model.resnet_model.save_weights(save_encoder)
         online_model.save_weights(save_online_model)
         target_model.save_weights(save_target_model)
+
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
