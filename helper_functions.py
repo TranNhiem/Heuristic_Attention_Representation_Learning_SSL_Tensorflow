@@ -281,3 +281,168 @@ def perform_evaluation(model, val_ds, val_steps, ckpt, strategy):
     # save(model, global_step=result['global_step'])
 
     return result
+
+
+
+def perform_evaluation(model, val_ds, val_steps, ckpt, strategy):
+    """Perform evaluation.--> Only Inference to measure the pretrain model representation"""
+
+    if FLAGS.train_mode == 'pretrain' and not FLAGS.lineareval_while_pretraining:
+        logging.info('Skipping eval during pretraining without linear eval.')
+        return
+
+    # Tensorboard enable
+    summary_writer = tf.summary.create_file_writer(FLAGS.model_dir)
+
+    # Building the Supervised metrics
+    with strategy.scope():
+
+        regularization_loss = tf.keras.metrics.Mean('eval/regularization_loss')
+        label_top_1_accuracy = tf.keras.metrics.Accuracy(
+            "eval/label_top_1_accuracy")
+        label_top_5_accuracy = tf.keras.metrics.TopKCategoricalAccuracy(
+            5, 'eval/label_top_5_accuracy')
+
+        all_metrics = [
+            regularization_loss, label_top_1_accuracy, label_top_5_accuracy
+        ]
+
+        # Restore model checkpoint
+        logging.info('Restoring from %s', ckpt)
+        checkpoint = tf.train.Checkpoint(
+            model=model, global_step=tf.Variable(0, dtype=tf.int64))
+        checkpoint.restore(ckpt).expect_partial()
+        global_step = checkpoint.global_step
+        logging.info('Performing eval at step %d', global_step.numpy())
+
+    # Scaling the loss  -- Update the sum up all the gradient
+    @tf.function
+    def single_step(features, labels):
+        # Logits output
+        _, supervised_head_outputs = model(features, training=False)
+        assert supervised_head_outputs is not None
+        outputs = supervised_head_outputs
+
+        metrics.update_finetune_metrics_eval(
+            label_top_1_accuracy, label_top_5_accuracy, outputs, labels)
+
+        # Single machine loss
+        reg_loss = all_model.add_weight_decay(model, adjust_per_optimizer=True)
+        regularization_loss.update_state(reg_loss)
+
+    with strategy.scope():
+
+        @tf.function
+        def run_single_step(iterator):
+            images, labels = next(iterator)
+            strategy.run(single_step, (images, labels))
+
+    iterator = iter(val_ds)
+    for i in range(val_steps):
+        run_single_step(iterator)
+        logging.info("Complete validation for %d step ", i+1, val_steps)
+
+    # At this step of training with Ckpt Complete evaluate model performance
+    logging.info('Finished eval for %s', ckpt)
+
+    # Logging to tensorboard for the information
+    # Write summaries
+    cur_step = global_step.numpy()
+    logging.info('Writing summaries for %d step', cur_step)
+
+    with summary_writer.as_default():
+        metrics.log_and_write_metrics_to_summary(all_metrics, cur_step)
+        summary_writer.flush()
+
+    # Record results as Json.
+    result_json_path = os.path.join(FLAGS.model_dir, 'result.jsoin')
+    result = {metric.name: metric.result().numpy() for metric in all_metrics}
+    result['global_step'] = global_step.numpy()
+    logging.info(result)
+
+    with tf.io.gfile.GFile(result_json_path, 'w') as f:
+        json.dump({k: float(v) for k, v in result.items()}, f)
+    result_json_path = os.path.join(
+        FLAGS.model_dir, 'result_%d.json' % result['global_step'])
+
+    with tf.io.gfile.GFile(result_json_path, 'w') as f:
+        json.dump({k: float(v) for k, v in result.items()}, f)
+    flag_json_path = os.path.join(FLAGS.model_dir, 'flags.json')
+
+    with tf.io.gfile.GFile(flag_json_path, 'w') as f:
+        serializable_flags = {}
+        for key, val in FLAGS.flag_values_dict().items():
+            # Some flag value types e.g. datetime.timedelta are not json serializable,
+            # filter those out.
+            if json_serializable(val):
+                serializable_flags[key] = val
+            json.dump(serializable_flags, f)
+
+    # Export as SavedModel for finetuning and inference.
+    save(model, global_step=result['global_step'])
+
+    return result
+
+
+def chief_worker(task_type, task_id):
+    return task_type is None or task_type == 'chief' or (task_type == 'worker' and task_id == 0)
+
+
+def _get_temp_dir(dirpath, task_id):
+
+    base_dirpath = 'workertemp_' + str(task_id)
+    # Note future will just define our custom saving dir
+    temp_dir = os.path.join(dirpath, base_dirpath)
+    tf.io.gfile.makedirs(temp_dir)
+    return temp_dir
+
+
+def write_filepath(filepath, task_type, task_id):
+    dirpath = os.path.dirname(filepath)
+
+    base = os.path.basename(filepath)
+
+    if not chief_worker(task_type, task_id):
+        dirpath = _get_temp_dir(dirpath, task_id)
+
+    return os.path.join(dirpath, base)
+# Restore the checkpoint forom the file
+
+
+def multi_node_try_restore_from_checkpoint(model, global_step, optimizer, task_type, task_id):
+    """Restores the latest ckpt if it exists, otherwise check FLAGS.checkpoint."""
+    checkpoint = tf.train.Checkpoint(
+        model=model, global_step=global_step, optimizer=optimizer)
+
+    write_checkpoint_dir = write_filepath(FLAGS.model_dir, task_type, task_id)
+
+    checkpoint_manager = tf.train.CheckpointManager(
+        checkpoint,
+        directory=write_checkpoint_dir,
+        max_to_keep=FLAGS.keep_checkpoint_max)
+    latest_ckpt = checkpoint_manager.latest_checkpoint
+
+    if latest_ckpt:
+        # Restore model weights, global step, optimizer states
+        logging.info('Restoring from latest checkpoint: %s', latest_ckpt)
+        checkpoint_manager.checkpoint.restore(latest_ckpt).expect_partial()
+
+    elif FLAGS.checkpoint:
+        # Restore model weights only, but not global step and optimizer states
+        logging.info('Restoring from given checkpoint: %s', FLAGS.checkpoint)
+        checkpoint_manager2 = tf.train.CheckpointManager(
+            tf.train.Checkpoint(model=model),
+            directory=FLAGS.model_dir,
+            max_to_keep=FLAGS.keep_checkpoint_max)
+        checkpoint_manager2.checkpoint.restore(
+            FLAGS.checkpoint).expect_partial()
+
+    if FLAGS.zero_init_logits_layer:
+        model = checkpoint_manager2.checkpoint.model
+        output_layer_parameters = model.supervised_head.trainable_weights
+        logging.info('Initializing output layer parameters %s to zero',
+                     [x.op.name for x in output_layer_parameters])
+        for x in output_layer_parameters:
+            x.assign(tf.zeros_like(x))
+
+    return checkpoint_manager, write_checkpoint_dir
