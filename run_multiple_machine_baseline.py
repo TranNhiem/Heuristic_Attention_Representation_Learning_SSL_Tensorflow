@@ -36,7 +36,7 @@ FLAGS = flag.FLAGS
 if not os.path.isdir(FLAGS.model_dir):
     print("creat : ", FLAGS.model_dir, FLAGS.cached_file_val, FLAGS.cached_file)
     os.makedirs(FLAGS.model_dir)
-  
+
 
 flag.save_config(os.path.join(FLAGS.model_dir, "config.cfg"))
 
@@ -47,7 +47,6 @@ os.environ['TF_GPU_THREAD_COUNT'] = '1'
 
 
 # Helper function to save and resore model.
-
 
 
 def main():
@@ -129,7 +128,7 @@ def main():
         "Temperature": FLAGS.temperature,
         "Optimizer": FLAGS.optimizer,
         "SEED": FLAGS.SEED,
-        "Loss type": FLAGS.loss_options,
+
     }
 
     wandb.init(project="heuristic_attention_representation_learning",
@@ -666,7 +665,6 @@ def main():
         online_model.resnet_model.save_weights(save_encoder)
         online_model.save_weights(save_online_model)
         target_model.save_weights(save_target_model)
-
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
