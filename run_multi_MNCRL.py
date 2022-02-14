@@ -25,6 +25,10 @@ from imutils import paths
 # mixed_precision.set_global_policy(policy)
 
 # Setting GPU
+strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy(
+    communication=tf.distribute.experimental.CollectiveCommunication.RING,
+    cluster_resolver=None
+)
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if gpus:
     try:
@@ -72,10 +76,7 @@ def main():
 
     # strategy = tf.distribute.MultiWorkerMirroredStrategy(
     #     communication_options=communication_options)  # communication_options=communication_options
-    strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy(
-        communication=tf.distribute.experimental.CollectiveCommunication.RING,
-        cluster_resolver=None
-    )
+
     # ------------------------------------------
     # Preparing dataset
     # ------------------------------------------
@@ -680,6 +681,7 @@ def main():
 #     'checkpoint', None,
 #     'Loading from the given checkpoint for fine-tuning if a finetuning '
 #     'checkpoint does not already exist in model_dir.')
+
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
