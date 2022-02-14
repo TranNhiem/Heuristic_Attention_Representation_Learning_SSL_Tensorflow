@@ -92,7 +92,7 @@ def main():
     train_multi_worker_dataset = strategy.distribute_datasets_from_function(
         lambda input_context: dataset_loader.simclr_random_global_crop_image_mask(input_context))
 
-    val_multi_worker_dataset = strategy.supervised_validation(
+    val_multi_worker_dataset = strategy.distribute_datasets_from_function(
         lambda input_context: dataset_loader.supervised_validation(input_context))
 
     num_train_examples, num_eval_examples = dataset_loader.get_data_size()
