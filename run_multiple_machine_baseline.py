@@ -72,7 +72,7 @@ def main():
             implementation=tf.distribute.experimental.CollectiveCommunication.AUTO)
 
     strategy = tf.distribute.MultiWorkerMirroredStrategy(
-        communication_options=communication_options)  # communication_options=communication_options
+        communication_options=communication_options)  #
     #strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy()
     # ------------------------------------------
     # Preparing dataset
@@ -674,7 +674,6 @@ def main():
         online_model.resnet_model.save_weights(save_encoder)
         online_model.save_weights(save_online_model)
         target_model.save_weights(save_target_model)
-
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
