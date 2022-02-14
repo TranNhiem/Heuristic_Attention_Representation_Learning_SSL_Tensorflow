@@ -26,7 +26,7 @@ from imutils import paths
 
 # Setting GPU
 strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy(
-    communication=tf.distribute.experimental.CollectiveCommunication.RING,
+    communication=tf.distribute.experimental.CollectiveCommunication.AUTO,
     cluster_resolver=None
 )
 gpus = tf.config.experimental.list_physical_devices('GPU')
