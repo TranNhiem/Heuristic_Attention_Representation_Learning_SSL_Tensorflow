@@ -69,7 +69,7 @@ def main():
             implementation=tf.distribute.experimental.CollectiveCommunication.AUTO)
 
     strategy = tf.distribute.MultiWorkerMirroredStrategy(
-        communication_options=communication_options)
+    )  # communication_options=communication_options
 
     # ------------------------------------------
     # Preparing dataset

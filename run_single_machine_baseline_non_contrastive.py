@@ -450,12 +450,15 @@ def main():
                     # Update Encoder and Projection head weight
                     grads = tape.gradient(
                         loss, online_model.trainable_variables)
+
                     optimizer.apply_gradients(
                         zip(grads, online_model.trainable_variables))
 
                     # Update Prediction Head model
                     grads = tape.gradient(
-                        loss, prediction_model.trainable_variables)
+                        loss, prediction_model.trainable_variables)/2
+
+
                     optimizer.apply_gradients(
                         zip(grads, prediction_model.trainable_variables))
                 else:
@@ -480,7 +483,7 @@ def main():
                 total_loss = 0.0
                 num_batches = 0
                 print("Epoch", epoch, "...")
-                for step, (ds_one, ds_two) in enumerate(train_ds):
+                for step, (ds_one, ds_two) in enumerate(train_ds):  
 
                     total_loss += distributed_train_step(ds_one, ds_two)
                     num_batches += 1
@@ -494,7 +497,8 @@ def main():
                         cur_step = global_step.numpy()
                         beta = 1 - (1-beta_base) * \
                             (math.cos(math.pi * cur_step / train_steps) + 1) / 2
-
+                    
+                    if step first+8: 
                     target_encoder_weights = target_model.get_weights()
                     online_encoder_weights = online_model.get_weights()
 
