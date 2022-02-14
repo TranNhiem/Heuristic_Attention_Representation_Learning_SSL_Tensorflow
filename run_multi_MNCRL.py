@@ -72,7 +72,7 @@ def main():
 
     # strategy = tf.distribute.MultiWorkerMirroredStrategy(
     #     communication_options=communication_options)  # communication_options=communication_options
-    tf.distribute.experimental.MultiWorkerMirroredStrategy(
+    strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy(
         communication=tf.distribute.experimental.CollectiveCommunication.RING,
         cluster_resolver=None
     )
