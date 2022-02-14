@@ -24,7 +24,7 @@ from imutils import paths
 # policy = mixed_precision.Policy('mixed_float16')
 # mixed_precision.set_global_policy(policy)
 
-Setting GPU
+# Setting GPU
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if gpus:
     try:
