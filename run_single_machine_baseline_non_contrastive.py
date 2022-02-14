@@ -68,7 +68,7 @@ def main():
                                                     val_path=FLAGS.val_path,
                                                     mask_path=FLAGS.mask_path, bi_mask=False,
                                                     train_label=FLAGS.train_label, val_label=FLAGS.val_label,
-                                                    subset_class_num=FLAGS.num_classes,subset_percentage=FLAGS.subset_percentage)
+                                                    subset_class_num=FLAGS.num_classes, subset_percentage=FLAGS.subset_percentage)
 
     train_ds = train_dataset.simclr_inception_style_crop()
 
@@ -83,7 +83,8 @@ def main():
         math.ceil(num_eval_examples / val_global_batch))
 
     epoch_steps = int(round(num_train_examples / train_global_batch))
-    checkpoint_steps = (FLAGS.checkpoint_steps or (FLAGS.checkpoint_epochs * epoch_steps))
+    checkpoint_steps = (FLAGS.checkpoint_steps or (
+        FLAGS.checkpoint_epochs * epoch_steps))
 
     logging.info("# Subset_training class %d", FLAGS.num_classes)
     logging.info('# train examples: %d', num_train_examples)
@@ -114,7 +115,7 @@ def main():
         "Subset_dataset": f"Class : {FLAGS.num_classes}, Percentage : {FLAGS.subset_percentage*100}%",
         "Loss type": FLAGS.aggregate_loss,
         "opt": FLAGS.up_scale,
-        "Encoder output size" : str((math.pow(2,list(FLAGS.Encoder_block_strides.values()).count(1))-1) * 7),
+        "Encoder output size": str((math.pow(2, list(FLAGS.Encoder_block_strides.values()).count(1))-1) * 7),
     }
 
     wandb.init(project=FLAGS.wandb_project_name, name=FLAGS.wandb_run_name, mode=FLAGS.wandb_mod,
@@ -196,9 +197,10 @@ def main():
                     x1, x2,  temperature=FLAGS.temperature)
 
                 # total sum loss //Global batch_size
-                #(0.8/1024)*8
-                #loss = tf.reduce_sum(per_example_loss) * (1./len(gpus))### harry try : (1./8)
-                loss = 2 - 2 * (tf.reduce_sum(per_example_loss) * (1./train_global_batch))
+                # (0.8/1024)*8
+                # loss = tf.reduce_sum(per_example_loss) * (1./len(gpus))### harry try : (1./8)
+                loss = 2 - 2 * (tf.reduce_sum(per_example_loss)
+                                * (1./train_global_batch))
                 return loss, logits_ab, labels
 
             @tf.function
@@ -458,7 +460,6 @@ def main():
                     grads = tape.gradient(
                         loss, prediction_model.trainable_variables)/2
 
-
                     optimizer.apply_gradients(
                         zip(grads, prediction_model.trainable_variables))
                 else:
@@ -483,7 +484,7 @@ def main():
                 total_loss = 0.0
                 num_batches = 0
                 print("Epoch", epoch, "...")
-                for step, (ds_one, ds_two) in enumerate(train_ds):  
+                for step, (ds_one, ds_two) in enumerate(train_ds):
 
                     total_loss += distributed_train_step(ds_one, ds_two)
                     num_batches += 1
@@ -497,8 +498,7 @@ def main():
                         cur_step = global_step.numpy()
                         beta = 1 - (1-beta_base) * \
                             (math.cos(math.pi * cur_step / train_steps) + 1) / 2
-                    
-                    if step first+8: 
+
                     target_encoder_weights = target_model.get_weights()
                     online_encoder_weights = online_model.get_weights()
 
