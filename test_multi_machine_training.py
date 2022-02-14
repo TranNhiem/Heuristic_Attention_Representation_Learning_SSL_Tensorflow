@@ -97,7 +97,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--mode', type=str, default="mix_pre_fp16_v1", choices=["mix_precision_fp16_", "mix_precision_fp16", "mix_pre_fp16_v1", "mix_pre_fp16_v1_", "mix_per_pack_NCCL"],
                     help='mix_precision_implementation or orignal mode')
 parser.add_argument('--communication_method', type=str,
-                    default="NCCL", choices=["NCCL", "auto", ])
+                    default="auto", choices=["NCCL", "auto", ])
 
 ################################################################################
 '''Data Processing -- 1.. tf.data 2.. Adding @tf function, 3..adding XAL (Lineat algebra accelerate) + Mix Precision'''
@@ -268,6 +268,14 @@ There are two strategy of Multi-worker training (Syncronously vs Asyncronously)
 # tf_config is the same
 #     "task": {'type': 'worker', 'index': 1}
 # }
+
+gpus = tf.config.experimental.list_physical_devices('GPU')
+if gpus:
+    try:
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
+    except RuntimeError as e:
+        print(e)
 args = parser.parse_args()
 
 if args.communication_method == "NCCL":
