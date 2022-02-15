@@ -361,11 +361,11 @@ def main():
                                 loss += loss
 
                             # Update Self-Supervised Metrics
-                            metrics.update_pretrain_metrics_train(contrast_loss_metric,
-                                                                  contrast_acc_metric,
-                                                                  contrast_entropy_metric,
-                                                                  loss, logits_o_ab,
-                                                                  labels)
+                            metrics.update_pretrain_metrics_train_multi_machine(contrast_loss_metric,
+                                                                                contrast_acc_metric,
+                                                                                contrast_entropy_metric,
+                                                                                loss, logits_o_ab,
+                                                                                labels)
 
                     else:
                         raise ValueError(
@@ -707,6 +707,7 @@ def main():
 #     'checkpoint', None,
 #     'Loading from the given checkpoint for fine-tuning if a finetuning '
 #     'checkpoint does not already exist in model_dir.')
+
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
