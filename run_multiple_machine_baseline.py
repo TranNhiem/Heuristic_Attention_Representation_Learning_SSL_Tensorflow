@@ -503,10 +503,11 @@ def main():
                             ).all_reduce(tf.distribute.ReduceOp.SUM, fp16_grads_online)
 
                         #all_reduce_fp32_grads = [tf.cast(grad, 'float32') for grad in all_reduce_fp16_grads]
-                        all_reduce_fp32_grads_online = optimizer.get_unscaled_gradients(
-                            all_reduce_fp16_grads_online)
-                        # all_reduce_fp32_grads = optimizer.get_unscaled_gradients(
-                        #     all_reduce_fp32_grads)
+                        # all_reduce_fp32_grads_online = optimizer.get_unscaled_gradients(
+                        #     all_reduce_fp16_grads_online)
+                        all_reduce_fp32_grads_online = [
+                            tf.cast(grad, dtype=tf.float16) for grad in all_reduce_fp16_grads_online]
+
                         optimizer.apply_gradients(zip(
                             all_reduce_fp32_grads_online, online_model.trainable_variables), experimental_aggregate_gradients=False)
 
@@ -527,9 +528,10 @@ def main():
                         # Optional
                         # hints = tf.distribute.experimental.CollectiveHints( bytes_per_pack=32 * 1024 * 1024)
                         # all_reduce_fp16_grads = tf.distribute.get_replica_context().all_reduce(tf.distribute.ReduceOp.SUM, fp16_grads, options=hints)
-                        #all_reduce_fp32_grads = [tf.cast(grad, 'float32') for grad in all_reduce_fp16_grads]
-                        all_reduce_fp32_grads_pred = optimizer.get_unscaled_gradients(
-                            all_reduce_fp16_grads_pred)
+                        all_reduce_fp32_grads_pred = [
+                            tf.cast(grad, dtype=tf.float32) for grad in all_reduce_fp16_grads_pred]
+                        # all_reduce_fp32_grads_pred = optimizer.get_unscaled_gradients(
+                        #     all_reduce_fp16_grads_pred)
                         # all_reduce_fp32_grads = optimizer.get_unscaled_gradients(
                         #     all_reduce_fp32_grads)
                         optimizer.apply_gradients(zip(
@@ -683,6 +685,7 @@ def main():
         online_model.resnet_model.save_weights(save_encoder)
         online_model.save_weights(save_online_model)
         target_model.save_weights(save_target_model)
+
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
