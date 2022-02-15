@@ -34,7 +34,7 @@ def read_cfg(mod="non_contrastive"):
     FLAGS.base_lr = 0.5
 
     # sum_symetrize_l2_loss_object_backg_add_original
-    FLAGS.non_contrast_binary_loss = "sum_symetrize_l2_loss_object_backg_add_original"
+    FLAGS.non_contrast_binary_loss = ""
     # cosine schedule will increasing depending on training steps
     # ['cosine_schedule', 'custom_schedule' , 'fixed'],
     FLAGS.alpha_schedule = "custom_schedule"
