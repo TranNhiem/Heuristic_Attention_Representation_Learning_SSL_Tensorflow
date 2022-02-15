@@ -251,7 +251,8 @@ def main():
                 elif FLAGS.non_contrast_binary_loss == 'sum_symetrize_l2_loss_object_backg_add_original':
                     per_example_loss, logits_ab, labels = sum_symetrize_l2_loss_object_backg_add_original(
                         o1, o2, b1, b2, f1, f2, alpha=alpha, temperature=FLAGS.temperature, weight_loss=weight)
-
+                else:
+                    raise ValueError("Invalid Loss Type")
                 # total sum loss //Global batch_size
                 loss = 2 - 2*(tf.reduce_sum(per_example_loss)
                               * (1. / train_global_batch_size))
@@ -696,7 +697,6 @@ def main():
 #     'checkpoint', None,
 #     'Loading from the given checkpoint for fine-tuning if a finetuning '
 #     'checkpoint does not already exist in model_dir.')
-
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
