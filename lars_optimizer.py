@@ -103,6 +103,7 @@ class LARSOptimizer(tf.keras.optimizers.Optimizer):
         if self._use_weight_decay(param_name):
             if FLAGS.mixprecision == "fp16":
                 weight_decay = tf.cast(self.weight_decay, dtype=tf.float16)
+                param = tf.cast(param, dtype=tf.float16)
                 grad += weight_decay * param
             else:
                 grad += self.weight_decay * param
