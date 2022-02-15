@@ -24,18 +24,20 @@ from imutils import paths
 # policy = mixed_precision.Policy('mixed_float16')
 # mixed_precision.set_global_policy(policy)
 
+
+gpus = tf.config.experimental.list_physical_devices('GPU')
+if gpus:
+    try:
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
+    except RuntimeError as e:
+        print(e)
 # Setting GPU
 strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy(
     communication=tf.distribute.experimental.CollectiveCommunication.AUTO,
     cluster_resolver=None
 )
-# gpus = tf.config.experimental.list_physical_devices('GPU')
-# if gpus:
-#     try:
-#         for gpu in gpus:
-#             tf.config.experimental.set_memory_growth(gpu, True)
-#     except RuntimeError as e:
-#         print(e)
+
 #         tf.config.experimental.set_visible_devices(gpus[0:8], 'GPU')
 #         logical_gpus = tf.config.experimental.list_logical_devices('GPU')
 #         print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPU")
@@ -69,11 +71,18 @@ def main():
 
         communication_options = tf.distribute.experimental.CommunicationOptions(
             implementation=tf.distribute.experimental.CommunicationImplementation.NCCL)
+    elif FLAGS.communication_method == "RING":
+
+        communication_options = tf.distribute.experimental.CommunicationOptions(
+            implementation=tf.distribute.experimental.CommunicationImplementation.RING)
 
     elif FLAGS.communication_method == "auto":
         communication_options = tf.distribute.experimental.CommunicationOptions(
             implementation=tf.distribute.experimental.CollectiveCommunication.AUTO)
 
+    else:
+        raise ValueError("Invalida communication method")
+   
     # strategy = tf.distribute.MultiWorkerMirroredStrategy(
     #     communication_options=communication_options)  # communication_options=communication_options
 
@@ -681,7 +690,6 @@ def main():
 #     'checkpoint', None,
 #     'Loading from the given checkpoint for fine-tuning if a finetuning '
 #     'checkpoint does not already exist in model_dir.')
-
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
