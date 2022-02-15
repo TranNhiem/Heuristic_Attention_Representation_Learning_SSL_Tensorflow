@@ -181,7 +181,7 @@ def main():
                 train_epochs=train_epochs, train_steps=train_steps)
 
             # Current Implement the Mixpercision optimizer
-            optimizer = all_model.build_optimizer_multi_machine(lr_schedule)
+            optimizer = all_model.build_optimizer(lr_schedule)
 
             # Build tracking metrics
             all_metrics = []
