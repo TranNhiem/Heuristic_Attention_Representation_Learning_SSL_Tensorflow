@@ -15,11 +15,17 @@
 # ==============================================================================
 """Functions and classes related to optimization (weight updates)."""
 
+from config.experiment_config import read_cfg
+from config.absl_mock import Mock_Flag
 import re
 
 import tensorflow as tf
 
 EETA_DEFAULT = 0.001
+
+read_cfg()
+flag = Mock_Flag()
+FLAGS = flag.FLAGS
 
 
 class LARSOptimizer(tf.keras.optimizers.Optimizer):
@@ -34,7 +40,8 @@ class LARSOptimizer(tf.keras.optimizers.Optimizer):
                  momentum=0.9,
                  use_nesterov=False,
                  weight_decay=0.0,
-                 exclude_from_weight_decay=['batch_normalization', 'bias', 'head_supervised'],
+                 exclude_from_weight_decay=[
+                     'batch_normalization', 'bias', 'head_supervised'],
                  exclude_from_layer_adaptation=None,
                  classic_momentum=True,
                  eeta=EETA_DEFAULT,
@@ -94,7 +101,11 @@ class LARSOptimizer(tf.keras.optimizers.Optimizer):
         v = self.get_slot(param, "Momentum")
 
         if self._use_weight_decay(param_name):
-            grad += self.weight_decay * param
+            if FLAGS.mixprecision == "fp16":
+                weight_decay = tf.cast(self.weight_decay, dtype=tf.float16)
+                grad += weight_decay * param
+            else:
+                grad += self.weight_decay * param
 
         if self.classic_momentum:
             trust_ratio = 1.0
