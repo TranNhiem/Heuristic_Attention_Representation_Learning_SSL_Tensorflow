@@ -133,7 +133,7 @@ def try_restore_from_checkpoint(model, global_step, optimizer):
                 FLAGS.checkpoint).expect_partial()
     else:
         logging.info('You are Not Restore from Checkpoint: %s', latest_ckpt)
-        
+
     if FLAGS.zero_init_logits_layer:
         print("in2")
         model = checkpoint_manager2.checkpoint.model
@@ -279,107 +279,6 @@ def perform_evaluation(model, val_ds, val_steps, ckpt, strategy):
 
     # Export as SavedModel for finetuning and inference.
     # save(model, global_step=result['global_step'])
-
-    return result
-
-
-
-def perform_evaluation(model, val_ds, val_steps, ckpt, strategy):
-    """Perform evaluation.--> Only Inference to measure the pretrain model representation"""
-
-    if FLAGS.train_mode == 'pretrain' and not FLAGS.lineareval_while_pretraining:
-        logging.info('Skipping eval during pretraining without linear eval.')
-        return
-
-    # Tensorboard enable
-    summary_writer = tf.summary.create_file_writer(FLAGS.model_dir)
-
-    # Building the Supervised metrics
-    with strategy.scope():
-
-        regularization_loss = tf.keras.metrics.Mean('eval/regularization_loss')
-        label_top_1_accuracy = tf.keras.metrics.Accuracy(
-            "eval/label_top_1_accuracy")
-        label_top_5_accuracy = tf.keras.metrics.TopKCategoricalAccuracy(
-            5, 'eval/label_top_5_accuracy')
-
-        all_metrics = [
-            regularization_loss, label_top_1_accuracy, label_top_5_accuracy
-        ]
-
-        # Restore model checkpoint
-        logging.info('Restoring from %s', ckpt)
-        checkpoint = tf.train.Checkpoint(
-            model=model, global_step=tf.Variable(0, dtype=tf.int64))
-        checkpoint.restore(ckpt).expect_partial()
-        global_step = checkpoint.global_step
-        logging.info('Performing eval at step %d', global_step.numpy())
-
-    # Scaling the loss  -- Update the sum up all the gradient
-    @tf.function
-    def single_step(features, labels):
-        # Logits output
-        _, supervised_head_outputs = model(features, training=False)
-        assert supervised_head_outputs is not None
-        outputs = supervised_head_outputs
-
-        metrics.update_finetune_metrics_eval(
-            label_top_1_accuracy, label_top_5_accuracy, outputs, labels)
-
-        # Single machine loss
-        reg_loss = all_model.add_weight_decay(model, adjust_per_optimizer=True)
-        regularization_loss.update_state(reg_loss)
-
-    with strategy.scope():
-
-        @tf.function
-        def run_single_step(iterator):
-            images, labels = next(iterator)
-            strategy.run(single_step, (images, labels))
-
-    iterator = iter(val_ds)
-    for i in range(val_steps):
-        run_single_step(iterator)
-        logging.info("Complete validation for %d step ", i+1, val_steps)
-
-    # At this step of training with Ckpt Complete evaluate model performance
-    logging.info('Finished eval for %s', ckpt)
-
-    # Logging to tensorboard for the information
-    # Write summaries
-    cur_step = global_step.numpy()
-    logging.info('Writing summaries for %d step', cur_step)
-
-    with summary_writer.as_default():
-        metrics.log_and_write_metrics_to_summary(all_metrics, cur_step)
-        summary_writer.flush()
-
-    # Record results as Json.
-    result_json_path = os.path.join(FLAGS.model_dir, 'result.jsoin')
-    result = {metric.name: metric.result().numpy() for metric in all_metrics}
-    result['global_step'] = global_step.numpy()
-    logging.info(result)
-
-    with tf.io.gfile.GFile(result_json_path, 'w') as f:
-        json.dump({k: float(v) for k, v in result.items()}, f)
-    result_json_path = os.path.join(
-        FLAGS.model_dir, 'result_%d.json' % result['global_step'])
-
-    with tf.io.gfile.GFile(result_json_path, 'w') as f:
-        json.dump({k: float(v) for k, v in result.items()}, f)
-    flag_json_path = os.path.join(FLAGS.model_dir, 'flags.json')
-
-    with tf.io.gfile.GFile(flag_json_path, 'w') as f:
-        serializable_flags = {}
-        for key, val in FLAGS.flag_values_dict().items():
-            # Some flag value types e.g. datetime.timedelta are not json serializable,
-            # filter those out.
-            if json_serializable(val):
-                serializable_flags[key] = val
-            json.dump(serializable_flags, f)
-
-    # Export as SavedModel for finetuning and inference.
-    save(model, global_step=result['global_step'])
 
     return result
 
