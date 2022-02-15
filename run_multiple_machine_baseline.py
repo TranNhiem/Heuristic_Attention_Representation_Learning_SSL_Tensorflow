@@ -99,6 +99,7 @@ def main():
                                                     train_label=FLAGS.train_label, val_label=FLAGS.val_label,
                                                     subset_class_num=FLAGS.num_classes, subset_percentage=FLAGS.subset_percentage)
 
+
     train_multi_worker_dataset = strategy.distribute_datasets_from_function(
         lambda input_context: dataset_loader.simclr_random_global_crop(input_context))
 

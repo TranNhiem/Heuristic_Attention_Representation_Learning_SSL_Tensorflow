@@ -26,7 +26,7 @@ options = tf.data.Options()
 #options.experimental_deterministic = False
 # options.experimental_threading.max_intra_op_parallelism = 1
 # Shard policy using multi-machines training
-options.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.DATA
+options.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.AUTO
 
 
 class imagenet_dataset_multi_machine():
