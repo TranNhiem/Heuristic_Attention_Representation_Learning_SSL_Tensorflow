@@ -458,7 +458,7 @@ def main():
 
                     # Update Prediction Head model
                     grads = tape.gradient(
-                        loss, prediction_model.trainable_variables)/2
+                        loss, prediction_model.trainable_variables)
 
                     optimizer.apply_gradients(
                         zip(grads, prediction_model.trainable_variables))
