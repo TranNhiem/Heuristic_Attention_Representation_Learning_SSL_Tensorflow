@@ -529,9 +529,9 @@ def main():
                         grads_online = tf.distribute.get_replica_context().all_reduce(
                             tf.distribute.ReduceOp.SUM, grads_online, options=hints)
                     else:
-                        # grads_online = tf.distribute.get_replica_context().all_reduce(
-                        #     tf.distribute.ReduceOp.SUM, grads_online, )
-                        print("Grad Local")
+                        grads_online = tf.distribute.get_replica_context().all_reduce(
+                            tf.distribute.ReduceOp.SUM, grads_online, )
+                        #print("Grad Local")
 
                     optimizer.apply_gradients(
                         zip(grads_online, online_model.trainable_variables), experimental_aggregate_gradients=False)
@@ -547,9 +547,9 @@ def main():
                         grads_pred = tf.distribute.get_replica_context().all_reduce(
                             tf.distribute.ReduceOp.SUM, grads_pred, options=hints)
                     else:
-                        # grads_pred = tf.distribute.get_replica_context().all_reduce(
-                        #     tf.distribute.ReduceOp.SUM, grads_pred)
-                        print("grad local")
+                        grads_pred = tf.distribute.get_replica_context().all_reduce(
+                            tf.distribute.ReduceOp.SUM, grads_pred)
+                        #print("grad local")
                     optimizer.apply_gradients(
                         zip(grads_pred, prediction_model.trainable_variables), experimental_aggregate_gradients=False)
                 else:
