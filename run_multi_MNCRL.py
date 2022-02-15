@@ -261,18 +261,24 @@ def main():
             @tf.function
             def train_step(ds_one, ds_two, alpha, weight_loss):
                 # Get the data from
-                images_mask_one, lable_1, = ds_one  # lable_one
-                images_mask_two, lable_2, = ds_two  # lable_two
+                images_mask_one, m11, m12, lable_1, = ds_one  # lable_one
+                images_mask_two, m21, m22, lable_2, = ds_two  # lable_two
 
+                '''
+                Attention to Symetrize the loss --> Need to switch image_1, image_2 to (Online -- Target Network)
+                loss 1= L2_loss*[online_model(image1), target_model(image_2)]
+                loss 2=  L2_loss*[online_model(image2), target_model(image_1)]
+                symetrize_loss= (loss 1+ loss_2)/ 2
+                '''
+                # Currently Our Loss function is Asymetrize L2_Loss
                 with tf.GradientTape(persistent=True) as tape:
 
                     if FLAGS.loss_type == "symmetrized":
-                        # -------------------------------------------------------------
+
                         # Passing image 1, image 2 to Online Encoder , Target Encoder
                         # -------------------------------------------------------------
-
                         obj_1, backg_1, proj_head_output_1, supervised_head_output_1 = online_model(
-                            [images_mask_one[0], tf.expand_dims(images_mask_one[1], axis=-1)], training=True)
+                            [images_mask_one, m11, m12], training=True)
                         # Vector Representation from Online encoder go into Projection head again
                         obj_1 = prediction_model(obj_1, training=True)
                         backg_1 = prediction_model(backg_1, training=True)
@@ -281,13 +287,13 @@ def main():
                             proj_head_output_1, training=True)
 
                         obj_2, backg_2, proj_head_output_2, supervised_head_output_2 = target_model(
-                            [images_mask_two[0], tf.expand_dims(images_mask_two[1], axis=-1)], training=True)
+                            [images_mask_two, m21, m22], training=True)
 
                         # -------------------------------------------------------------
                         # Passing Image 1, Image 2 to Target Encoder,  Online Encoder
                         # -------------------------------------------------------------
                         obj_2_online, backg_2_online, proj_head_output_2_online, _ = online_model(
-                            [images_mask_two[0], tf.expand_dims(images_mask_two[1], axis=-1)], training=True)
+                            [images_mask_two, m21, m22], training=True)
                         # Vector Representation from Online encoder go into Projection head again
                         obj_2_online = prediction_model(
                             obj_2_online, training=True)
@@ -298,8 +304,8 @@ def main():
                             proj_head_output_2_online, training=True)
 
                         obj_1_target, backg_1_target, proj_head_output_1_target, _ = \
-                            target_model([images_mask_one[0], tf.expand_dims(
-                                images_mask_one[1], axis=-1)], training=True)
+                            target_model(
+                                [images_mask_one, m11, m12], training=True)
 
                         # Compute Contrastive Train Loss -->
                         loss = None
@@ -331,7 +337,7 @@ def main():
 
                     elif FLAGS.loss_type == "asymmetrized":
                         obj_1, backg_1, proj_head_output_1, supervised_head_output_1 = online_model(
-                            [images_mask_one[0], tf.expand_dims(images_mask_one[1], axis=-1)], training=True)
+                            [images_mask_one, m11, m12], training=True)
                         # Vector Representation from Online encoder go into Projection head again
                         obj_1 = prediction_model(obj_1, training=True)
                         backg_1 = prediction_model(backg_1, training=True)
@@ -339,7 +345,7 @@ def main():
                             proj_head_output_1, training=True)
 
                         obj_2, backg_2, proj_head_output_2, supervised_head_output_2 = target_model(
-                            [images_mask_two[0], tf.expand_dims(images_mask_two[1], axis=-1)], training=True)
+                            [images_mask_two, m21, m22], training=True)
 
                         # Compute Contrastive Train Loss -->
                         loss = None
@@ -354,11 +360,12 @@ def main():
                                 loss += loss
 
                             # Update Self-Supervised Metrics
-                            metrics.update_pretrain_metrics_train_multi_machine(contrast_loss_metric,
-                                                                                contrast_acc_metric,
-                                                                                contrast_entropy_metric,
-                                                                                loss, logits_o_ab,
-                                                                                labels)
+                            metrics.update_pretrain_metrics_train(contrast_loss_metric,
+                                                                  contrast_acc_metric,
+                                                                  contrast_entropy_metric,
+                                                                  loss, logits_o_ab,
+                                                                  labels)
+
                     else:
                         raise ValueError(
                             'invalid loss type check your loss type')
@@ -378,7 +385,7 @@ def main():
                                 labels=supervise_lable, logits=outputs)
 
                             scale_sup_loss = tf.nn.compute_average_loss(
-                                sup_loss, global_batch_size=train_global_batch)
+                                sup_loss, global_batch_size=train_global_batch_size)
                             # scale_sup_loss = tf.reduce_sum(
                             #     sup_loss) * (1./train_global_batch)
                             # Update Supervised Metrics
