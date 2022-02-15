@@ -15,7 +15,7 @@ def read_cfg(mod="non_contrastive"):
     FLAGS.wandb_project_name = "heuristic_attention_representation_learning_Paper_correction"
     FLAGS.wandb_run_name = "test_multi_machine"
     FLAGS.wandb_mod = "dryrun"
-    FLAGS.restore_checkpoint = False  # Restore Checkpoint or Not
+    FLAGS.restore_checkpoint = True  # Restore Checkpoint or Not
 
     FLAGS.original_loss_stop_gradient = False
     FLAGS.Encoder_block_strides = {'1': 2, '2': 1, '3': 2, '4': 2, '5': 2}
