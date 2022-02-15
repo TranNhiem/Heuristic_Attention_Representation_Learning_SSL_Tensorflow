@@ -363,7 +363,7 @@ class imagenet_dataset_multi_machine():
 
         ds = tf.data.Dataset.from_tensor_slices((self.x_train_image_mask, self.x_train_lable)) \
             .shuffle(self.BATCH_SIZE * 100, seed=self.seed) \
-            .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)), num_parallel_calls=AUTO)  # .cache()
+            .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)), num_parallel_calls=AUTO).cache()
 
         train_ds = ds.map(lambda x, y, z: ((simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z),
                                            (simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z)),
@@ -397,7 +397,7 @@ class imagenet_dataset_multi_machine():
         # option.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.DATA
         ds = tf.data.Dataset.from_tensor_slices((self.x_train_image_mask, self.x_train_lable)) \
             .shuffle(self.BATCH_SIZE * 100, seed=self.seed) \
-            .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)), num_parallel_calls=AUTO)  # .cache()
+            .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)), num_parallel_calls=AUTO).cache()
 
         train_ds = ds.map(lambda x, y, z: ((simclr_augment_randcrop_global_view_image_mask(x, y, self.IMG_SIZE), z),
                                            (simclr_augment_randcrop_global_view_image_mask(x, y, self.IMG_SIZE), z)),
