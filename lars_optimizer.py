@@ -124,11 +124,13 @@ class LARSOptimizer(tf.keras.optimizers.Optimizer):
                 #self.momentum = tf.cast(self.momentum, dytype=tf.float)
 
             scaled_lr = learning_rate * trust_ratio
+            
             if FLAGS.mixprecision == "fp16":
                 next_v = tf.cast(tf.multiply(self.momentum, v),
                                  dtype=tf.float16) + scaled_lr * grad
             else:
                 next_v = tf.multiply(self.momentum, v) + scaled_lr * grad
+            
             if self.use_nesterov:
                 update = tf.multiply(self.momentum, next_v) + scaled_lr * grad
             else:
