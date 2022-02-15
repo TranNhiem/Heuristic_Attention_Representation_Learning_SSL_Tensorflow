@@ -240,7 +240,7 @@ def main():
                 # (0.8/1024)*8
                 # loss = tf.reduce_sum(per_example_loss) * (1./len(gpus))### harry try : (1./8)
                 loss = (tf.reduce_sum(per_example_loss)
-                                * (1./16))
+                        * (1./16))
 
                 return loss, logits_ab, labels
 
@@ -361,27 +361,6 @@ def main():
 
                     # Compute Contrastive Train Loss -->
                     loss = None
-                    if proj_head_output_1 is not None:
-
-                        scale_con_loss, logit_ab, lables = distributed_loss(
-                            proj_head_output_1, proj_head_output_2)
-
-                        # Reduce loss Precision to 16 Bits
-                        # scale_con_loss = optimizer.get_scaled_loss(
-                        #     scale_con_loss)
-
-                        # Output to Update Contrastive
-                        if loss is None:
-                            loss = scale_con_loss
-                        else:
-                            loss += scale_con_loss
-
-                        # Update Self-Supervised Metrics
-                        metrics.update_pretrain_metrics_train(contrast_loss_metric,
-                                                              contrast_acc_metric,
-                                                              contrast_entropy_metric,
-                                                              scale_con_loss, logit_ab,
-                                                              lables)
 
                     # Compute the Supervised train Loss
                     if supervised_head_output_1 is not None:
@@ -686,7 +665,6 @@ def main():
         online_model.resnet_model.save_weights(save_encoder)
         online_model.save_weights(save_online_model)
         target_model.save_weights(save_target_model)
-
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
