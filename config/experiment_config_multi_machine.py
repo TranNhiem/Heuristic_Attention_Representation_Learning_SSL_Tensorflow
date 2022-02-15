@@ -41,7 +41,7 @@ def read_cfg(mod="non_contrastive"):
     FLAGS.alpha = 0.5
     FLAGS.weighted_loss = 0.5
     FLAGS.resnet_depth = 18
-    FLAGS.train_epochs = 10
+    FLAGS.train_epochs = 20
     FLAGS.num_classes = 10
     FLAGS.subset_percentage = 1.0
 
