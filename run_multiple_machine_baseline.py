@@ -79,7 +79,7 @@ def main():
         raise ValueError("Invalida communication method")
 
     strategy = tf.distribute.MultiWorkerMirroredStrategy(
-    communication_options=communication_options,cluster_resolver=None)  # 
+        communication_options=communication_options, cluster_resolver=None)  #
     #strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy()
     # ------------------------------------------
     # Preparing dataset
@@ -248,7 +248,8 @@ def main():
                 # Get the data from
                 images_one, lable_one = ds_one
                 images_two, lable_two = ds_two
-
+                lable_one = tf.cast(lable_one, dtype=tf.float16)
+                lable_two = tf.cast(lable_two, dtype=tf.float16)
                 with tf.GradientTape(persistent=True) as tape:
 
                     if FLAGS.loss_type == "symmetrized":
@@ -681,6 +682,7 @@ def main():
         online_model.resnet_model.save_weights(save_encoder)
         online_model.save_weights(save_online_model)
         target_model.save_weights(save_target_model)
+
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
