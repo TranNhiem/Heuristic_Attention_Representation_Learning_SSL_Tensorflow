@@ -315,7 +315,7 @@ def main():
 
                             # Update Self-Supervised Metrics
                             metrics.update_pretrain_metrics_train(contrast_loss_metric,
-                                                                  contrast_acc_metric,
+                                                                  # contrast_acc_metric,
                                                                   contrast_entropy_metric,
                                                                   loss, logits_ab,
                                                                   labels)
