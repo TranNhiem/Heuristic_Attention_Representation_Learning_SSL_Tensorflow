@@ -603,8 +603,11 @@ def main():
 
                     with summary_writer.as_default():
                         cur_step = global_step.numpy()
-
                         checkpoint_manager.save(cur_step)
+                        # Removing the checkpoint if it is not Chief Worker
+                        if not chief_worker(task_type, task_id):
+                            tf.io.gfile.rmtree(write_checkpoint_dir)
+
                         logging.info('Completed: %d / %d steps',
                                      cur_step, train_steps)
                         metrics.log_and_write_metrics_to_summary(
