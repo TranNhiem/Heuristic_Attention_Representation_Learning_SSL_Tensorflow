@@ -27,13 +27,13 @@ from multiprocessing import util
 from config.absl_mock import Mock_Flag
 from config.experiment_config_multi_machine import read_cfg
 
-gpus = tf.config.experimental.list_physical_devices('GPU')
-if gpus:
-    try:
-        for gpu in gpus:
-            tf.config.experimental.set_memory_growth(gpu, True)
-    except RuntimeError as e:
-        print(e)
+# gpus = tf.config.experimental.list_physical_devices('GPU')
+# if gpus:
+#     try:
+#         for gpu in gpus:
+#             tf.config.experimental.set_memory_growth(gpu, True)
+#     except RuntimeError as e:
+#         print(e)
 
 
 read_cfg()
@@ -50,8 +50,8 @@ flag.save_config(os.path.join(FLAGS.model_dir, "config.cfg"))
 
 # For setting GPUs Thread reduce kernel Luanch Delay
 # https://github.com/tensorflow/tensorflow/issues/25724
-# os.environ['TF_GPU_THREAD_MODE'] = 'gpu_private'
-# os.environ['TF_GPU_THREAD_COUNT'] = '1'
+os.environ['TF_GPU_THREAD_MODE'] = 'gpu_private'
+os.environ['TF_GPU_THREAD_COUNT'] = '1'
 
 
 # Helper function to save and resore model.
@@ -78,7 +78,7 @@ def main():
     else:
         raise ValueError("Invalida communication method")
 
-    strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy(
+    strategy = tf.distribute.MultiWorkerMirroredStrategy(
     )  # communication_options=communication_options
     #strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy()
     # ------------------------------------------
