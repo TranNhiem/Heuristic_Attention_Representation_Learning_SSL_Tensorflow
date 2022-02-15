@@ -33,10 +33,6 @@ if gpus:
     except RuntimeError as e:
         print(e)
 # Setting GPU
-strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy(
-    communication=tf.distribute.experimental.CollectiveCommunication.AUTO,
-    cluster_resolver=None
-)
 
 #         tf.config.experimental.set_visible_devices(gpus[0:8], 'GPU')
 #         logical_gpus = tf.config.experimental.list_logical_devices('GPU')
@@ -82,7 +78,11 @@ def main():
 
     else:
         raise ValueError("Invalida communication method")
-   
+    strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy(
+    communication=tf.distribute.experimental.CollectiveCommunication.AUTO,
+    cluster_resolver=None
+)
+
     # strategy = tf.distribute.MultiWorkerMirroredStrategy(
     #     communication_options=communication_options)  # communication_options=communication_options
 
