@@ -99,7 +99,6 @@ def main():
                                                     train_label=FLAGS.train_label, val_label=FLAGS.val_label,
                                                     subset_class_num=FLAGS.num_classes, subset_percentage=FLAGS.subset_percentage)
 
-
     train_multi_worker_dataset = strategy.distribute_datasets_from_function(
         lambda input_context: dataset_loader.simclr_random_global_crop(input_context))
 
@@ -534,7 +533,7 @@ def main():
                             tf.distribute.ReduceOp.SUM, grads_online, )
 
                     optimizer.apply_gradients(
-                        zip(grads_online, online_model.trainable_variables))
+                        zip(grads_online, online_model.trainable_variables), experimental_aggregate_gradients=False)
 
                     # Update Prediction Head model
                     grads_pred = tape.gradient(
@@ -550,7 +549,7 @@ def main():
                         grads_pred = tf.distribute.get_replica_context().all_reduce(
                             tf.distribute.ReduceOp.SUM, grads_pred)
                     optimizer.apply_gradients(
-                        zip(grads_pred, prediction_model.trainable_variables))
+                        zip(grads_pred, prediction_model.trainable_variables), experimental_aggregate_gradients=False)
                 else:
                     raise ValueError(
                         "Invalid Implement optimization floating precision")
@@ -664,6 +663,7 @@ def main():
         online_model.resnet_model.save_weights(save_encoder)
         online_model.save_weights(save_online_model)
         target_model.save_weights(save_target_model)
+
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
