@@ -23,7 +23,7 @@ from helper_functions import *
 # Checkpoint saving and Restoring weights Not whole model
 from multiprocessing import util
 
-#FLAGS = flags.FLAGS
+# FLAGS = flags.FLAGS
 from config.absl_mock import Mock_Flag
 from config.experiment_config_multi_machine import read_cfg
 
@@ -80,7 +80,7 @@ def main():
 
     strategy = tf.distribute.MultiWorkerMirroredStrategy(
         communication_options=communication_options, cluster_resolver=None)  #
-    #strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy()
+    # strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy()
     # ------------------------------------------
     # Preparing dataset
     # ------------------------------------------
@@ -239,9 +239,10 @@ def main():
                 # total sum loss //Global batch_size
                 # (0.8/1024)*8
                 # loss = tf.reduce_sum(per_example_loss) * (1./len(gpus))### harry try : (1./8)
-                loss = (tf.reduce_sum(per_example_loss)
-                        * (1./16))
-
+                # loss = (tf.reduce_sum(per_example_loss)
+                #         * (1./16))
+                loss = 2 - 2 * (tf.reduce_sum(per_example_loss)
+                                * (1./train_global_batch_size))
                 return loss, logits_ab, labels
 
             @tf.function
@@ -358,9 +359,6 @@ def main():
                     else:
                         raise ValueError(
                             'invalid loss type check your loss type')
-
-                    # Compute Contrastive Train Loss -->
-                    loss = None
 
                     # Compute the Supervised train Loss
                     if supervised_head_output_1 is not None:
@@ -482,7 +480,7 @@ def main():
                             all_reduce_fp16_grads_online = tf.distribute.get_replica_context(
                             ).all_reduce(tf.distribute.ReduceOp.SUM, fp16_grads_online)
 
-                        #all_reduce_fp32_grads = [tf.cast(grad, 'float32') for grad in all_reduce_fp16_grads]
+                        # all_reduce_fp32_grads = [tf.cast(grad, 'float32') for grad in all_reduce_fp16_grads]
                         # all_reduce_fp32_grads_online = optimizer.get_unscaled_gradients(
                         #     all_reduce_fp16_grads_online)
                         all_reduce_fp32_grads_online = [
