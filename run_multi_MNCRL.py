@@ -330,11 +330,11 @@ def main():
                                 loss += loss
 
                             # Update Self-Supervised Metrics
-                            metrics.update_pretrain_metrics_train(contrast_loss_metric,
-                                                                  contrast_acc_metric,
-                                                                  contrast_entropy_metric,
-                                                                  loss, logits_o_ab,
-                                                                  labels)
+                            metrics.update_pretrain_metrics_train_multi_machine(contrast_loss_metric,
+                                                                                contrast_acc_metric,
+                                                                                contrast_entropy_metric,
+                                                                                loss, logits_o_ab,
+                                                                                labels)
 
                     elif FLAGS.loss_type == "asymmetrized":
                         obj_1, backg_1, proj_head_output_1, supervised_head_output_1 = online_model(
@@ -527,8 +527,8 @@ def main():
                         grads_online = tf.distribute.get_replica_context().all_reduce(
                             tf.distribute.ReduceOp.SUM, grads_online, options=hints)
                     else:
-                        # grads_online = tf.distribute.get_replica_context().all_reduce(
-                        #     tf.distribute.ReduceOp.SUM, grads_online)
+                        grads_online = tf.distribute.get_replica_context().all_reduce(
+                            tf.distribute.ReduceOp.SUM, grads_online)
                         print("local_grad")
                     optimizer.apply_gradients(
                         zip(grads_online, online_model.trainable_variables))
@@ -545,8 +545,8 @@ def main():
                             tf.distribute.ReduceOp.SUM, grads_pred, options=hints)
                     else:
                         print("local_grad")
-                        # grads_pred = tf.distribute.get_replica_context().all_reduce(
-                        #     tf.distribute.ReduceOp.SUM, grads_pred)
+                        grads_pred = tf.distribute.get_replica_context().all_reduce(
+                            tf.distribute.ReduceOp.SUM, grads_pred)
 
                     optimizer.apply_gradients(
                         zip(grads_pred, prediction_model.trainable_variables))
@@ -707,7 +707,6 @@ def main():
 #     'checkpoint', None,
 #     'Loading from the given checkpoint for fine-tuning if a finetuning '
 #     'checkpoint does not already exist in model_dir.')
-
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
