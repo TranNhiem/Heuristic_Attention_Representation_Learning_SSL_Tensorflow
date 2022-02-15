@@ -440,7 +440,8 @@ def main():
                     #     weight_decay_loss)
 
                     weight_decay_metric.update_state(weight_decay_loss)
-
+                    weight_decay_loss = tf.cast(
+                        weight_decay_loss, dtype=tf.float16)
                     loss += weight_decay_loss
                     # Contrast loss + Supervised loss + Regularize loss
                     total_loss_metric.update_state(loss)
@@ -682,7 +683,6 @@ def main():
         online_model.resnet_model.save_weights(save_encoder)
         online_model.save_weights(save_online_model)
         target_model.save_weights(save_target_model)
-
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
