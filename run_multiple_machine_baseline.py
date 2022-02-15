@@ -534,7 +534,7 @@ def main():
                         #print("Grad Local")
 
                     optimizer.apply_gradients(
-                        zip(grads_online, online_model.trainable_variables), experimental_aggregate_gradients=False)
+                        zip(grads_online, online_model.trainable_variables), )  # experimental_aggregate_gradients=False
 
                     # Update Prediction Head model
                     grads_pred = tape.gradient(
@@ -551,7 +551,7 @@ def main():
                             tf.distribute.ReduceOp.SUM, grads_pred)
                         #print("grad local")
                     optimizer.apply_gradients(
-                        zip(grads_pred, prediction_model.trainable_variables), experimental_aggregate_gradients=False)
+                        zip(grads_pred, prediction_model.trainable_variables), )  # experimental_aggregate_gradients=False
                 else:
                     raise ValueError(
                         "Invalid Implement optimization floating precision")
@@ -668,6 +668,7 @@ def main():
         online_model.resnet_model.save_weights(save_encoder)
         online_model.save_weights(save_online_model)
         target_model.save_weights(save_target_model)
+
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
