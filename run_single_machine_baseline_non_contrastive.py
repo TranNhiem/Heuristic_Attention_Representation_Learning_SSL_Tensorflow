@@ -516,7 +516,6 @@ def main():
 
                     with summary_writer.as_default():
                         cur_step = global_step.numpy()
-
                         checkpoint_manager.save(cur_step)
                         logging.info('Completed: %d / %d steps',
                                      cur_step, train_steps)
