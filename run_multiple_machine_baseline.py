@@ -441,7 +441,7 @@ def main():
 
                     weight_decay_metric.update_state(weight_decay_loss)
                     weight_decay_loss = tf.cast(
-                        weight_decay_loss, dtype=tf.float16)
+                        weight_decay_loss, dtype=tf.float32)
                     loss += weight_decay_loss
                     # Contrast loss + Supervised loss + Regularize loss
                     total_loss_metric.update_state(loss)
@@ -490,7 +490,7 @@ def main():
                         grads_online = tape.gradient(
                             loss, online_model.trainable_variables)
                         fp16_grads_online = [
-                            tf.cast(grad, 'float16')for grad in grads_online]
+                            tf.cast(grad, dtype=tf.float16) for grad in grads_online]
 
                         # Optional
                         if FLAGS.collective_hint:
@@ -514,7 +514,7 @@ def main():
                         grads_pred = tape.gradient(
                             loss, prediction_model.trainable_variables)
                         fp16_grads_pred = [
-                            tf.cast(grad, 'float16')for grad in grads_pred]
+                            tf.cast(grad, dtype=tf.float16) for grad in grads_pred]
 
                         if FLAGS.collective_hint:
                             hints = tf.distribute.experimental.CollectiveHints(
