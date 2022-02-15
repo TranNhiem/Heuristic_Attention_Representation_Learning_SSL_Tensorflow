@@ -248,8 +248,8 @@ def main():
                 # Get the data from
                 images_one, lable_one = ds_one
                 images_two, lable_two = ds_two
-                lable_one = tf.cast(lable_one, dtype=tf.float16)
-                lable_two = tf.cast(lable_two, dtype=tf.float16)
+                # lable_one = tf.cast(lable_one, dtype=tf.float16)
+                # lable_two = tf.cast(lable_two, dtype=tf.float16)
                 with tf.GradientTape(persistent=True) as tape:
 
                     if FLAGS.loss_type == "symmetrized":
