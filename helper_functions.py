@@ -282,7 +282,6 @@ def perform_evaluation(model, val_ds, val_steps, ckpt, strategy):
 
     return result
 
-
 def chief_worker(task_type, task_id):
     return task_type is None or task_type == 'chief' or (task_type == 'worker' and task_id == 0)
 

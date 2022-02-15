@@ -26,7 +26,7 @@ options = tf.data.Options()
 #options.experimental_deterministic = False
 # options.experimental_threading.max_intra_op_parallelism = 1
 # Shard policy using multi-machines training
-options.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.AUTO
+options.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.DATA
 
 
 class imagenet_dataset_multi_machine():
@@ -327,7 +327,7 @@ class imagenet_dataset_multi_machine():
         ds = tf.data.Dataset.from_tensor_slices((self.x_train, self.x_train_lable)) \
             .map(lambda x, y: (self.parse_images_lable_pair(x, y))) \
             .shuffle(self.BATCH_SIZE * 100, seed=self.seed) \
-            .map(lambda x, y: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE)), y),)  # .cache()
+            .map(lambda x, y: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE)), y),).cache()
 
         # option = tf.data.Options()
         # option.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.DATA
@@ -346,6 +346,7 @@ class imagenet_dataset_multi_machine():
                                   input_context.input_pipeline_id)
         train_ds = train_ds.batch(dis_tributed_batch)
         train_ds = train_ds.prefetch(AUTO)
+
         return train_ds
 
     def simclr_inception_style_crop_image_mask(self, input_context):

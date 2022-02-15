@@ -26,6 +26,26 @@ def update_pretrain_metrics_train(contrast_loss, contrast_acc, contrast_entropy,
     # total contrastive_loss
     contrast_loss.update_state(loss)
 
+    contrast_acc_val = tf.equal(
+        tf.argmax(labels_con, 1), tf.argmax(logits_con, axis=1))
+    contrast_acc_val = tf.reduce_mean(tf.cast(contrast_acc_val, tf.float32))
+
+    ###Contrastive acc
+    contrast_acc.update_state(contrast_acc_val)
+
+    prob_con = tf.nn.softmax(logits_con)
+    entropy_con = -tf.reduce_mean(
+        tf.reduce_sum(prob_con * tf.math.log(prob_con + 1e-8), -1))
+
+    contrast_entropy.update_state(entropy_con)
+
+
+def update_pretrain_metrics_train_multi_machine(contrast_loss, contrast_acc, contrast_entropy,
+                                                loss, logits_con, labels_con):
+    """Updated pretraining metrics."""
+    # total contrastive_loss
+    contrast_loss.update_state(loss)
+
     # contrast_acc_val = tf.equal(
     #     tf.argmax(labels_con, 1), tf.argmax(logits_con, axis=1))
     # contrast_acc_val = tf.reduce_mean(tf.cast(contrast_acc_val, tf.float32))

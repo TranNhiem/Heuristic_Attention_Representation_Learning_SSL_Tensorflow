@@ -54,8 +54,8 @@ flag.save_config(os.path.join(FLAGS.model_dir, "config.cfg"))
 
 # For setting GPUs Thread reduce kernel Luanch Delay
 # https://github.com/tensorflow/tensorflow/issues/25724
-# os.environ['TF_GPU_THREAD_MODE'] = 'gpu_private'
-# os.environ['TF_GPU_THREAD_COUNT'] = '2'
+os.environ['TF_GPU_THREAD_MODE'] = 'gpu_private'
+os.environ['TF_GPU_THREAD_COUNT'] = '2'
 
 
 def main():
@@ -78,13 +78,12 @@ def main():
 
     else:
         raise ValueError("Invalida communication method")
-    strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy(
-    communication=tf.distribute.experimental.CollectiveCommunication.AUTO,
-    cluster_resolver=None
-)
+    # strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy(
+    # communication=tf.distribute.experimental.CollectiveCommunication.AUTO,
+    # cluster_resolver=None)
 
-    # strategy = tf.distribute.MultiWorkerMirroredStrategy(
-    #     communication_options=communication_options)  # communication_options=communication_options
+    strategy = tf.distribute.MultiWorkerMirroredStrategy(
+        communication_options=communication_options)  # communication_options=communication_options
 
     # ------------------------------------------
     # Preparing dataset
@@ -355,11 +354,11 @@ def main():
                                 loss += loss
 
                             # Update Self-Supervised Metrics
-                            metrics.update_pretrain_metrics_train(contrast_loss_metric,
-                                                                  contrast_acc_metric,
-                                                                  contrast_entropy_metric,
-                                                                  loss, logits_o_ab,
-                                                                  labels)
+                            metrics.update_pretrain_metrics_train_multi_machine(contrast_loss_metric,
+                                                                                contrast_acc_metric,
+                                                                                contrast_entropy_metric,
+                                                                                loss, logits_o_ab,
+                                                                                labels)
                     else:
                         raise ValueError(
                             'invalid loss type check your loss type')
@@ -690,6 +689,7 @@ def main():
 #     'checkpoint', None,
 #     'Loading from the given checkpoint for fine-tuning if a finetuning '
 #     'checkpoint does not already exist in model_dir.')
+
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
