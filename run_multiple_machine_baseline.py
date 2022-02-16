@@ -1,3 +1,6 @@
+from config.experiment_config_multi_machine import read_cfg
+from config.absl_mock import Mock_Flag
+from multiprocessing import util
 from absl import flags
 from absl import logging
 from absl import app
@@ -19,13 +22,10 @@ from learning_rate_optimizer import WarmUpAndCosineDecay
 from multi_machine_dataloader import imagenet_dataset_multi_machine
 from helper_functions import *
 
-
+os.environ.pop('TF_CONFIG', None)
 # Checkpoint saving and Restoring weights Not whole model
-from multiprocessing import util
 
 # FLAGS = flags.FLAGS
-from config.absl_mock import Mock_Flag
-from config.experiment_config_multi_machine import read_cfg
 
 tf.keras.backend.clear_session()
 
@@ -674,7 +674,6 @@ def main():
         online_model.resnet_model.save_weights(save_encoder)
         online_model.save_weights(save_online_model)
         target_model.save_weights(save_target_model)
-
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
