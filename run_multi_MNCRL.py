@@ -556,14 +556,6 @@ def main():
                         "Invalid Implement optimization floating precision")
                 del tape
                 return loss
-            # Task type and Task_id among all Training Nodes
-            task_type, task_id = (strategy.cluster_resolver.task_type,
-                                  strategy.cluster_resolver.task_id)
-
-            checkpoint_manager, write_checkpoint_dir = multi_node_try_restore_from_checkpoint(
-                online_model, optimizer.iterations, optimizer, task_type, task_id)
-
-            steps_per_loop = checkpoint_steps
 
             @tf.function
             def distributed_train_step(ds_one, ds_two, alpha, weight_loss):
