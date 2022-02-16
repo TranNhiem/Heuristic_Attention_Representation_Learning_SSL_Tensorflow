@@ -78,7 +78,7 @@ def main():
     else:
         raise ValueError("Invalida communication method")
 
-    strategy = tf.distribute.MultiWorkerMirroredStrategy(ommunication_options=communication_options, cluster_resolver=None
+    strategy = tf.distribute.MultiWorkerMirroredStrategy(communication_options=communication_options, cluster_resolver=None
                                                          )  # communication_options=communication_options  #
     # strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy()
     # ------------------------------------------
