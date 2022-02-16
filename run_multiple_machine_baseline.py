@@ -88,8 +88,8 @@ def main():
     per_worker_train_batch_size = FLAGS.single_machine_train_batch_size
     per_worker_val_batch_size = FLAGS.single_machine_val_batch_size
 
-    train_global_batch_size = per_worker_train_batch_size * FLAGS.num_workers
-    val_global_batch_size = per_worker_val_batch_size * FLAGS.num_workers
+    train_global_batch_size = per_worker_train_batch_size * strategy.num_replicas_in_sync
+    val_global_batch_size = per_worker_val_batch_size * strategy.num_replicas_in_sync
 
     dataset_loader = imagenet_dataset_multi_machine(img_size=FLAGS.image_size, train_batch=train_global_batch_size,
                                                     val_batch=val_global_batch_size,
@@ -534,7 +534,7 @@ def main():
                         #print("Grad Local")
 
                     optimizer.apply_gradients(
-                        zip(grads_online, online_model.trainable_variables), )  # experimental_aggregate_gradients=False
+                        zip(grads_online, online_model.trainable_variables),all_reduce_sum_gradients=False )  # 
 
                     # Update Prediction Head model
                     grads_pred = tape.gradient(
@@ -551,7 +551,7 @@ def main():
                             tf.distribute.ReduceOp.SUM, grads_pred)
                         #print("grad local")
                     optimizer.apply_gradients(
-                        zip(grads_pred, prediction_model.trainable_variables), )  # experimental_aggregate_gradients=False
+                        zip(grads_pred, prediction_model.trainable_variables),all_reduce_sum_gradients=False )  # we do gradient cast custom
                 else:
                     raise ValueError(
                         "Invalid Implement optimization floating precision")
