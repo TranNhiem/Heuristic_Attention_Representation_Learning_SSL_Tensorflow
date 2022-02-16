@@ -33,7 +33,9 @@ gpus = tf.config.experimental.list_physical_devices('GPU')
 if gpus:
     try:
         for gpu in gpus:
-            tf.config.experimental.set_memory_growth(gpu, True)
+            #tf.config.experimental.set_memory_growth(gpu, True)
+            tf.config.experimental.VirtualDeviceConfiguration(
+                memory_limit=40024)
     except RuntimeError as e:
         print(e)
 
@@ -671,6 +673,7 @@ def main():
         online_model.resnet_model.save_weights(save_encoder)
         online_model.save_weights(save_online_model)
         target_model.save_weights(save_target_model)
+
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
