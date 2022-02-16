@@ -115,6 +115,8 @@ class LARSOptimizer(tf.keras.optimizers.Optimizer):
             if self._do_layer_adaptation(param_name):
                 w_norm = tf.norm(param, ord=2)
                 g_norm = tf.norm(grad, ord=2)
+                
+
                 trust_ratio = tf.where(
                     tf.greater(w_norm, 0),
                     tf.where(tf.greater(g_norm, 0),
