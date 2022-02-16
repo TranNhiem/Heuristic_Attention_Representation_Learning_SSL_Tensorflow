@@ -9,7 +9,7 @@ def read_cfg(mod="non_contrastive"):
 
     '''This Cache File still Under development'''
     FLAGS.num_workers = 2
-    FLAGS.communication_method = "auto"  # ["NCCL", "auto", "RING"]
+    FLAGS.communication_method = "RING"  # ["NCCL", "auto", "RING"]
     FLAGS.collective_hint = False
     FLAGS.with_option = True
     FLAGS.wandb_project_name = "heuristic_attention_representation_learning_Paper_correction"
@@ -29,7 +29,7 @@ def read_cfg(mod="non_contrastive"):
 
     FLAGS.moving_average = "schedule"
     # ['fp16', 'fp32'],  # fp32 is original precision
-    FLAGS.mixprecision = 'fp16'
+    FLAGS.mixprecision = 'fp32'
     FLAGS.precision_method = "API"  # "API"
     # , [ 'original', 'model_only', ],
     FLAGS.base_lr = 0.5
