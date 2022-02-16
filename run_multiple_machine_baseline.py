@@ -1,29 +1,28 @@
+from config.experiment_config_multi_machine import read_cfg
+from config.absl_mock import Mock_Flag
+from multiprocessing import util
+from absl import flags
+from absl import logging
+from absl import app
+import tensorflow as tf
+import metrics
+import wandb
+import json
+import math
+import random
+from imutils import paths
+import objective as obj_lib
+from wandb.keras import WandbCallback
+from self_supervised_losses import byol_symetrize_loss
+import model_for_non_contrastive_framework as all_model
+from learning_rate_optimizer import WarmUpAndCosineDecay
+from multi_machine_dataloader import imagenet_dataset_multi_machine
+from helper_functions import *
 import os
 
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-# os.environ.pop('TF_CONFIG', None)
-
-from helper_functions import *
-from multi_machine_dataloader import imagenet_dataset_multi_machine
-from learning_rate_optimizer import WarmUpAndCosineDecay
-import model_for_non_contrastive_framework as all_model
-from self_supervised_losses import byol_symetrize_loss
-from wandb.keras import WandbCallback
-import objective as obj_lib
-from imutils import paths
-import random
-import math
-import json
-import wandb
-import metrics
-import tensorflow as tf
-from absl import app
-from absl import logging
-from absl import flags
-from multiprocessing import util
-from config.absl_mock import Mock_Flag
-from config.experiment_config_multi_machine import read_cfg
+os.environ.pop('TF_CONFIG', None)
 
 
 # Checkpoint saving and Restoring weights Not whole model
