@@ -23,7 +23,7 @@ def read_cfg(mod="non_contrastive"):
         '1': 1, '2': 1, '3': 1, '4': 1, '5': 1}
     FLAGS.Middle_layer_output = None
 
-    FLAGS.loss_type = "asymmetrized"  # asymmetrized (2 only options)
+    FLAGS.loss_type = "symmetrized"  # asymmetrized (2 only options)
     # Moving average the weight From Online to Target Encoder Network
     # two options [fixed_value, schedule] schedule recommend from BYOL
     FLAGS.moving_average = "schedule"
