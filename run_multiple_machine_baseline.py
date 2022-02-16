@@ -315,10 +315,10 @@ def main():
 
                             # Update Self-Supervised Metrics
                             metrics.update_pretrain_metrics_train_multi_machine(contrast_loss_metric,
-                                                                  # contrast_acc_metric,
-                                                                  contrast_entropy_metric,
-                                                                  loss, logits_ab,
-                                                                  labels)
+                                                                                contrast_acc_metric,
+                                                                                contrast_entropy_metric,
+                                                                                loss, logits_ab,
+                                                                                labels)
 
                     elif FLAGS.loss_type == "asymmetrized":
                         logging.info("You implement Asymmetrized loss")
@@ -351,10 +351,10 @@ def main():
 
                             # Update Self-Supervised Metrics
                             metrics.update_pretrain_metrics_train_multi_machine(contrast_loss_metric,
-                                                                  contrast_acc_metric,
-                                                                  contrast_entropy_metric,
-                                                                  loss, logits_ab,
-                                                                  labels)
+                                                                                contrast_acc_metric,
+                                                                                contrast_entropy_metric,
+                                                                                loss, logits_ab,
+                                                                                labels)
 
                     else:
                         raise ValueError(
@@ -668,7 +668,6 @@ def main():
         online_model.resnet_model.save_weights(save_encoder)
         online_model.save_weights(save_online_model)
         target_model.save_weights(save_target_model)
-
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
