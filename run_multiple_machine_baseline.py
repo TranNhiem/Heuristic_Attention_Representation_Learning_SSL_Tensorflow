@@ -442,24 +442,22 @@ def main():
                         # Update the Encoder
                         scaled_gradients = tape.gradient(
                             scaled_loss, online_model.trainable_variables)
-                        all_reduce_fp16_grads_online = tf.distribute.get_replica_context(
-                        ).all_reduce(tf.distribute.ReduceOp.SUM, scaled_gradients)
+                        # all_reduce_fp16_grads_online = tf.distribute.get_replica_context().all_reduce(tf.distribute.ReduceOp.SUM, scaled_gradients)
 
                         gradients_online = optimizer.get_unscaled_gradients(
-                            all_reduce_fp16_grads_online)
-                        optimizer.apply_gradients(zip(
-                            gradients_online, online_model.trainable_variables), experimental_aggregate_gradients=False)
+                            scaled_gradients)
+                        optimizer.apply_gradients(
+                            zip(gradients_online, online_model.trainable_variables))
 
                         # Update Prediction Head model
                         scaled_grads_pred = tape.gradient(
                             scaled_loss, prediction_model.trainable_variables)
-                        all_reduce_fp16_grads_pred = tf.distribute.get_replica_context(
-                        ).all_reduce(tf.distribute.ReduceOp.SUM, scaled_grads_pred)
+                        # all_reduce_fp16_grads_pred = tf.distribute.get_replica_context().all_reduce(tf.distribute.ReduceOp.SUM, scaled_grads_pred)
 
                         gradients_pred = optimizer.get_unscaled_gradients(
-                            all_reduce_fp16_grads_pred)
+                            scaled_grads_pred)
                         optimizer.apply_gradients(
-                            zip(gradients_pred, prediction_model.trainable_variables), experimental_aggregate_gradients=False)
+                            zip(gradients_pred, prediction_model.trainable_variables))
 
                     # Method 2
                     if FLAGS.precision_method == "custome":
@@ -668,7 +666,6 @@ def main():
         online_model.resnet_model.save_weights(save_encoder)
         online_model.save_weights(save_online_model)
         target_model.save_weights(save_target_model)
-
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
