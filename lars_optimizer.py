@@ -103,9 +103,9 @@ class LARSOptimizer(tf.keras.optimizers.Optimizer):
         if self._use_weight_decay(param_name):
             if FLAGS.mixprecision == "fp16":
                 weight_decay = tf.cast(self.weight_decay, dtype=tf.float16)
-                grad = tf.cast(grad, dtype=tf.float16)
-                #param = tf.cast(param, dtype=tf.float16)
-                grad += weight_decay * param
+                param1 = param
+                param1 = tf.cast(param1, dtype=tf.float16)
+                grad += weight_decay * param1
 
             else:
                 grad += self.weight_decay * param
@@ -138,6 +138,7 @@ class LARSOptimizer(tf.keras.optimizers.Optimizer):
             else:
                 update = next_v
             next_param = param - update
+
         else:
             next_v = tf.multiply(self.momentum, v) + grad
             if self.use_nesterov:
