@@ -24,7 +24,10 @@ from imutils import paths
 # policy = mixed_precision.Policy('mixed_float16')
 # mixed_precision.set_global_policy(policy)
 
+# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+os.environ.pop('TF_CONFIG', None)
 
+tf.keras.backend.clear_session()
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if gpus:
     try:
