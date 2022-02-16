@@ -84,7 +84,7 @@ def main():
     # cluster_resolver=None)
 
     strategy = tf.distribute.MultiWorkerMirroredStrategy(
-        )  # communication_options=communication_options
+    )  # communication_options=communication_options
 
     # ------------------------------------------
     # Preparing dataset
@@ -482,13 +482,14 @@ def main():
                             all_reduce_fp16_grads_online = tf.distribute.get_replica_context(
                             ).all_reduce(tf.distribute.ReduceOp.SUM, fp16_grads_online)
 
-                        all_reduce_fp32_grads_online = [tf.cast(grad, 'float32') for grad in all_reduce_fp16_grads_online]
+                        all_reduce_fp32_grads_online = [
+                            tf.cast(grad, 'float32') for grad in all_reduce_fp16_grads_online]
                         # all_reduce_fp32_grads_online = optimizer.get_unscaled_gradients(
                         #     all_reduce_fp16_grads_online)
                         # all_reduce_fp32_grads = optimizer.get_unscaled_gradients(
                         #     all_reduce_fp32_grads)
                         optimizer.apply_gradients(zip(
-                            all_reduce_fp32_grads_online, online_model.trainable_variables), all_reduce_sum_gradients=False)
+                            all_reduce_fp32_grads_online, online_model.trainable_variables), experimental_aggregate_gradients=False)
 
                         # Prediction Model
                         grads_pred = tape.gradient(
@@ -505,12 +506,13 @@ def main():
                             all_reduce_fp16_grads_pred = tf.distribute.get_replica_context(
                             ).all_reduce(tf.distribute.ReduceOp.SUM, fp16_grads_pred)
 
-                        all_reduce_fp32_grads_pred = [tf.cast(grad, 'float32') for grad in all_reduce_fp16_grads_pred]
-                        
+                        all_reduce_fp32_grads_pred = [
+                            tf.cast(grad, 'float32') for grad in all_reduce_fp16_grads_pred]
+
                         # all_reduce_fp32_grads = optimizer.get_unscaled_gradients(
                         #     all_reduce_fp32_grads)
                         optimizer.apply_gradients(zip(
-                            all_reduce_fp32_grads_pred, prediction_model.trainable_variables))
+                            all_reduce_fp32_grads_pred, prediction_model.trainable_variables), experimental_aggregate_gradients=False)
 
                 elif FLAGS.mixprecision == "fp32":
                     logging.info("you implement original_Fp precision")
@@ -697,7 +699,6 @@ def main():
 #     'checkpoint', None,
 #     'Loading from the given checkpoint for fine-tuning if a finetuning '
 #     'checkpoint does not already exist in model_dir.')
-
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
