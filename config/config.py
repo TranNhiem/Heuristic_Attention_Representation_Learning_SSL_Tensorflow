@@ -166,7 +166,7 @@ def Learning_Rate_Optimizer_and_Training_Strategy():
     flags.DEFINE_enum(
 
         # if Change the Optimizer please change --
-        'optimizer', 'LARSW', ['Adam', 'SGD', 'LARS', 'AdamW', 'SGDW', 'LARSW',
+        'optimizer', 'AdamW', ['Adam', 'SGD', 'LARS', 'AdamW', 'SGDW', 'LARSW',
                                'AdamGC', 'SGDGC', 'LARSGC', 'AdamW_GC', 'SGDW_GC', 'LARSW_GC'],
         'How to scale the learning rate as a function of batch size.')
 
