@@ -442,7 +442,8 @@ def main():
                         # Update the Encoder
                         scaled_gradients = tape.gradient(
                             scaled_loss, online_model.trainable_variables)
-                        # all_reduce_fp16_grads_online = tf.distribute.get_replica_context().all_reduce(tf.distribute.ReduceOp.SUM, scaled_gradients)
+                        all_reduce_fp16_grads_online = tf.distribute.get_replica_context(
+                        ).all_reduce(tf.distribute.ReduceOp.SUM, scaled_gradients)
 
                         gradients_online = optimizer.get_unscaled_gradients(
                             scaled_gradients)
@@ -452,7 +453,8 @@ def main():
                         # Update Prediction Head model
                         scaled_grads_pred = tape.gradient(
                             scaled_loss, prediction_model.trainable_variables)
-                        # all_reduce_fp16_grads_pred = tf.distribute.get_replica_context().all_reduce(tf.distribute.ReduceOp.SUM, scaled_grads_pred)
+                        all_reduce_fp16_grads_pred = tf.distribute.get_replica_context(
+                        ).all_reduce(tf.distribute.ReduceOp.SUM, scaled_grads_pred)
 
                         gradients_pred = optimizer.get_unscaled_gradients(
                             scaled_grads_pred)
@@ -666,6 +668,7 @@ def main():
         online_model.resnet_model.save_weights(save_encoder)
         online_model.save_weights(save_online_model)
         target_model.save_weights(save_target_model)
+
 
     # Pre-Training and Finetune
 if __name__ == '__main__':

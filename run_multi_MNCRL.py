@@ -84,7 +84,7 @@ def main():
     # cluster_resolver=None)
 
     strategy = tf.distribute.MultiWorkerMirroredStrategy(
-        communication_options=communication_options)  # communication_options=communication_options
+        )  # communication_options=communication_options
 
     # ------------------------------------------
     # Preparing dataset
@@ -482,9 +482,9 @@ def main():
                             all_reduce_fp16_grads_online = tf.distribute.get_replica_context(
                             ).all_reduce(tf.distribute.ReduceOp.SUM, fp16_grads_online)
 
-                        #all_reduce_fp32_grads = [tf.cast(grad, 'float32') for grad in all_reduce_fp16_grads]
-                        all_reduce_fp32_grads_online = optimizer.get_unscaled_gradients(
-                            all_reduce_fp16_grads_online)
+                        all_reduce_fp32_grads_online = [tf.cast(grad, 'float32') for grad in all_reduce_fp16_grads_online]
+                        # all_reduce_fp32_grads_online = optimizer.get_unscaled_gradients(
+                        #     all_reduce_fp16_grads_online)
                         # all_reduce_fp32_grads = optimizer.get_unscaled_gradients(
                         #     all_reduce_fp32_grads)
                         optimizer.apply_gradients(zip(
@@ -504,16 +504,13 @@ def main():
                         else:
                             all_reduce_fp16_grads_pred = tf.distribute.get_replica_context(
                             ).all_reduce(tf.distribute.ReduceOp.SUM, fp16_grads_pred)
-                        # Optional
-                        # hints = tf.distribute.experimental.CollectiveHints( bytes_per_pack=32 * 1024 * 1024)
-                        # all_reduce_fp16_grads = tf.distribute.get_replica_context().all_reduce(tf.distribute.ReduceOp.SUM, fp16_grads, options=hints)
-                        #all_reduce_fp32_grads = [tf.cast(grad, 'float32') for grad in all_reduce_fp16_grads]
-                        all_reduce_fp32_grads_pred = optimizer.get_unscaled_gradients(
-                            all_reduce_fp16_grads_pred)
+
+                        all_reduce_fp32_grads_pred = [tf.cast(grad, 'float32') for grad in all_reduce_fp16_grads_pred]
+                        
                         # all_reduce_fp32_grads = optimizer.get_unscaled_gradients(
                         #     all_reduce_fp32_grads)
                         optimizer.apply_gradients(zip(
-                            all_reduce_fp32_grads_pred, prediction_model.trainable_variables), all_reduce_sum_gradients=False)
+                            all_reduce_fp32_grads_pred, prediction_model.trainable_variables))
 
                 elif FLAGS.mixprecision == "fp32":
                     logging.info("you implement original_Fp precision")
@@ -532,7 +529,7 @@ def main():
                             tf.distribute.ReduceOp.SUM, grads_online)
                         print("local_grad")
                     optimizer.apply_gradients(
-                        zip(grads_online, online_model.trainable_variables), all_reduce_sum_gradients=False)
+                        zip(grads_online, online_model.trainable_variables), )
 
                     # Update Prediction Head model
                     grads_pred = tape.gradient(
