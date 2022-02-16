@@ -1,8 +1,8 @@
 import os
 
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-os.environ.pop('TF_CONFIG', None)
+# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+# os.environ.pop('TF_CONFIG', None)
 
 from helper_functions import *
 from multi_machine_dataloader import imagenet_dataset_multi_machine
@@ -24,7 +24,6 @@ from absl import flags
 from multiprocessing import util
 from config.absl_mock import Mock_Flag
 from config.experiment_config_multi_machine import read_cfg
-
 
 
 # Checkpoint saving and Restoring weights Not whole model
@@ -678,6 +677,7 @@ def main():
         online_model.resnet_model.save_weights(save_encoder)
         online_model.save_weights(save_online_model)
         target_model.save_weights(save_target_model)
+
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
