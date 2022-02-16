@@ -101,7 +101,7 @@ class LARSOptimizer(tf.keras.optimizers.Optimizer):
         v = self.get_slot(param, "Momentum")
 
         if self._use_weight_decay(param_name):
-            if FLAGS.mixprecision == "fp16":
+            if FLAGS.mixprecision == "fp16" and FLASG.precision_method == "custome":
                 weight_decay = tf.cast(self.weight_decay, dtype=tf.float16)
                 param1 = param
                 param1 = tf.cast(param1, dtype=tf.float16)
@@ -115,7 +115,6 @@ class LARSOptimizer(tf.keras.optimizers.Optimizer):
             if self._do_layer_adaptation(param_name):
                 w_norm = tf.norm(param, ord=2)
                 g_norm = tf.norm(grad, ord=2)
-                
 
                 trust_ratio = tf.where(
                     tf.greater(w_norm, 0),
@@ -123,13 +122,13 @@ class LARSOptimizer(tf.keras.optimizers.Optimizer):
                              (self.eeta * w_norm / g_norm), 1.0),
                     1.0)
 
-            if FLAGS.mixprecision == "fp16":
+            if FLAGS.mixprecision == "fp16" and FLASG.precision_method == "custome":
                 learning_rate = tf.cast(learning_rate, dtype=tf.float16)
                 #self.momentum = tf.cast(self.momentum, dytype=tf.float)
 
             scaled_lr = learning_rate * trust_ratio
 
-            if FLAGS.mixprecision == "fp16":
+            if FLAGS.mixprecision == "fp16" and FLASG.precision_method == "custome":
                 next_v = tf.cast(tf.multiply(self.momentum, v),
                                  dtype=tf.float16) + scaled_lr * grad
             else:
