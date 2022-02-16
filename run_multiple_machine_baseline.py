@@ -27,6 +27,8 @@ from multiprocessing import util
 from config.absl_mock import Mock_Flag
 from config.experiment_config_multi_machine import read_cfg
 
+tf.keras.backend.clear_session()
+
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if gpus:
     try:
