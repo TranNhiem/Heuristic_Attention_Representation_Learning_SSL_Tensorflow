@@ -534,7 +534,7 @@ def main():
                         #print("Grad Local")
 
                     optimizer.apply_gradients(
-                        zip(grads_online, online_model.trainable_variables), all_reduce_sum_gradients=False)  #
+                        zip(grads_online, online_model.trainable_variables), skip_gradients_aggregation=True)  #
 
                     # Update Prediction Head model
                     grads_pred = tape.gradient(
@@ -551,7 +551,7 @@ def main():
                             tf.distribute.ReduceOp.SUM, grads_pred)
                         #print("grad local")
                     optimizer.apply_gradients(
-                        zip(grads_pred, prediction_model.trainable_variables), all_reduce_sum_gradients=False)  # we do gradient cast custom
+                        zip(grads_pred, prediction_model.trainable_variables), skip_gradients_aggregation=True)  # we do gradient cast custom
                 else:
                     raise ValueError(
                         "Invalid Implement optimization floating precision")
