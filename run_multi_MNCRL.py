@@ -550,7 +550,7 @@ def main():
                             tf.distribute.ReduceOp.SUM, grads_pred)
 
                     optimizer.apply_gradients(
-                        zip(grads_pred, prediction_model.trainable_variables), all_reduce_sum_gradients=False)  # Update gradient Customize
+                        zip(grads_pred, prediction_model.trainable_variables), )  # all_reduce_sum_gradients=FalseUpdate gradient Customize
                 else:
                     raise ValueError(
                         "Invalid Implement optimization floating precision")
