@@ -71,15 +71,18 @@ def main():
     if FLAGS.communication_method == "NCCL":
 
         communication_options = tf.distribute.experimental.CommunicationOptions(
-            implementation=tf.distribute.experimental.CommunicationImplementation.NCCL)
+            implementation=tf.distribute.experimental.CollectiveCommunication.NCCL)
+        # tf.distribute.experimental.CommunicationImplementation.NCCL)
     elif FLAGS.communication_method == "RING":
 
         communication_options = tf.distribute.experimental.CommunicationOptions(
-            implementation=tf.distribute.experimental.CommunicationImplementation.RING)
+            implementation=tf.distribute.experimental.CollectiveCommunication.RING)
+        # tf.distribute.experimental.CommunicationImplementation.RING)
 
     elif FLAGS.communication_method == "auto":
         communication_options = tf.distribute.experimental.CommunicationOptions(
-            implementation=tf.distribute.experimental.CollectiveCommunication.AUTO)
+            implementation=implementation=tf.distribute.experimental.CollectiveCommunication.AUTO)
+        # tf.distribute.experimental.CollectiveCommunication.AUTO)
 
     else:
         raise ValueError("Invalida communication method")
