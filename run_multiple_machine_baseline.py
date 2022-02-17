@@ -81,7 +81,7 @@ def main():
 
     elif FLAGS.communication_method == "auto":
         communication_options = tf.distribute.experimental.CommunicationOptions(
-            implementation=implementation=tf.distribute.experimental.CollectiveCommunication.AUTO)
+            implementation=tf.distribute.experimental.CollectiveCommunication.AUTO)
         # tf.distribute.experimental.CollectiveCommunication.AUTO)
 
     else:
@@ -680,7 +680,6 @@ def main():
         online_model.resnet_model.save_weights(save_encoder)
         online_model.save_weights(save_online_model)
         target_model.save_weights(save_target_model)
-
 
     # Pre-Training and Finetune
 if __name__ == '__main__':

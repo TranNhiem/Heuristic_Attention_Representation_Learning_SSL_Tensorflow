@@ -85,9 +85,9 @@ def main():
     # strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy(
     # communication=tf.distribute.experimental.CollectiveCommunication.AUTO,
     # cluster_resolver=None)
-
-    strategy = tf.distribute.MultiWorkerMirroredStrategy(
-    )  # communication_options=communication_options
+    resolver = tf.distribute.cluster_resolver.TFConfigClusterResolver()
+    strategy = tf.distribute.MultiWorkerMirroredStrategy(communication_options=communication_options, cluster_resolver=resolver
+                                                         )  # communication_options=communication_options
 
     # ------------------------------------------
     # Preparing dataset
@@ -702,6 +702,7 @@ def main():
 #     'checkpoint', None,
 #     'Loading from the given checkpoint for fine-tuning if a finetuning '
 #     'checkpoint does not already exist in model_dir.')
+
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
