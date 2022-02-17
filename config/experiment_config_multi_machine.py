@@ -48,5 +48,5 @@ def read_cfg(mod="non_contrastive"):
 
     FLAGS.single_machine_train_batch_size = 400
     FLAGS.single_machine_val_batch_size = 400
-    FLAGS.model_dir = "./resnet_byol/resnet18_correction/test_multi_machine"
+    FLAGS.model_dir = "./resnet_byol/resnet18_correction/test_multi_machine_1"
     #FLAGS.train_mode = "finetune"
