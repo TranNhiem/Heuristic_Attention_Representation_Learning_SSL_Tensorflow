@@ -60,128 +60,128 @@ flag.save_config(os.path.join(FLAGS.model_dir, "config.cfg"))
 os.environ['TF_GPU_THREAD_MODE'] = 'gpu_private'
 os.environ['TF_GPU_THREAD_COUNT'] = '2'
 
+# ------------------------------------------
+# Communication methods
+# ------------------------------------------
+if FLAGS.communication_method == "NCCL":
 
-def main():
+    communication_options = tf.distribute.experimental.CommunicationOptions(
+        implementation=tf.distribute.experimental.CommunicationImplementation.NCCL)
 
-    # ------------------------------------------
-    # Communication methods
-    # ------------------------------------------
-    if FLAGS.communication_method == "NCCL":
+elif FLAGS.communication_method == "RING":
 
-        communication_options = tf.distribute.experimental.CommunicationOptions(
-            implementation=tf.distribute.experimental.CommunicationImplementation.NCCL)
+    communication_options = tf.distribute.experimental.CommunicationOptions(
+        implementation=tf.distribute.experimental.CommunicationImplementation.RING)
 
-    elif FLAGS.communication_method == "RING":
+elif FLAGS.communication_method == "auto":
+    communication_options = tf.distribute.experimental.CommunicationOptions(
+        implementation=tf.distribute.experimental.CollectiveCommunication.AUTO)
 
-        communication_options = tf.distribute.experimental.CommunicationOptions(
-            implementation=tf.distribute.experimental.CommunicationImplementation.RING)
+else:
+    raise ValueError("Invalida communication method")
+# strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy(
+# communication=tf.distribute.experimental.CollectiveCommunication.AUTO,
+# cluster_resolver=None)
+resolver = tf.distribute.cluster_resolver.TFConfigClusterResolver()
+strategy = tf.distribute.MultiWorkerMirroredStrategy(communication_options=communication_options, cluster_resolver=resolver
+                                                     )  # communication_options=communication_options
 
-    elif FLAGS.communication_method == "auto":
-        communication_options = tf.distribute.experimental.CommunicationOptions(
-            implementation=tf.distribute.experimental.CollectiveCommunication.AUTO)
+with strategy.scope():
+    def main():
 
-    else:
-        raise ValueError("Invalida communication method")
-    # strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy(
-    # communication=tf.distribute.experimental.CollectiveCommunication.AUTO,
-    # cluster_resolver=None)
-    resolver = tf.distribute.cluster_resolver.TFConfigClusterResolver()
-    strategy = tf.distribute.MultiWorkerMirroredStrategy(communication_options=communication_options, cluster_resolver=resolver
-                                                         )  # communication_options=communication_options
+        # ------------------------------------------
+        # Preparing dataset
+        # ------------------------------------------
+        # Number of Machines use for Training
+        per_worker_train_batch_size = FLAGS.single_machine_train_batch_size
+        per_worker_val_batch_size = FLAGS.single_machine_val_batch_size
 
-    # ------------------------------------------
-    # Preparing dataset
-    # ------------------------------------------
-    # Number of Machines use for Training
-    per_worker_train_batch_size = FLAGS.single_machine_train_batch_size
-    per_worker_val_batch_size = FLAGS.single_machine_val_batch_size
+        train_global_batch_size = per_worker_train_batch_size * strategy.num_replicas_in_sync
+        val_global_batch_size = per_worker_val_batch_size * strategy.num_replicas_in_sync
 
-    train_global_batch_size = per_worker_train_batch_size * strategy.num_replicas_in_sync
-    val_global_batch_size = per_worker_val_batch_size * strategy.num_replicas_in_sync
+        dataset_loader = imagenet_dataset_multi_machine(img_size=FLAGS.image_size, train_batch=train_global_batch_size,
+                                                        val_batch=val_global_batch_size,
+                                                        strategy=strategy, train_path=FLAGS.train_path,
+                                                        val_path=FLAGS.val_path,
+                                                        mask_path=FLAGS.mask_path, bi_mask=True,
+                                                        train_label=FLAGS.train_label, val_label=FLAGS.val_label,
+                                                        subset_class_num=FLAGS.num_classes, subset_percentage=FLAGS.subset_percentage)
 
-    dataset_loader = imagenet_dataset_multi_machine(img_size=FLAGS.image_size, train_batch=train_global_batch_size,
-                                                    val_batch=val_global_batch_size,
-                                                    strategy=strategy, train_path=FLAGS.train_path,
-                                                    val_path=FLAGS.val_path,
-                                                    mask_path=FLAGS.mask_path, bi_mask=True,
-                                                    train_label=FLAGS.train_label, val_label=FLAGS.val_label,
-                                                    subset_class_num=FLAGS.num_classes, subset_percentage=FLAGS.subset_percentage)
+        train_multi_worker_dataset = strategy.distribute_datasets_from_function(
+            lambda input_context: dataset_loader.simclr_random_global_crop_image_mask(input_context))
 
-    train_multi_worker_dataset = strategy.distribute_datasets_from_function(
-        lambda input_context: dataset_loader.simclr_random_global_crop_image_mask(input_context))
+        val_multi_worker_dataset = strategy.distribute_datasets_from_function(
+            lambda input_context: dataset_loader.supervised_validation(input_context))
 
-    val_multi_worker_dataset = strategy.distribute_datasets_from_function(
-        lambda input_context: dataset_loader.supervised_validation(input_context))
+        num_train_examples, num_eval_examples = dataset_loader.get_data_size()
 
-    num_train_examples, num_eval_examples = dataset_loader.get_data_size()
+        train_steps = FLAGS.eval_steps or int(
+            num_train_examples * FLAGS.train_epochs // train_global_batch_size)*2
+        eval_steps = FLAGS.eval_steps or int(
+            math.ceil(num_eval_examples / val_global_batch_size))
 
-    train_steps = FLAGS.eval_steps or int(
-        num_train_examples * FLAGS.train_epochs // train_global_batch_size)*2
-    eval_steps = FLAGS.eval_steps or int(
-        math.ceil(num_eval_examples / val_global_batch_size))
+        epoch_steps = int(round(num_train_examples / train_global_batch_size))
+        checkpoint_steps = (FLAGS.checkpoint_steps or (
+            FLAGS.checkpoint_epochs * epoch_steps))
 
-    epoch_steps = int(round(num_train_examples / train_global_batch_size))
-    checkpoint_steps = (FLAGS.checkpoint_steps or (
-        FLAGS.checkpoint_epochs * epoch_steps))
+        logging.info("# Subset_training class %d", FLAGS.num_classes)
+        logging.info('# train examples: %d', num_train_examples)
+        logging.info('# train_steps: %d', train_steps)
+        logging.info('# eval examples: %d', num_eval_examples)
+        logging.info('# eval steps: %d', eval_steps)
 
-    logging.info("# Subset_training class %d", FLAGS.num_classes)
-    logging.info('# train examples: %d', num_train_examples)
-    logging.info('# train_steps: %d', train_steps)
-    logging.info('# eval examples: %d', num_eval_examples)
-    logging.info('# eval steps: %d', eval_steps)
-
-    # Configure the Encoder Architecture.
-    with strategy.scope():
+        # with strategy.scope():
         online_model = all_model.Binary_online_model(
             FLAGS.num_classes, Upsample=FLAGS.feature_upsample, Downsample=FLAGS.downsample_mod)
         prediction_model = all_model.prediction_head_model()
         target_model = all_model.Binary_target_model(
             FLAGS.num_classes, Upsample=FLAGS.feature_upsample, Downsample=FLAGS.downsample_mod)
+        # end first strategy
 
-    # Configure Wandb Training
-    # Weight&Bias Tracking Experiment
-    configs = {
-        "Model_Arch": "ResNet" + str(FLAGS.resnet_depth),
-        "Training mode": "Baseline Non_Contrastive",
-        "DataAugmentation_types": "SimCLR_Inception_style_Croping",
-        "Dataset": "ImageNet1k",
-        "IMG_SIZE": FLAGS.image_size,
-        "Epochs": FLAGS.train_epochs,
-        "Batch_size": train_global_batch_size,
-        "Learning_rate": FLAGS.base_lr,
-        "Temperature": FLAGS.temperature,
-        "Optimizer": FLAGS.optimizer,
-        "SEED": FLAGS.SEED,
-        "Subset_dataset": FLAGS.num_classes,
-        "Loss type": FLAGS.aggregate_loss,
-        "opt": FLAGS.up_scale,
-        "Encoder output size": str(list(FLAGS.Encoder_block_strides.values()).count(1) * 7),
-    }
+        # Configure Wandb Training
+        # Weight&Bias Tracking Experiment
+        configs = {
+            "Model_Arch": "ResNet" + str(FLAGS.resnet_depth),
+            "Training mode": "Baseline Non_Contrastive",
+            "DataAugmentation_types": "SimCLR_Inception_style_Croping",
+            "Dataset": "ImageNet1k",
+            "IMG_SIZE": FLAGS.image_size,
+            "Epochs": FLAGS.train_epochs,
+            "Batch_size": train_global_batch_size,
+            "Learning_rate": FLAGS.base_lr,
+            "Temperature": FLAGS.temperature,
+            "Optimizer": FLAGS.optimizer,
+            "SEED": FLAGS.SEED,
+            "Subset_dataset": FLAGS.num_classes,
+            "Loss type": FLAGS.aggregate_loss,
+            "opt": FLAGS.up_scale,
+            "Encoder output size": str(list(FLAGS.Encoder_block_strides.values()).count(1) * 7),
+        }
 
-    wandb.init(project=FLAGS.wandb_project_name, name=FLAGS.wandb_run_name, mode=FLAGS.wandb_mod,
-               sync_tensorboard=True, config=configs)
+        wandb.init(project=FLAGS.wandb_project_name, name=FLAGS.wandb_run_name, mode=FLAGS.wandb_mod,
+                   sync_tensorboard=True, config=configs)
 
-    # Training Configuration
-    # *****************************************************************
-    # Only Evaluate model
-    # *****************************************************************
+        # Training Configuration
+        # *****************************************************************
+        # Only Evaluate model
+        # *****************************************************************
 
-    if FLAGS.mode == "eval":
-        # can choose different min_interval
-        for ckpt in tf.train.checkpoints_iterator(FLAGS.model_dir, min_interval_secs=15):
-            result = perform_evaluation(
-                online_model, val_multi_worker_dataset, eval_steps, ckpt, strategy)
-            # global_step from ckpt
-            if result['global_step'] >= train_steps:
-                logging.info('Evaluation complete. Existing-->')
+        if FLAGS.mode == "eval":
+            # can choose different min_interval
+            for ckpt in tf.train.checkpoints_iterator(FLAGS.model_dir, min_interval_secs=15):
+                result = perform_evaluation(
+                    online_model, val_multi_worker_dataset, eval_steps, ckpt, strategy)
+                # global_step from ckpt
+                if result['global_step'] >= train_steps:
+                    logging.info('Evaluation complete. Existing-->')
 
-    # *****************************************************************
-    # Pre-Training and Evaluate
-    # *****************************************************************
-    else:
-        summary_writer = tf.summary.create_file_writer(FLAGS.model_dir)
+        # *****************************************************************
+        # Pre-Training and Evaluate
+        # *****************************************************************
+        else:
+            summary_writer = tf.summary.create_file_writer(FLAGS.model_dir)
 
-        with strategy.scope():
+            # with strategy.scope():
 
             # Configure the learning rate
             base_lr = FLAGS.base_lr
@@ -236,7 +236,7 @@ def main():
 
             # Scale loss  --> Aggregating all Gradients
 
-            @tf.function
+            # @tf.function
             def distributed_loss(o1, o2, b1, b2, f1=None, f2=None, alpha=0.5, weight=0.5):
 
                 if FLAGS.non_contrast_binary_loss == 'original_add_backgroud':
@@ -334,11 +334,11 @@ def main():
                                 loss += loss
 
                             # Update Self-Supervised Metrics
-                            metrics.update_pretrain_metrics_train_multi_machine(contrast_loss_metric,
-                                                                                contrast_acc_metric,
-                                                                                contrast_entropy_metric,
-                                                                                loss, logits_o_ab,
-                                                                                labels)
+                            # metrics.update_pretrain_metrics_train_multi_machine(contrast_loss_metric,
+                            #                                                     contrast_acc_metric,
+                            #                                                     contrast_entropy_metric,
+                            #                                                     loss, logits_o_ab,
+                            #                                                     labels)
 
                     elif FLAGS.loss_type == "asymmetrized":
                         obj_1, backg_1, proj_head_output_1, supervised_head_output_1 = online_model(
@@ -365,11 +365,11 @@ def main():
                                 loss += loss
 
                             # Update Self-Supervised Metrics
-                            metrics.update_pretrain_metrics_train_multi_machine(contrast_loss_metric,
-                                                                                contrast_acc_metric,
-                                                                                contrast_entropy_metric,
-                                                                                loss, logits_o_ab,
-                                                                                labels)
+                            # metrics.update_pretrain_metrics_train_multi_machine(contrast_loss_metric,
+                            #                                                     contrast_acc_metric,
+                            #                                                     contrast_entropy_metric,
+                            #                                                     loss, logits_o_ab,
+                            #                                                     labels)
 
                     else:
                         raise ValueError(
@@ -394,9 +394,9 @@ def main():
                             # scale_sup_loss = tf.reduce_sum(
                             #     sup_loss) * (1./train_global_batch)
                             # Update Supervised Metrics
-                            metrics.update_finetune_metrics_train(supervised_loss_metric,
-                                                                  supervised_acc_metric, scale_sup_loss,
-                                                                  supervise_lable, outputs)
+                            # metrics.update_finetune_metrics_train(supervised_loss_metric,
+                            #                                       supervised_acc_metric, scale_sup_loss,
+                            #                                       supervise_lable, outputs)
 
                         '''Attention'''
                         # Noted Consideration Aggregate (Supervised + Contrastive Loss) --> Update the Model Gradient
@@ -643,15 +643,15 @@ def main():
 
                 epoch_loss = total_loss / num_batches
                 # Configure for Visualize the Model Training
-                if (epoch + 1) % 2 == 0:
-                    FLAGS.train_mode = 'finetune'
-                    result = perform_evaluation(online_model, val_multi_worker_dataset, eval_steps,
-                                                checkpoint_manager.latest_checkpoint, strategy)
-                    wandb.log({
-                        "eval/label_top_1_accuracy": result["eval/label_top_1_accuracy"],
-                        "eval/label_top_5_accuracy": result["eval/label_top_5_accuracy"],
-                    })
-                    FLAGS.train_mode = 'pretrain'
+                # if (epoch + 1) % 2 == 0:
+                #     FLAGS.train_mode = 'finetune'
+                #     result = perform_evaluation(online_model, val_multi_worker_dataset, eval_steps,
+                #                                 checkpoint_manager.latest_checkpoint, strategy)
+                #     wandb.log({
+                #         "eval/label_top_1_accuracy": result["eval/label_top_1_accuracy"],
+                #         "eval/label_top_5_accuracy": result["eval/label_top_5_accuracy"],
+                #     })
+                #     FLAGS.train_mode = 'pretrain'
 
                 wandb.log({
                     "epochs": epoch + 1,
@@ -683,28 +683,29 @@ def main():
 
             logging.info('Training Complete ...')
 
-        if FLAGS.mode == 'train_then_eval':
-            perform_evaluation(online_model, val_multi_worker_dataset, eval_steps,
-                               checkpoint_manager.latest_checkpoint, strategy)
+            # end second strategy
 
-        save_encoder = os.path.join(
-            FLAGS.model_dir, "encoder_model_latest.h5")
-        save_online_model = os.path.join(
-            FLAGS.model_dir, "online_model_latest.h5")
-        save_target_model = os.path.join(
-            FLAGS.model_dir, "target_model_latest.h5")
-        online_model.resnet_model.save_weights(save_encoder)
-        online_model.save_weights(save_online_model)
-        target_model.save_weights(save_target_model)
+            if FLAGS.mode == 'train_then_eval':
+                perform_evaluation(online_model, val_multi_worker_dataset, eval_steps,
+                                   checkpoint_manager.latest_checkpoint, strategy)
 
-# # Restore model weights only, but not global step and optimizer states
-# flags.DEFINE_string(
-#     'checkpoint', None,
-#     'Loading from the given checkpoint for fine-tuning if a finetuning '
-#     'checkpoint does not already exist in model_dir.')
+            save_encoder = os.path.join(
+                FLAGS.model_dir, "encoder_model_latest.h5")
+            save_online_model = os.path.join(
+                FLAGS.model_dir, "online_model_latest.h5")
+            save_target_model = os.path.join(
+                FLAGS.model_dir, "target_model_latest.h5")
+            online_model.resnet_model.save_weights(save_encoder)
+            online_model.save_weights(save_online_model)
+            target_model.save_weights(save_target_model)
 
+    # # Restore model weights only, but not global step and optimizer states
+    # flags.DEFINE_string(
+    #     'checkpoint', None,
+    #     'Loading from the given checkpoint for fine-tuning if a finetuning '
+    #     'checkpoint does not already exist in model_dir.')
 
-    # Pre-Training and Finetune
-if __name__ == '__main__':
+        # Pre-Training and Finetune
+    if __name__ == '__main__':
 
-    main()
+        main()
