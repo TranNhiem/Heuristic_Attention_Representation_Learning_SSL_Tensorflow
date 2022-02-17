@@ -86,11 +86,11 @@ with strategy.scope():
         # Preparing dataset
         # ------------------------------------------
         # Number of Machines use for Training
-        per_worker_train_batch_size = FLAGS.single_machine_train_batch_size
-        per_worker_val_batch_size = FLAGS.single_machine_val_batch_size
+        per_gpu_train_batch = FLAGS.per_gpu_train_batch
+        per_gpu_val_batch = FLAGS.per_gpu_val_batch
 
-        train_global_batch_size = per_worker_train_batch_size * strategy.num_replicas_in_sync
-        val_global_batch_size = per_worker_val_batch_size * strategy.num_replicas_in_sync
+        train_global_batch_size = per_gpu_train_batch * strategy.num_replicas_in_sync
+        val_global_batch_size = per_gpu_val_batch * strategy.num_replicas_in_sync
 
         dataset_loader = imagenet_dataset_multi_machine(img_size=FLAGS.image_size, train_batch=train_global_batch_size,
                                                         val_batch=val_global_batch_size,

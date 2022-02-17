@@ -394,11 +394,11 @@ def multi_machine_config():
         'number of machine use for training')
 
     flags.DEFINE_integer(
-        'single_machine_train_batch_size', 1024,
+        'per_gpu_train_batch', 128,
         'training bach_size of each machine training')
 
     flags.DEFINE_integer(
-        'single_machine_val_batch_size', 1024,
+        'per_gpu_val_batch', 128,
         'Validation bach_size of each machine training')
     flags.DEFINE_boolean(
         'collective_hint', False,
