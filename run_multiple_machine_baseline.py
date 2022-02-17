@@ -540,7 +540,12 @@ def main():
 
                     if FLAGS.collective_hint:
                         hints = tf.distribute.experimental.CollectiveHints(
-                            bytes_per_pack=25 * 1024 * 1024)
+                            bytes_per_pack=50 * 1024 * 1024)
+                        # options = tf.distribute.experimental.CommunicationOptions(
+                        #     bytes_per_pack=50 * 1024 * 1024,
+                        #     timeout_seconds=120.0,
+                        #     implementation=tf.distribute.experimental.CommunicationImplementation.NCCL
+                        # )
 
                         grads_online = tf.distribute.get_replica_context().all_reduce(
                             tf.distribute.ReduceOp.SUM, grads_online, options=hints)
@@ -558,7 +563,12 @@ def main():
 
                     if FLAGS.collective_hint:
                         hints = tf.distribute.experimental.CollectiveHints(
-                            bytes_per_pack=25 * 1024 * 1024)
+                            bytes_per_pack=50 * 1024 * 1024)
+                        # options = tf.distribute.experimental.CommunicationOptions(
+                        #     bytes_per_pack=50 * 1024 * 1024,
+                        #     timeout_seconds=120.0,
+                        #     implementation=tf.distribute.experimental.CommunicationImplementation.NCCL
+                        # )
 
                         grads_pred = tf.distribute.get_replica_context().all_reduce(
                             tf.distribute.ReduceOp.SUM, grads_pred, options=hints)

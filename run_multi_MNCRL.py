@@ -79,8 +79,7 @@ def main():
     # cluster_resolver=None)
     resolver = tf.distribute.cluster_resolver.TFConfigClusterResolver()
     strategy = tf.distribute.MultiWorkerMirroredStrategy(communication_options=communication_options, cluster_resolver=resolver
-                                                        )  # communication_options=communication_options
-
+                                                         )  # communication_options=communication_options
 
     # ------------------------------------------
     # Preparing dataset
@@ -152,7 +151,7 @@ def main():
     }
 
     wandb.init(project=FLAGS.wandb_project_name, name=FLAGS.wandb_run_name, mode=FLAGS.wandb_mod,
-                sync_tensorboard=True, config=configs)
+               sync_tensorboard=True, config=configs)
 
     # Training Configuration
     # *****************************************************************
@@ -221,7 +220,7 @@ def main():
             # Restore checkpoint if available.
             # Task type and Task_id among all Training Nodes
             task_type, task_id = (strategy.cluster_resolver.task_type,
-                                    strategy.cluster_resolver.task_id)
+                                  strategy.cluster_resolver.task_id)
 
             checkpoint_manager, write_checkpoint_dir = multi_node_try_restore_from_checkpoint(
                 online_model, optimizer.iterations, optimizer, task_type, task_id)
@@ -251,8 +250,9 @@ def main():
                 else:
                     raise ValueError("Invalid Loss Type")
                 # total sum loss //Global batch_size
-                loss = 2 - 2*(tf.reduce_sum(per_example_loss)
-                                * (1. / train_global_batch_size))
+                # loss = 2 - 2*(tf.reduce_sum(per_example_loss)
+                #               * (1. / train_global_batch_size))
+                loss= tf.reduce_sum(per_example_loss)* (1. / strategy.num_replicas_in_sync)
 
                 return loss, logits_ab, labels
 
@@ -388,8 +388,8 @@ def main():
                             #     sup_loss) * (1./train_global_batch)
                             # Update Supervised Metrics
                             metrics.update_finetune_metrics_train(supervised_loss_metric,
-                                                                    supervised_acc_metric, scale_sup_loss,
-                                                                    supervise_lable, outputs)
+                                                                  supervised_acc_metric, scale_sup_loss,
+                                                                  supervise_lable, outputs)
 
                         '''Attention'''
                         # Noted Consideration Aggregate (Supervised + Contrastive Loss) --> Update the Model Gradient
@@ -518,8 +518,12 @@ def main():
                         loss, online_model.trainable_variables)
                     if FLAGS.collective_hint:
                         hints = tf.distribute.experimental.CollectiveHints(
-                            bytes_per_pack=25 * 1024 * 1024)
-
+                            bytes_per_pack=50 * 1024 * 1024)
+                        # options = tf.distribute.experimental.CommunicationOptions(
+                        #     bytes_per_pack=50 * 1024 * 1024,
+                        #     timeout_seconds=120.0,
+                        #     implementation=tf.distribute.experimental.CommunicationImplementation.NCCL
+                        # )
                         grads_online = tf.distribute.get_replica_context().all_reduce(
                             tf.distribute.ReduceOp.SUM, grads_online, options=hints)
                     else:
@@ -527,7 +531,7 @@ def main():
                             tf.distribute.ReduceOp.SUM, grads_online)
                         print("local_grad")
                     optimizer.apply_gradients(
-                        zip(grads_online, online_model.trainable_variables), )
+                        zip(grads_online, online_model.trainable_variables), experimental_aggregate_gradients=False)
 
                     # Update Prediction Head model
                     grads_pred = tape.gradient(
@@ -535,8 +539,13 @@ def main():
 
                     if FLAGS.collective_hint:
                         hints = tf.distribute.experimental.CollectiveHints(
-                            bytes_per_pack=25 * 1024 * 1024)
-
+                            bytes_per_pack=50 * 1024 * 1024)
+                        # options = tf.distribute.experimental.CommunicationOptions(
+                        #     bytes_per_pack=50 * 1024 * 1024,
+                        #     timeout_seconds=120.0,
+                        #     implementation=tf.distribute.experimental.CommunicationImplementation.NCCL
+                        # )
+                        
                         grads_pred = tf.distribute.get_replica_context().all_reduce(
                             tf.distribute.ReduceOp.SUM, grads_pred, options=hints)
                     else:
@@ -545,7 +554,7 @@ def main():
                             tf.distribute.ReduceOp.SUM, grads_pred)
 
                     optimizer.apply_gradients(
-                        zip(grads_pred, prediction_model.trainable_variables), )  # all_reduce_sum_gradients=FalseUpdate gradient Customize
+                        zip(grads_pred, prediction_model.trainable_variables), experimental_aggregate_gradients=False)  # all_reduce_sum_gradients=FalseUpdate gradient Customize
                 else:
                     raise ValueError(
                         "Invalid Implement optimization floating precision")
@@ -557,7 +566,7 @@ def main():
                 per_replica_losses = strategy.run(
                     train_step, args=(ds_one, ds_two, alpha, weight_loss))
                 return strategy.reduce(tf.distribute.ReduceOp.SUM, per_replica_losses,
-                                        axis=None)
+                                       axis=None)
             global_step = optimizer.iterations
 
             # Train the model here
@@ -627,11 +636,11 @@ def main():
                             tf.io.gfile.rmtree(write_checkpoint_dir)
 
                         logging.info('Completed: %d / %d steps',
-                                        cur_step, train_steps)
+                                     cur_step, train_steps)
                         metrics.log_and_write_metrics_to_summary(
                             all_metrics, cur_step)
                         tf.summary.scalar('learning_rate', lr_schedule(tf.cast(global_step, dtype=tf.float32)),
-                                            global_step)
+                                          global_step)
                         summary_writer.flush()
 
                 epoch_loss = total_loss / num_batches
@@ -680,7 +689,7 @@ def main():
 
         if FLAGS.mode == 'train_then_eval':
             perform_evaluation(online_model, val_multi_worker_dataset, eval_steps,
-                                checkpoint_manager.latest_checkpoint, strategy)
+                               checkpoint_manager.latest_checkpoint, strategy)
 
         save_encoder = os.path.join(
             FLAGS.model_dir, "encoder_model_latest.h5")
