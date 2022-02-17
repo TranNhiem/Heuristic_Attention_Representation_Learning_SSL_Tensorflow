@@ -252,7 +252,8 @@ def main():
                 # total sum loss //Global batch_size
                 # loss = 2 - 2*(tf.reduce_sum(per_example_loss)
                 #               * (1. / train_global_batch_size))
-                loss= tf.reduce_sum(per_example_loss)* (1. / strategy.num_replicas_in_sync)
+                loss = tf.reduce_sum(per_example_loss) * \
+                    (1. / strategy.num_replicas_in_sync)
 
                 return loss, logits_ab, labels
 
@@ -545,7 +546,7 @@ def main():
                         #     timeout_seconds=120.0,
                         #     implementation=tf.distribute.experimental.CommunicationImplementation.NCCL
                         # )
-                        
+
                         grads_pred = tf.distribute.get_replica_context().all_reduce(
                             tf.distribute.ReduceOp.SUM, grads_pred, options=hints)
                     else:
