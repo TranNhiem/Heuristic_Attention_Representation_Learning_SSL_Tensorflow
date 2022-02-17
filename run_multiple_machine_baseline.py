@@ -329,12 +329,12 @@ def main():
                             else:
                                 loss += loss
 
-                            # Update Self-Supervised Metrics
-                            metrics.update_pretrain_metrics_train_multi_machine(contrast_loss_metric,
-                                                                                contrast_acc_metric,
-                                                                                contrast_entropy_metric,
-                                                                                loss, logits_ab,
-                                                                                labels)
+                            # # Update Self-Supervised Metrics
+                            # metrics.update_pretrain_metrics_train_multi_machine(contrast_loss_metric,
+                            #                                                     contrast_acc_metric,
+                            #                                                     contrast_entropy_metric,
+                            #                                                     loss, logits_ab,
+                            #                                                     labels)
 
                     elif FLAGS.loss_type == "asymmetrized":
                         logging.info("You implement Asymmetrized loss")
@@ -365,12 +365,12 @@ def main():
                             else:
                                 loss += loss
 
-                            # Update Self-Supervised Metrics
-                            metrics.update_pretrain_metrics_train_multi_machine(contrast_loss_metric,
-                                                                                contrast_acc_metric,
-                                                                                contrast_entropy_metric,
-                                                                                loss, logits_ab,
-                                                                                labels)
+                            # # Update Self-Supervised Metrics
+                            # metrics.update_pretrain_metrics_train_multi_machine(contrast_loss_metric,
+                            #                                                     contrast_acc_metric,
+                            #                                                     contrast_entropy_metric,
+                            #                                                     loss, logits_ab,
+                            #                                                     labels)
 
                     else:
                         raise ValueError(
@@ -398,10 +398,10 @@ def main():
                             # scale_sup_loss = optimizer.get_scaled_loss(
                             #     scale_sup_loss)
 
-                            # Update Supervised Metrics
-                            metrics.update_finetune_metrics_train(supervised_loss_metric,
-                                                                  supervised_acc_metric, scale_sup_loss,
-                                                                  supervised_lable, outputs)
+                            # # Update Supervised Metrics
+                            # metrics.update_finetune_metrics_train(supervised_loss_metric,
+                            #                                       supervised_acc_metric, scale_sup_loss,
+                            #                                       supervised_lable, outputs)
 
                         '''Attention'''
                         # Noted Consideration Aggregate (Supervised + Contrastive Loss)
