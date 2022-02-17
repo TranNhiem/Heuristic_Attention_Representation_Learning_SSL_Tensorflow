@@ -223,7 +223,7 @@ with strategy.scope():
             task_type, task_id = (strategy.cluster_resolver.task_type,
                                   strategy.cluster_resolver.task_id)
 
-            checkpoint_manager = multi_node_try_restore_from_checkpoint(
+            checkpoint_manager, write_checkpoint_dir = multi_node_try_restore_from_checkpoint(
                 online_model, optimizer.iterations, optimizer, task_type, task_id)
             steps_per_loop = checkpoint_steps
 
