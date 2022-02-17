@@ -327,11 +327,11 @@ with strategy.scope():
                                 loss += loss
 
                             # Update Self-Supervised Metrics
-                            # metrics.update_pretrain_metrics_train_multi_machine(contrast_loss_metric,
-                            #                                                     contrast_acc_metric,
-                            #                                                     contrast_entropy_metric,
-                            #                                                     loss, logits_o_ab,
-                            #                                                     labels)
+                            metrics.update_pretrain_metrics_train_multi_machine(contrast_loss_metric,
+                                                                                contrast_acc_metric,
+                                                                                contrast_entropy_metric,
+                                                                                loss, logits_o_ab,
+                                                                                labels)
 
                     elif FLAGS.loss_type == "asymmetrized":
                         obj_1, backg_1, proj_head_output_1, supervised_head_output_1 = online_model(
@@ -358,11 +358,11 @@ with strategy.scope():
                                 loss += loss
 
                             # Update Self-Supervised Metrics
-                            # metrics.update_pretrain_metrics_train_multi_machine(contrast_loss_metric,
-                            #                                                     contrast_acc_metric,
-                            #                                                     contrast_entropy_metric,
-                            #                                                     loss, logits_o_ab,
-                            #                                                     labels)
+                            metrics.update_pretrain_metrics_train_multi_machine(contrast_loss_metric,
+                                                                                contrast_acc_metric,
+                                                                                contrast_entropy_metric,
+                                                                                loss, logits_o_ab,
+                                                                                labels)
 
                     else:
                         raise ValueError(
@@ -387,9 +387,9 @@ with strategy.scope():
                             # scale_sup_loss = tf.reduce_sum(
                             #     sup_loss) * (1./train_global_batch)
                             # Update Supervised Metrics
-                            # metrics.update_finetune_metrics_train(supervised_loss_metric,
-                            #                                       supervised_acc_metric, scale_sup_loss,
-                            #                                       supervise_lable, outputs)
+                            metrics.update_finetune_metrics_train(supervised_loss_metric,
+                                                                  supervised_acc_metric, scale_sup_loss,
+                                                                  supervise_lable, outputs)
 
                         '''Attention'''
                         # Noted Consideration Aggregate (Supervised + Contrastive Loss) --> Update the Model Gradient
@@ -636,15 +636,15 @@ with strategy.scope():
 
                 epoch_loss = total_loss / num_batches
                 # Configure for Visualize the Model Training
-                # if (epoch + 1) % 2 == 0:
-                #     FLAGS.train_mode = 'finetune'
-                #     result = perform_evaluation(online_model, val_multi_worker_dataset, eval_steps,
-                #                                 checkpoint_manager.latest_checkpoint, strategy)
-                #     wandb.log({
-                #         "eval/label_top_1_accuracy": result["eval/label_top_1_accuracy"],
-                #         "eval/label_top_5_accuracy": result["eval/label_top_5_accuracy"],
-                #     })
-                #     FLAGS.train_mode = 'pretrain'
+                if (epoch + 1) % 10 == 0:
+                    FLAGS.train_mode = 'finetune'
+                    result = perform_evaluation(online_model, val_multi_worker_dataset, eval_steps,
+                                                checkpoint_manager.latest_checkpoint, strategy)
+                    wandb.log({
+                        "eval/label_top_1_accuracy": result["eval/label_top_1_accuracy"],
+                        "eval/label_top_5_accuracy": result["eval/label_top_5_accuracy"],
+                    })
+                    FLAGS.train_mode = 'pretrain'
 
                 wandb.log({
                     "epochs": epoch + 1,

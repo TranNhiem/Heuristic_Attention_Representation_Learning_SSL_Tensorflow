@@ -96,12 +96,12 @@ def main():
     # Preparing dataset
     # ------------------------------------------
     # Number of Machines use for Training
-    per_worker_train_batch_size = FLAGS.single_machine_train_batch_size
-    per_worker_val_batch_size = FLAGS.single_machine_val_batch_size
+    per_gpu_train_batch = FLAGS.per_gpu_train_batch
+    per_gpu_val_batch = FLAGS.per_gpu_val_batch
 
-    train_global_batch_size = per_worker_train_batch_size * strategy.num_replicas_in_sync
+    train_global_batch_size = per_gpu_train_batch * strategy.num_replicas_in_sync
     print("Your global batch_size",   train_global_batch_size)
-    val_global_batch_size = per_worker_val_batch_size * strategy.num_replicas_in_sync
+    val_global_batch_size = per_gpu_val_batch * strategy.num_replicas_in_sync
 
     dataset_loader = imagenet_dataset_multi_machine(img_size=FLAGS.image_size, train_batch=train_global_batch_size,
                                                     val_batch=val_global_batch_size,
@@ -366,11 +366,11 @@ def main():
                                 loss += loss
 
                             # # Update Self-Supervised Metrics
-                            # metrics.update_pretrain_metrics_train_multi_machine(contrast_loss_metric,
-                            #                                                     contrast_acc_metric,
-                            #                                                     contrast_entropy_metric,
-                            #                                                     loss, logits_ab,
-                            #                                                     labels)
+                            metrics.update_pretrain_metrics_train_multi_machine(contrast_loss_metric,
+                                                                                contrast_acc_metric,
+                                                                                contrast_entropy_metric,
+                                                                                loss, logits_ab,
+                                                                                labels)
 
                     else:
                         raise ValueError(
@@ -399,9 +399,9 @@ def main():
                             #     scale_sup_loss)
 
                             # # Update Supervised Metrics
-                            # metrics.update_finetune_metrics_train(supervised_loss_metric,
-                            #                                       supervised_acc_metric, scale_sup_loss,
-                            #                                       supervised_lable, outputs)
+                            metrics.update_finetune_metrics_train(supervised_loss_metric,
+                                                                  supervised_acc_metric, scale_sup_loss,
+                                                                  supervised_lable, outputs)
 
                         '''Attention'''
                         # Noted Consideration Aggregate (Supervised + Contrastive Loss)
@@ -636,13 +636,13 @@ def main():
 
                 epoch_loss = total_loss/num_batches
 
-                # if (epoch+1) % 2 == 0:
-                #     result = perform_evaluation(online_model, val_multi_worker_dataset, eval_steps,
-                #                                 checkpoint_manager.latest_checkpoint, strategy)
-                #     wandb.log({
-                #         "eval/label_top_1_accuracy": result["eval/label_top_1_accuracy"],
-                #         "eval/label_top_5_accuracy": result["eval/label_top_5_accuracy"],
-                #     })
+                if (epoch+1) % 10 == 0:
+                    result = perform_evaluation(online_model, val_multi_worker_dataset, eval_steps,
+                                                checkpoint_manager.latest_checkpoint, strategy)
+                    wandb.log({
+                        "eval/label_top_1_accuracy": result["eval/label_top_1_accuracy"],
+                        "eval/label_top_5_accuracy": result["eval/label_top_5_accuracy"],
+                    })
 
                 # Wandb Configure for Visualize the Model Training
                 wandb.log({

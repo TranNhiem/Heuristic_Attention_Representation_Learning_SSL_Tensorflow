@@ -14,7 +14,7 @@ def read_cfg(mod="non_contrastive"):
     FLAGS.with_option = True
     FLAGS.wandb_project_name = "heuristic_attention_representation_learning_Paper_correction"
     FLAGS.wandb_run_name = "test_multi_machine"
-    FLAGS.wandb_mod = "dryrun"
+    FLAGS.wandb_mod = "run"
     FLAGS.restore_checkpoint = True  # Restore Checkpoint or Not
 
     FLAGS.original_loss_stop_gradient = False
@@ -41,12 +41,12 @@ def read_cfg(mod="non_contrastive"):
     FLAGS.alpha_schedule = "custom_schedule"
     FLAGS.alpha = 0.5
     FLAGS.weighted_loss = 0.5
-    FLAGS.resnet_depth = 34
-    FLAGS.train_epochs = 20
-    FLAGS.num_classes = 20
+    FLAGS.resnet_depth = 50
+    FLAGS.train_epochs = 100
+    FLAGS.num_classes = 100
     FLAGS.subset_percentage = 1.0
 
     FLAGS.per_gpu_train_batch = 400
     FLAGS.per_gpu_val_batch = 400
-    FLAGS.model_dir = "./resnet_byol/resnet18_correction/test_multi_machine_1"
+    FLAGS.model_dir = "./resnet_byol/resnet18_correction/test_multi_machine_2"
     #FLAGS.train_mode = "finetune"
