@@ -200,6 +200,10 @@ def main():
             # Linear classfiy metric
             weight_decay_metric = tf.keras.metrics.Mean('train/weight_decay')
             total_loss_metric = tf.keras.metrics.Mean('train/total_loss')
+            # weight_decay_metric = tf.keras.metrics.Accuracy(
+            #     'train/weight_decay')
+            # total_loss_metric = tf.keras.metrics.Accuracy('train/total_loss')
+
             all_metrics.extend([weight_decay_metric, total_loss_metric])
 
             if FLAGS.train_mode == 'pretrain':
@@ -241,7 +245,7 @@ def main():
             steps_per_loop = checkpoint_steps
 
             # Scale loss  --> Aggregating all Gradients
-            @tf.function
+            # @tf.function
             def distributed_loss(x1, x2):
 
                 # each GPU loss per_replica batch loss
@@ -570,7 +574,7 @@ def main():
                 del tape
                 return loss
 
-            # @tf.function
+            @tf.function
             def distributed_train_step(ds_one, ds_two):
                 per_replica_losses = strategy.run(
                     train_step_fc, args=(ds_one, ds_two))
@@ -632,13 +636,13 @@ def main():
 
                 epoch_loss = total_loss/num_batches
 
-                if (epoch+1) % 2 == 0:
-                    result = perform_evaluation(online_model, val_multi_worker_dataset, eval_steps,
-                                                checkpoint_manager.latest_checkpoint, strategy)
-                    wandb.log({
-                        "eval/label_top_1_accuracy": result["eval/label_top_1_accuracy"],
-                        "eval/label_top_5_accuracy": result["eval/label_top_5_accuracy"],
-                    })
+                # if (epoch+1) % 2 == 0:
+                #     result = perform_evaluation(online_model, val_multi_worker_dataset, eval_steps,
+                #                                 checkpoint_manager.latest_checkpoint, strategy)
+                #     wandb.log({
+                #         "eval/label_top_1_accuracy": result["eval/label_top_1_accuracy"],
+                #         "eval/label_top_5_accuracy": result["eval/label_top_5_accuracy"],
+                #     })
 
                 # Wandb Configure for Visualize the Model Training
                 wandb.log({
@@ -680,6 +684,7 @@ def main():
         online_model.resnet_model.save_weights(save_encoder)
         online_model.save_weights(save_online_model)
         target_model.save_weights(save_target_model)
+
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
