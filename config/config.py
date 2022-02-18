@@ -189,6 +189,7 @@ def Learning_Rate_Optimizer_and_Training_Strategy():
 
 
 def Encoder():
+    
     flags = Mock_Flag()
     flags.DEFINE_boolean(
         'global_bn', True,

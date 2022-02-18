@@ -486,7 +486,7 @@ def main():
                         # all_reduce_fp32_grads = optimizer.get_unscaled_gradients(
                         #     all_reduce_fp32_grads)
                         optimizer.apply_gradients(zip(
-                            all_reduce_fp32_grads_online, online_model.trainable_variables))
+                            all_reduce_fp32_grads_online, online_model.trainable_variables), experimental_aggregate_gradients=False)
 
                         # Prediction Model
                         grads_pred = tape.gradient(
@@ -509,7 +509,7 @@ def main():
                         # all_reduce_fp32_grads = optimizer.get_unscaled_gradients(
                         #     all_reduce_fp32_grads)
                         optimizer.apply_gradients(zip(
-                            all_reduce_fp32_grads_pred, prediction_model.trainable_variables))
+                            all_reduce_fp32_grads_pred, prediction_model.trainable_variables), experimental_aggregate_gradients=False)
 
                 elif FLAGS.mixprecision == "fp32":
                     logging.info("you implement original_Fp precision")
