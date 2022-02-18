@@ -10,6 +10,10 @@ from config.absl_mock import Mock_Flag
 from byol_simclr_multi_croping_augmentation import simclr_augment_randcrop_global_views, simclr_augment_inception_style, \
     supervised_augment_eval, simclr_augment_randcrop_global_view_image_mask, simclr_augment_inception_style_image_mask, simclr_augment_inception_style_image_mask_tf_py, simclr_augment_randcrop_global_view_image_mask_tf_py
 
+# import nvidia.dali as dali
+# import nvidia.dali.plugin.tf as dali_tf
+
+
 AUTO = tf.data.AUTOTUNE
 flag = Mock_Flag()
 FLAGS = flag.FLAGS
@@ -304,9 +308,16 @@ class imagenet_dataset_multi_machine():
             logging.info("You implement data loader Without option")
             train_ds = train_ds
 
-        train_ds = train_ds.shard(input_context.num_input_pipelines,
-                                  input_context.input_pipeline_id)
+        # if FLAGS.Nvidia_dali: 
+        #     train_ds= dali_tf.DALIDataset(
+        #         train_ds, 
+        #         batch_size=dis_tributed_batch,
+        #         device_id=input_context.input_pipeline_id
+        #     )
 
+        # else: 
+        train_ds = train_ds.shard(input_context.num_input_pipelines,
+                                input_context.input_pipeline_id)
         train_ds = train_ds.batch(dis_tributed_batch)
         train_ds = train_ds.prefetch(AUTO)
 

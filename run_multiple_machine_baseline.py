@@ -111,11 +111,17 @@ def main():
                                                     train_label=FLAGS.train_label, val_label=FLAGS.val_label,
                                                     subset_class_num=FLAGS.num_classes, subset_percentage=FLAGS.subset_percentage)
 
+    ## Distributed data input Option
+    input_options = tf.distribute.InputOptions(
+        experimental_place_dataset_on_device = True,
+        experimental_fetch_to_device = False,
+        experimental_replication_mode = tf.distribute.InputReplicationMode.PER_REPLICA)
+    
     train_multi_worker_dataset = strategy.distribute_datasets_from_function(
-        lambda input_context: dataset_loader.simclr_random_global_crop(input_context))
+        lambda input_context: dataset_loader.simclr_random_global_crop(input_context),input_options )
 
     val_multi_worker_dataset = strategy.distribute_datasets_from_function(
-        lambda input_context: dataset_loader.supervised_validation(input_context))
+        lambda input_context: dataset_loader.supervised_validation(input_context), input_options)
 
     num_train_examples, num_eval_examples = dataset_loader.get_data_size()
 
