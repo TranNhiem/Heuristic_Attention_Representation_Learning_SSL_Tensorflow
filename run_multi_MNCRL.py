@@ -250,10 +250,10 @@ def main():
                 else:
                     raise ValueError("Invalid Loss Type")
                 # total sum loss //Global batch_size
-                # loss = 2 - 2*(tf.reduce_sum(per_example_loss)
-                #               * (1. / train_global_batch_size))
-                loss = tf.reduce_sum(per_example_loss) * \
-                    (1. / strategy.num_replicas_in_sync)
+                loss = 2 - 2*(tf.reduce_sum(per_example_loss)
+                              * (1. / train_global_batch_size))
+                # loss = tf.reduce_sum(per_example_loss) * \
+                #     (1. / strategy.num_replicas_in_sync)
 
                 return loss, logits_ab, labels
 
@@ -472,7 +472,7 @@ def main():
                         # Optional
                         if FLAGS.collective_hint:
                             hints = tf.distribute.experimental.CollectiveHints(
-                                bytes_per_pack=32 * 1024 * 1024)
+                                bytes_per_pack=50 * 1024 * 1024)
                             all_reduce_fp16_grads_online = tf.distribute.get_replica_context().all_reduce(
                                 tf.distribute.ReduceOp.SUM, fp16_grads_online, options=hints)
                         else:
@@ -496,7 +496,7 @@ def main():
 
                         if FLAGS.collective_hint:
                             hints = tf.distribute.experimental.CollectiveHints(
-                                bytes_per_pack=32 * 1024 * 1024)
+                                bytes_per_pack=50 * 1024 * 1024)
                             all_reduce_fp16_grads_pred = tf.distribute.get_replica_context().all_reduce(
                                 tf.distribute.ReduceOp.SUM, fp16_grads_pred, options=hints)
                         else:

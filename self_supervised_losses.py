@@ -511,9 +511,9 @@ def byol_symetrize_loss(p, z, temperature):
     logits_ab = tf.matmul(p, z, transpose_b=True) / temperature
     # Measure similarity
     similarities = tf.reduce_sum(tf.multiply(p, z), axis=1)
-    loss = 2 - 2 * tf.reduce_mean(similarities)
-    print("loss shape : ", loss.shape)
-    return loss, logits_ab, labels
+    #loss = 2 - 2 * tf.reduce_mean(similarities)
+    #print("loss shape : ", loss.shape)
+    return similarities, logits_ab, labels
 
 
 def byol_loss(p, z, temperature):
