@@ -61,12 +61,12 @@ def main():
     if FLAGS.communication_method == "NCCL":
 
         communication_options = tf.distribute.experimental.CommunicationOptions(
-            implementation=tf.distribute.experimental.CommunicationImplementation.NCCL)
+            implementation=tf.distribute.experimental.CollectiveCommunication.NCCL)
 
     elif FLAGS.communication_method == "RING":
 
         communication_options = tf.distribute.experimental.CommunicationOptions(
-            implementation=tf.distribute.experimental.CommunicationImplementation.RING)
+            implementation=tf.distribute.experimental.CollectiveCommunication.RING)
 
     elif FLAGS.communication_method == "auto":
         communication_options = tf.distribute.experimental.CommunicationOptions(
@@ -104,7 +104,7 @@ def main():
         experimental_fetch_to_device = False,
         experimental_replication_mode = tf.distribute.InputReplicationMode.PER_REPLICA)
     train_multi_worker_dataset = strategy.distribute_datasets_from_function(
-        lambda input_context: dataset_loader.simclr_random_global_crop_image_mask(input_context),input_options )
+        lambda input_context: dataset_loader.simclr_inception_style_crop_image_mask(input_context))
 
     val_multi_worker_dataset = strategy.distribute_datasets_from_function(
         lambda input_context: dataset_loader.supervised_validation(input_context), input_options)
@@ -254,10 +254,10 @@ def main():
                 else:
                     raise ValueError("Invalid Loss Type")
                 # total sum loss //Global batch_size
-                loss = 2 - 2*(tf.reduce_sum(per_example_loss)
-                              * (1. / train_global_batch_size))
-                # loss = tf.reduce_sum(per_example_loss) * \
-                #     (1. / strategy.num_replicas_in_sync)
+                # loss = 2 - 2*(tf.reduce_sum(per_example_loss)
+                #               * (1. / train_global_batch_size))
+                loss = tf.reduce_sum(per_example_loss) * \
+                    (1. / strategy.num_replicas_in_sync)
 
                 return loss, logits_ab, labels
 
@@ -475,8 +475,14 @@ def main():
 
                         # Optional
                         if FLAGS.collective_hint:
-                            hints = tf.distribute.experimental.CollectiveHints(
-                                bytes_per_pack=32 * 1024 * 1024)
+                            # hints = tf.distribute.experimental.CollectiveHints(
+                            #     bytes_per_pack=32 * 1024 * 1024
+                            #     )
+                            hints = tf.distribute.experimental.CommunicationOptions(
+                                bytes_per_pack=50 * 1024 * 1024,
+                                timeout_seconds=120.0,
+                                implementation=tf.distribute.experimental.CommunicationImplementation.NCCL
+                            )
                             all_reduce_fp16_grads_online = tf.distribute.get_replica_context().all_reduce(
                                 tf.distribute.ReduceOp.SUM, fp16_grads_online, options=hints)
                         else:
@@ -499,8 +505,13 @@ def main():
                             tf.cast(grad, 'float16')for grad in grads_pred]
 
                         if FLAGS.collective_hint:
-                            hints = tf.distribute.experimental.CollectiveHints(
-                                bytes_per_pack=32 * 1024 * 1024)
+                            # hints = tf.distribute.experimental.CollectiveHints(
+                            #     bytes_per_pack=32 * 1024 * 1024)
+                            hints = tf.distribute.experimental.CommunicationOptions(
+                                bytes_per_pack=50 * 1024 * 1024,
+                                timeout_seconds=120.0,
+                                implementation=tf.distribute.experimental.CommunicationImplementation.NCCL
+                            )
                             all_reduce_fp16_grads_pred = tf.distribute.get_replica_context().all_reduce(
                                 tf.distribute.ReduceOp.SUM, fp16_grads_pred, options=hints)
                         else:
@@ -711,6 +722,7 @@ def main():
 #     'checkpoint', None,
 #     'Loading from the given checkpoint for fine-tuning if a finetuning '
 #     'checkpoint does not already exist in model_dir.')
+
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
