@@ -56,6 +56,11 @@ class imagenet_dataset_multi_machine():
         self.x_train = []
         self.x_val = []
 
+        self.feature_size = self.IMG_SIZE / 2
+        for key in list(FLAGS.Encoder_block_strides.keys()):
+            feature_size = feature_size / FLAGS.Encoder_block_strides[key]
+        self.feature_size = int(feature_size)
+
         self.label, self.class_name = self.get_label(train_label)
         numeric_train_cls = []
         numeric_val_cls = []
@@ -131,7 +136,7 @@ class imagenet_dataset_multi_machine():
         if bi_mask:
             self.x_train_image_mask = np.stack(
                 (np.array(self.x_train), np.array(self.bi_mask)), axis=-1)
-            print(self.x_train_image_mask.shape)
+            # print(self.x_train_image_mask.shape)
 
     def get_train_path(self, train_path, subset_percentage):
         dir_names = os.listdir(train_path)
@@ -184,53 +189,37 @@ class imagenet_dataset_multi_machine():
         img = tf.io.read_file(image_path)
         img = tf.io.decode_jpeg(img, channels=3)
         img = tf.image.convert_image_dtype(img, tf.float32)
+        img = tf.image.resize(img, (IMG_SIZE, IMG_SIZE))
 
         return img, lable
 
-    # @classmethod
-    # def parse_images_mask_lable_pair(self, image_mask_path, lable, IMG_SIZE):
-    #     # Loading and reading Image
-    #     # print(image_mask_path[0])
-    #     # print(image_mask_path[1])
-    #     image_path, mask_path = image_mask_path[0], image_mask_path[1]
-    #     img = tf.io.read_file(image_path)
-    #     img = tf.io.decode_jpeg(img, channels=3)
-    #     img = tf.image.convert_image_dtype(img, tf.float32)
-    #     img = tf.image.resize(img, (IMG_SIZE, IMG_SIZE))
+    def prepare_mask(self, v1, v2):
+        images_mask_1, lable_1, = v1
+        images_mask_2, lable_2, = v2
+        img1 = images_mask_1[0]
+        mask1 = images_mask_1[1]
+        img2 = images_mask_2[0]
+        mask2 = images_mask_2[1]
 
-    #     bi_mask = tf.io.read_file(mask_path)
-    #     bi_mask = tf.io.decode_jpeg(bi_mask, channels=1)
-    #     bi_mask = tf.image.resize(bi_mask, (IMG_SIZE, IMG_SIZE))
-    #     print(bi_mask)
+        FLAGS.Encoder_block_strides
+        feature_size = self.IMG_SIZE / 2
+        for key in list(FLAGS.Encoder_block_strides.keys()):
+            feature_size = feature_size / FLAGS.Encoder_block_strides[key]
+        feature_size = int(feature_size)
+        mask1 = tf.image.resize(mask1, (feature_size, feature_size))
+        mask2 = tf.image.resize(mask2, (feature_size, feature_size))
 
-    #     return img, bi_mask, lable
-    # def prepare_mask(self, v1, v2):
-    #     images_mask_1, lable_1, = v1
-    #     images_mask_2, lable_2, = v2
-    #     img1 = images_mask_1[0]
-    #     mask1 = images_mask_1[1]
-    #     img2 = images_mask_2[0]
-    #     mask2 = images_mask_2[1]
+        mask1 = tf.cast(mask1, dtype=tf.bool)
+        mask1_obj = tf.cast(mask1, dtype=tf.float32)
+        mask1_bak = tf.logical_not(mask1)
+        mask1_bak = tf.cast(mask1_bak, dtype=tf.float32)
 
-    #     mask1 = tf.image.resize(mask1, (7, 7))
-    #     mask2 = tf.image.resize(mask2, (7, 7))
+        mask2 = tf.cast(mask2, dtype=tf.bool)
+        mask2_obj = tf.cast(mask2, dtype=tf.float32)
+        mask2_bak = tf.logical_not(mask2)
+        mask2_bak = tf.cast(mask2_bak, dtype=tf.float32)
 
-    #     mask1 = tf.cast(mask1, dtype=tf.bool)
-    #     mask1_obj = tf.cast(mask1, dtype=tf.float32)
-    #     mask1_bak = tf.logical_not(mask1)
-    #     mask1_bak = tf.cast(mask1_bak, dtype=tf.float32)
-
-    #     mask2 = tf.cast(mask2, dtype=tf.bool)
-    #     mask2_obj = tf.cast(mask2, dtype=tf.float32)
-    #     mask2_bak = tf.logical_not(mask2)
-    #     mask2_bak = tf.cast(mask2_bak, dtype=tf.float32)
-
-    #     # print(img1,mask1_obj,mask1_bak)
-    #     # images_mask_1 = tf.ragged.constant(tf.RaggedTensor.from_tensor([img1]),tf.RaggedTensor.from_tensor([mask1_obj,mask1_bak]))
-    #     # images_mask_2 = tf.RaggedTensor.from_tensor([img2])
-    #     # print(images_mask_1)
-
-    #     return (img1, mask1_obj, mask1_bak, lable_1), (img2, mask2_obj, mask2_bak, lable_2)
+        return (img1, mask1_obj, mask1_bak, lable_1), (img2, mask2_obj, mask2_bak, lable_2)
 
     @classmethod
     def parse_images_label(self, image_path):
