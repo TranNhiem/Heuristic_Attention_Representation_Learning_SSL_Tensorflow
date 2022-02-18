@@ -102,7 +102,7 @@ def main():
     input_options = tf.distribute.InputOptions(
         experimental_place_dataset_on_device=True,
         experimental_fetch_to_device=False,
-        #experimental_replication_mode = tf.distribute.InputReplicationMode.PER_REPLICA
+        experimental_replication_mode=tf.distribute.InputReplicationMode.PER_REPLICA
     )
     train_multi_worker_dataset = strategy.distribute_datasets_from_function(
         lambda input_context: dataset_loader.simclr_inception_style_crop_image_mask(input_context), input_options)
