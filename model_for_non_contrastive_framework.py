@@ -235,7 +235,7 @@ class ProjectionHead(tf.keras.layers.Layer):
                     elif j != FLAGS.num_proj_layers - 1:
                         # for the middle layers, use bias and relu for the output.
                         if FLAGS.reduce_linear_dimention:
-                            print("You Implement reduction")
+                            #print("You Implement reduction")
                             self.linear_layers.append(
                                 modify_LinearLayer(
                                     num_classes=lambda input_shape: int(
@@ -468,7 +468,7 @@ class PredictionHead(tf.keras.layers.Layer):
                     elif j != FLAGS.num_proj_layers - 1:
                         # for the middle layers, use bias and relu for the output.
                         if FLAGS.reduce_linear_dimention:
-                            print("Implement reduce dimention")
+                            #print("Implement reduce dimention")
                             self.linear_layers.append(
                                 modify_LinearLayer(
                                     num_classes=lambda input_shape: int(
@@ -866,13 +866,13 @@ class Binary_online_model(tf.keras.models.Model):
         final_feature_map = None
         if FLAGS.Middle_layer_output == None:
             feature_map = self.encoder(inputs, training=training)
-            print("feature_map output size : ", feature_map.shape)
+            #print("feature_map output size : ", feature_map.shape)
         else:
             final_feature_map, feature_map = self.encoder(
                 inputs, training=training)
             feature_map = feature_map[0]
-            print("middle_map output size : ", feature_map.shape)
-            print("final_feature_map output size : ", final_feature_map.shape)
+            #print("middle_map output size : ", feature_map.shape)
+            #print("final_feature_map output size : ", final_feature_map.shape)
 
         if self.Upsample:
             # Pixel shuffle
@@ -898,7 +898,7 @@ class Binary_online_model(tf.keras.models.Model):
         if final_feature_map != None and FLAGS.non_contrast_binary_loss == "sum_symetrize_l2_loss_object_backg_add_original":
             final_feature_map = self.downsample_layear(
                 final_feature_map, self.magnification)
-            print(final_feature_map.shape)
+            #print(final_feature_map.shape)
             projection_head_outputs, supervised_head_inputs = self.full_image_projection_head(
                 final_feature_map, training=training)
         else:
@@ -906,7 +906,7 @@ class Binary_online_model(tf.keras.models.Model):
                 self.downsample_layear(feature_map_upsample, self.magnification), training=training)
 
         if FLAGS.train_mode == 'finetune':
-            print(supervised_head_inputs)
+            #print(supervised_head_inputs)
             supervised_head_outputs = self.supervised_head(
                 supervised_head_inputs, training)
             return None, supervised_head_outputs
@@ -986,13 +986,13 @@ class Binary_target_model(tf.keras.models.Model):
         final_feature_map = None
         if FLAGS.Middle_layer_output == None:
             feature_map = self.encoder(inputs, training=training)
-            print("feature_map output size : ", feature_map.shape)
+            #print("feature_map output size : ", feature_map.shape)
         else:
             final_feature_map, feature_map = self.encoder(
                 inputs, training=training)
             feature_map = feature_map[0]
-            print("middle_map output size : ", feature_map.shape)
-            print("final_feature_map output size : ", final_feature_map.shape)
+            #print("middle_map output size : ", feature_map.shape)
+            #print("final_feature_map output size : ", final_feature_map.shape)
 
         # Pixel shuffle
         if self.Upsample:
@@ -1021,7 +1021,7 @@ class Binary_target_model(tf.keras.models.Model):
         if final_feature_map != None and FLAGS.non_contrast_binary_loss == "sum_symetrize_l2_loss_object_backg_add_original":
             final_feature_map = self.downsample_layear(
                 final_feature_map, self.magnification)
-            print(final_feature_map.shape)
+            #print(final_feature_map.shape)
             projection_head_outputs, supervised_head_inputs = self.full_image_projection_head(
                 final_feature_map, training=training)
         else:
