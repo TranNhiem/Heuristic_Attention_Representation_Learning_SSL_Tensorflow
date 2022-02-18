@@ -36,7 +36,6 @@ flag.save_config(os.path.join(FLAGS.model_dir, "config.cfg"))
 # os.environ['TF_GPU_THREAD_MODE'] = 'gpu_private'
 # os.environ['TF_GPU_THREAD_COUNT'] = '1'
 
-
 def main():
     # Preparing dataset
     # Imagenet path prepare localy
@@ -211,8 +210,8 @@ def main():
                         o1, o2, b1, b2, f1, f2, alpha=alpha, temperature=FLAGS.temperature, weight_loss=weight)
 
                 # total sum loss //Global batch_size
-                # loss = tf.reduce_sum(per_example_loss) * (1. / len(gpus))
-                loss = 2 - 2 * (tf.reduce_sum(per_example_loss) * (1. / train_global_batch))
+                loss = tf.reduce_sum(per_example_loss) * (1. / len(gpus))
+                # loss = 2-2*loss
                 
 
                 return loss, logits_ab, labels
@@ -445,12 +444,14 @@ def main():
                     # Update Encoder and Projection head weight
                     grads = tape.gradient(
                         loss, online_model.trainable_variables)
+                    #grads = [ grad/ 32.0 for grad in grads]
                     optimizer.apply_gradients(
                         zip(grads, online_model.trainable_variables))
 
                     # Update Prediction Head model
                     grads = tape.gradient(
                         loss, prediction_model.trainable_variables)
+                    #grads = [grad/ 32.0 for grad in grads]
                     optimizer.apply_gradients(
                         zip(grads, prediction_model.trainable_variables))
                 
@@ -500,6 +501,7 @@ def main():
                     num_batches += 1
 
                     # Update weight of Target Encoder Every Step
+                    #if step % 32 == 0:
                     if FLAGS.moving_average == "fixed_value":
                         beta = 0.99
                     elif FLAGS.moving_average == "schedule":

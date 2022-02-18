@@ -84,13 +84,13 @@ for _, (ds_one, ds_two) in enumerate(train_ds):
 # plt.show()
 # print(image[0])
 
-image, lable = ds_1
-image1, _ = ds_2
-mask=image[1]
-image=image[0]
-
-mask1=image1[1]
-image1=image1[0]
+image,mask_,mask, lable = ds_1
+image1,mask1_,mask1 ,_ = ds_2
+# mask=image[1]
+# image=image[0]
+#
+# mask1=image1[1]
+# image1=image1[0]
 
 plt.figure(figsize=(10, 5))
 for n in range(8):
@@ -101,7 +101,7 @@ for n in range(8):
     elif 2<=n <4: 
         print(n-2)
         #print(image1.shape)
-        plt.imshow(mask[n-2])
+        plt.imshow(mask_[n-2])
     elif 4<= n <6: 
         print(n-4)
         #print(image1.shape)
@@ -109,7 +109,7 @@ for n in range(8):
     else: 
         print(n-6)
         #print(image1.shape)
-        plt.imshow(mask1[n-6])
+        plt.imshow(mask1_[n-6])
     # ax = plt.subplot(2, 10, n + 11)
     # plt.imshow(tf.squeeze(mask[n])/255)  # .numpy().astype("int")
     plt.axis("off")

@@ -1033,5 +1033,4 @@ if __name__ == "__main__":
     model = SSL_train_model_Model()
     model.build(input_shape=[(None, 128, 128, 3), (None, 128, 128, 1)])
     model.summary(
-
     )

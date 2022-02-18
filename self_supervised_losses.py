@@ -508,11 +508,11 @@ def byol_symetrize_loss(p, z, temperature):
     # Calculate contrastive Loss
     batch_size = tf.shape(p)[0]
     labels = tf.one_hot(tf.range(batch_size), batch_size * 2)
+
     logits_ab = tf.matmul(p, z, transpose_b=True) / temperature
     # Measure similarity
     similarities = tf.reduce_sum(tf.multiply(p, z), axis=1)
     #loss = 2 - 2 * tf.reduce_mean(similarities)
-    print("loss shape : ", similarities.shape)
     return similarities, logits_ab, labels
 
 
