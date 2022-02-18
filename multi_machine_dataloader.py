@@ -189,7 +189,7 @@ class imagenet_dataset_multi_machine():
         return img
 
     @classmethod
-    def parse_images_lable_pair(self, image_path, lable):
+    def parse_images_lable_pair(self, image_path, lable,IMG_SIZE):
         # Loading and reading Image
         img = tf.io.read_file(image_path)
         img = tf.io.decode_jpeg(img, channels=3)
