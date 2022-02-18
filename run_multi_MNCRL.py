@@ -102,7 +102,8 @@ def main():
     input_options = tf.distribute.InputOptions(
         experimental_place_dataset_on_device = True,
         experimental_fetch_to_device = False,
-        experimental_replication_mode = tf.distribute.InputReplicationMode.PER_REPLICA)
+        #experimental_replication_mode = tf.distribute.InputReplicationMode.PER_REPLICA
+        )
     train_multi_worker_dataset = strategy.distribute_datasets_from_function(
         lambda input_context: dataset_loader.simclr_inception_style_crop_image_mask(input_context))
 
@@ -254,10 +255,10 @@ def main():
                 else:
                     raise ValueError("Invalid Loss Type")
                 # total sum loss //Global batch_size
-                # loss = 2 - 2*(tf.reduce_sum(per_example_loss)
-                #               * (1. / train_global_batch_size))
-                loss = tf.reduce_sum(per_example_loss) * \
-                    (1. / strategy.num_replicas_in_sync)
+                loss = 2 - 2*(tf.reduce_sum(per_example_loss)
+                              * (1. / train_global_batch_size))
+                # loss = tf.reduce_sum(per_example_loss) * \
+                #     (1. / strategy.num_replicas_in_sync)
 
                 return loss, logits_ab, labels
 
