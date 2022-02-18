@@ -475,7 +475,7 @@ def main():
                             #     bytes_per_pack=32 * 1024 * 1024
                             #     )
                             hints = tf.distribute.experimental.CommunicationOptions(
-                                bytes_per_pack=50 * 1024 * 1024,
+                                bytes_per_pack=32 * 1024 * 1024,
                                 timeout_seconds=120.0,
                                 implementation=tf.distribute.experimental.CommunicationImplementation.NCCL
                             )
@@ -504,7 +504,7 @@ def main():
                             # hints = tf.distribute.experimental.CollectiveHints(
                             #     bytes_per_pack=32 * 1024 * 1024)
                             hints = tf.distribute.experimental.CommunicationOptions(
-                                bytes_per_pack=50 * 1024 * 1024,
+                                bytes_per_pack=32 * 1024 * 1024,
                                 timeout_seconds=120.0,
                                 implementation=tf.distribute.experimental.CommunicationImplementation.NCCL
                             )

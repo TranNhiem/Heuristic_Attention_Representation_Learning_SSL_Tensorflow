@@ -1,7 +1,7 @@
 import time
 
 import tensorflow as tf
-from official.vision.image_classification.augment import RandAugment
+#from official.vision.image_classification.augment import RandAugment
 #from absl import flags
 
 #FLAGS = flags.FLAGS
@@ -59,7 +59,7 @@ def gaussian_blur(image, kernel_size, sigma, padding='SAME'):
 # Random Apply with Probability
 
 
-#@tf.function
+# @tf.function
 def random_apply(func, x, p):
     if tf.random.uniform([], minval=0, maxval=1) < p:
         return func(x)
@@ -67,6 +67,7 @@ def random_apply(func, x, p):
         return x
 
 # SimCLR Augmentation Croping
+
 
 def _compute_crop_shape(
         image_height, image_width, aspect_ratio, crop_proportion):
@@ -106,6 +107,7 @@ def _compute_crop_shape(
         _requested_aspect_ratio_wider_than_image,
         _image_wider_than_requested_aspect_ratio)
 
+
 def center_crop(image, height, width, crop_proportion):
     """Crops to center of image and rescales to desired size.
     Args:
@@ -130,6 +132,7 @@ def center_crop(image, height, width, crop_proportion):
                             method=tf.image.ResizeMethod.BICUBIC)[0]
 
     return image
+
 
 def distorted_bounding_box_crop(image,
                                 bbox,
@@ -186,7 +189,7 @@ def distorted_bounding_box_crop(image,
 
 
 # Alternative two option for random_crop (Simclr_github)
-#@tf.function
+# @tf.function
 def flip_random_crop(image, crop_size):
     '''
     Args: 
@@ -201,7 +204,9 @@ def flip_random_crop(image, crop_size):
     return image
 # Local Croping --Under experiment
 
-#@tf.function
+# @tf.function
+
+
 def random_crop_flip_resize(image, IMG_SIZE):
     # Random cropping
     h_crop = tf.cast(tf.random.uniform(shape=[], minval=30,
@@ -228,7 +233,9 @@ def random_crop_flip_resize(image, IMG_SIZE):
 
 # Random Global and Local Croping
 
-#@tf.function
+# @tf.function
+
+
 def rand_distribe_crop_global_local_views_flip(image, crop_size, min_scale, max_scale, high_resol=True):
     '''
         Args:
@@ -258,7 +265,7 @@ def rand_distribe_crop_global_local_views_flip(image, crop_size, min_scale, max_
 
 
 # Local Croping --Under experiment
-#@tf.function
+# @tf.function
 def rand_distribe_crop_global_local_views_flip_v1(image, crop_size, IMG_SIZE):
     # Random cropping
     # h_crop = tf.cast(tf.random.uniform(shape=[], minval=50,
@@ -293,7 +300,9 @@ def rand_distribe_crop_global_local_views_flip_v1(image, crop_size, IMG_SIZE):
 
 # Inception Style Croping
 
-#@tf.function
+# @tf.function
+
+
 def inception_style_croping(image, height, width):
     """Make a random crop and resize it to height `height` and width `width`.
     Args:
@@ -319,7 +328,9 @@ def inception_style_croping(image, height, width):
 # This random brightness implement in SimCLRV2
 # Magnitude reference form BYOL
 
-#@tf.function
+# @tf.function
+
+
 def color_jitter(image, strength=[0.4, 0.4, 0.2, 0.1]):
     '''
     Args: 
@@ -338,7 +349,9 @@ def color_jitter(image, strength=[0.4, 0.4, 0.2, 0.1]):
     x = tf.clip_by_value(x, 0, 255)
     return x
 
-#@tf.function
+# @tf.function
+
+
 def random_blur(image):  # IMG_SIZE=32,
     '''
     Args: 
@@ -356,7 +369,9 @@ def random_blur(image):  # IMG_SIZE=32,
         image, kernel_size=IMG_SIZE // 10, sigma=sigma, padding='SAME')
     return image_blur
 
-#@tf.function
+# @tf.function
+
+
 def color_drop(image):
     '''
     Args: 
@@ -370,6 +385,7 @@ def color_drop(image):
 # *****************************************************
 # Self-Supervised Processing Data
 # *****************************************************
+
 
 @tf.function
 def simclr_augment_randcrop(image, IMG_SIZE):
@@ -409,6 +425,7 @@ def simclr_augment_randcrop_global_views(image, IMG_SIZE):
     #image = image/255.
     return image
 
+
 @tf.function
 def simclr_augment_inception_style(image, IMG_SIZE):
     # IMG_SIZE=IMG_SIZE
@@ -425,6 +442,7 @@ def simclr_augment_inception_style(image, IMG_SIZE):
     #image = image/255.
     return image
 # @tf.function
+
 
 @tf.function
 def simclr_augment_randcrop_global_view_image_mask(image, mask_obj, mask_back, IMG_SIZE, feature_size):
@@ -454,6 +472,7 @@ def simclr_augment_randcrop_global_view_image_mask(image, mask_obj, mask_back, I
 
     #mask = mask/255.
     return image, mask_obj, mask_back
+
 
 @tf.function
 def simclr_augment_inception_style_image_mask(image, mask_obj, mask_back, IMG_SIZE, feature_size):
@@ -505,6 +524,7 @@ def simclr_augment_randcrop_global_view_image_mask_tf_py(image, mask, IMG_SIZE, 
     # mask = mask/255.
     return image, mask, z
 
+
 @tf.function
 def simclr_augment_inception_style_image_mask_tf_py(image, mask, IMG_SIZE, z):
     # IMG_SIZE=IMG_SIZE
@@ -532,6 +552,7 @@ def simclr_augment_inception_style_image_mask_tf_py(image, mask, IMG_SIZE, z):
 # Evaluation-Supervised Processing Data
 # *****************************************************
 CROP_PROPORTION = 0.875  # Standard for ImageNet.
+
 
 def croping_for_eval(image, height, width, crop=True):
     """Preprocesses the given image for evaluation.

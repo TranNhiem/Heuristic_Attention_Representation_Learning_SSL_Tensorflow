@@ -9,8 +9,8 @@ def read_cfg(mod="non_contrastive"):
 
     '''This Cache File still Under development'''
     FLAGS.num_workers = 2
-    FLAGS.communication_method = "NCCL"  # ["NCCL", "auto", "RING"]
-    FLAGS.collective_hint = False
+    FLAGS.communication_method = "auto"  # ["NCCL", "auto", "RING"]
+    FLAGS.collective_hint = True
     FLAGS.with_option = True
     FLAGS.wandb_project_name = "heuristic_attention_representation_learning_Paper_correction"
     FLAGS.wandb_run_name = "test_multi_machine"
@@ -43,7 +43,7 @@ def read_cfg(mod="non_contrastive"):
     FLAGS.weighted_loss = 0.5
     FLAGS.resnet_depth = 50
     FLAGS.train_epochs = 100
-    FLAGS.num_classes = 10
+    FLAGS.num_classes = 100
     FLAGS.subset_percentage = 1.0
     FLAGS.per_gpu_train_batch = 256
     FLAGS.per_gpu_val_batch = 256
