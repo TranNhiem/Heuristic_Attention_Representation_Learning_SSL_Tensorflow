@@ -29,8 +29,8 @@ def read_cfg(mod="non_contrastive"):
 
     FLAGS.moving_average = "schedule"
     # ['fp16', 'fp32'],  # fp32 is original precision
-    FLAGS.mixprecision = 'fp32'
-    FLAGS.precision_method = "API"  # "API"
+    FLAGS.mixprecision = 'fp16'
+    FLAGS.precision_method = "custome"  # "API"
     # , [ 'original', 'model_only', ],
     FLAGS.base_lr = 0.5
 
