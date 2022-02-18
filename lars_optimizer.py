@@ -15,11 +15,17 @@
 # ==============================================================================
 """Functions and classes related to optimization (weight updates)."""
 
+from config.experiment_config import read_cfg
+from config.absl_mock import Mock_Flag
 import re
 
 import tensorflow as tf
 
 EETA_DEFAULT = 0.001
+
+read_cfg()
+flag = Mock_Flag()
+FLAGS = flag.FLAGS
 
 
 class LARSOptimizer(tf.keras.optimizers.Optimizer):
@@ -34,7 +40,8 @@ class LARSOptimizer(tf.keras.optimizers.Optimizer):
                  momentum=0.9,
                  use_nesterov=False,
                  weight_decay=0.0,
-                 exclude_from_weight_decay=['batch_normalization', 'bias', 'head_supervised'],
+                 exclude_from_weight_decay=[
+                     'batch_normalization', 'bias', 'head_supervised'],
                  exclude_from_layer_adaptation=None,
                  classic_momentum=True,
                  eeta=EETA_DEFAULT,
@@ -94,26 +101,45 @@ class LARSOptimizer(tf.keras.optimizers.Optimizer):
         v = self.get_slot(param, "Momentum")
 
         if self._use_weight_decay(param_name):
-            grad += self.weight_decay * param
+            if FLAGS.mixprecision == "fp16" and FLAGS.precision_method == "test_method":
+                weight_decay = tf.cast(self.weight_decay, dtype=tf.float16)
+                param1 = param
+                param1 = tf.cast(param1, dtype=tf.float16)
+                grad += weight_decay * param1
+
+            else:
+                grad += self.weight_decay * param
 
         if self.classic_momentum:
             trust_ratio = 1.0
             if self._do_layer_adaptation(param_name):
                 w_norm = tf.norm(param, ord=2)
                 g_norm = tf.norm(grad, ord=2)
+
                 trust_ratio = tf.where(
                     tf.greater(w_norm, 0),
                     tf.where(tf.greater(g_norm, 0),
                              (self.eeta * w_norm / g_norm), 1.0),
                     1.0)
+
+            if FLAGS.mixprecision == "fp16" and FLAGS.precision_method == "test_method":
+                learning_rate = tf.cast(learning_rate, dtype=tf.float16)
+                #self.momentum = tf.cast(self.momentum, dytype=tf.float)
+
             scaled_lr = learning_rate * trust_ratio
 
-            next_v = tf.multiply(self.momentum, v) + scaled_lr * grad
+            if FLAGS.mixprecision == "fp16" and FLAGS.precision_method == "test_method":
+                next_v = tf.cast(tf.multiply(self.momentum, v),
+                                 dtype=tf.float16) + scaled_lr * grad
+            else:
+                next_v = tf.multiply(self.momentum, v) + scaled_lr * grad
+
             if self.use_nesterov:
                 update = tf.multiply(self.momentum, next_v) + scaled_lr * grad
             else:
                 update = next_v
             next_param = param - update
+
         else:
             next_v = tf.multiply(self.momentum, v) + grad
             if self.use_nesterov:

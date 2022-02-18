@@ -1,9 +1,10 @@
+from config.experiment_config_multi_machine import read_cfg
+from config.absl_mock import Mock_Flag
+from multiprocessing import util
 from absl import flags
 from absl import logging
 from absl import app
 import tensorflow as tf
-
-import os
 import metrics
 import wandb
 import json
@@ -12,20 +13,33 @@ import random
 from imutils import paths
 import objective as obj_lib
 from wandb.keras import WandbCallback
-
 from self_supervised_losses import byol_symetrize_loss
 import model_for_non_contrastive_framework as all_model
 from learning_rate_optimizer import WarmUpAndCosineDecay
 from multi_machine_dataloader import imagenet_dataset_multi_machine
-#from helper_functions import *
+from helper_functions import *
+import os
+
+
+# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+os.environ.pop('TF_CONFIG', None)
 
 
 # Checkpoint saving and Restoring weights Not whole model
-from multiprocessing import util
 
-#FLAGS = flags.FLAGS
-from config.absl_mock import Mock_Flag
-from config.experiment_config_multi_machine import read_cfg
+# FLAGS = flags.FLAGS
+
+tf.keras.backend.clear_session()
+
+gpus = tf.config.experimental.list_physical_devices('GPU')
+if gpus:
+    try:
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
+            # tf.config.experimental.VirtualDeviceConfiguration(
+            #     memory_limit=40024)
+    except RuntimeError as e:
+        print(e)
 
 
 read_cfg()
@@ -42,406 +56,132 @@ flag.save_config(os.path.join(FLAGS.model_dir, "config.cfg"))
 
 # For setting GPUs Thread reduce kernel Luanch Delay
 # https://github.com/tensorflow/tensorflow/issues/25724
-# os.environ['TF_GPU_THREAD_MODE'] = 'gpu_private'
-# os.environ['TF_GPU_THREAD_COUNT'] = '1'
+os.environ['TF_GPU_THREAD_MODE'] = 'gpu_private'
+os.environ['TF_GPU_THREAD_COUNT'] = '2'
 
 
 # Helper function to save and resore model.
 
 
-def get_salient_tensors_dict(include_projection_head):
-    """Returns a dictionary of tensors."""
-    graph = tf.compat.v1.get_default_graph()
-    result = {}
-    for i in range(1, 5):
-        result['block_group%d' % i] = graph.get_tensor_by_name(
-            'resnet/block_group%d/block_group%d:0' % (i, i))
-        result['initial_conv'] = graph.get_tensor_by_name(
-            'resnet/initial_conv/Identity:0')
-        result['initial_max_pool'] = graph.get_tensor_by_name(
-            'resnet/initial_max_pool/Identity:0')
-        result['final_avg_pool'] = graph.get_tensor_by_name(
-            'resnet/final_avg_pool:0')
+def main():
 
-        result['logits_sup'] = graph.get_tensor_by_name(
-            'head_supervised/logits_sup:0')
+    # ------------------------------------------
+    # Communication methods
+    # ------------------------------------------
+    if FLAGS.communication_method == "NCCL":
 
-    if include_projection_head:
-        result['proj_head_input'] = graph.get_tensor_by_name(
-            'projection_head/proj_head_input:0')
-        result['proj_head_output'] = graph.get_tensor_by_name(
-            'projection_head/proj_head_output:0')
-    return result
+        communication_options = tf.distribute.experimental.CommunicationOptions(
+            implementation=tf.distribute.experimental.CollectiveCommunication.NCCL)
+        # tf.distribute.experimental.CommunicationImplementation.NCCL)
+    elif FLAGS.communication_method == "RING":
 
+        communication_options = tf.distribute.experimental.CommunicationOptions(
+            implementation=tf.distribute.experimental.CollectiveCommunication.RING)
+        # tf.distribute.experimental.CommunicationImplementation.RING)
 
-def build_saved_model(model, include_projection_head=True):
-    """Returns a tf.Module for saving to SavedModel."""
+    elif FLAGS.communication_method == "auto":
+        communication_options = tf.distribute.experimental.CommunicationOptions(
+            implementation=tf.distribute.experimental.CollectiveCommunication.AUTO)
+        # tf.distribute.experimental.CollectiveCommunication.AUTO)
 
-    class SimCLRModel(tf.Module):
-        """Saved model for exporting to hub."""
+    else:
+        raise ValueError("Invalida communication method")
 
-        def __init__(self, model):
-            self.model = model
-            # This can't be called `trainable_variables` because `tf.Module` has
-            # a getter with the same name.
-            self.trainable_variables_list = model.trainable_variables
+    # strategy = tf.distribute.MultiWorkerMirroredStrategy(communication_options=communication_options, cluster_resolver=None
+    #                                                      )  # communication_options=communication_options  #
+    resolver = tf.distribute.cluster_resolver.TFConfigClusterResolver()
+    strategy = tf.distribute.MultiWorkerMirroredStrategy(
+        communication_options=communication_options, cluster_resolver=resolver)
+    # ------------------------------------------
+    # Preparing dataset
+    # ------------------------------------------
+    # Number of Machines use for Training
+    per_gpu_train_batch = FLAGS.per_gpu_train_batch
+    per_gpu_val_batch = FLAGS.per_gpu_val_batch
 
-        @tf.function
-        def __call__(self, inputs, trainable):
-            self.model(inputs, training=trainable)
-            return get_salient_tensors_dict(include_projection_head)
+    train_global_batch_size = per_gpu_train_batch * strategy.num_replicas_in_sync
+    print("Your global batch_size",   train_global_batch_size)
+    val_global_batch_size = per_gpu_val_batch * strategy.num_replicas_in_sync
 
-    module = SimCLRModel(model)
-    input_spec = tf.TensorSpec(shape=[None, None, None, 3], dtype=tf.float32)
-    module.__call__.get_concrete_function(input_spec, trainable=True)
-    module.__call__.get_concrete_function(input_spec, trainable=False)
+    dataset_loader = imagenet_dataset_multi_machine(img_size=FLAGS.image_size, train_batch=train_global_batch_size,
+                                                    val_batch=val_global_batch_size,
+                                                    strategy=strategy, train_path=FLAGS.train_path,
+                                                    val_path=FLAGS.val_path,
+                                                    mask_path=FLAGS.mask_path, bi_mask=False,
+                                                    train_label=FLAGS.train_label, val_label=FLAGS.val_label,
+                                                    subset_class_num=FLAGS.num_classes, subset_percentage=FLAGS.subset_percentage)
 
-    return module
+    train_multi_worker_dataset = strategy.distribute_datasets_from_function(
+        lambda input_context: dataset_loader.simclr_random_global_crop(input_context))
 
-# configure Json format saving file
+    val_multi_worker_dataset = strategy.distribute_datasets_from_function(
+        lambda input_context: dataset_loader.supervised_validation(input_context))
 
+    num_train_examples, num_eval_examples = dataset_loader.get_data_size()
 
-def json_serializable(val):
-    #
-    try:
-        json.dumps(val)
-        return True
+    train_steps = FLAGS.eval_steps or int(
+        num_train_examples * FLAGS.train_epochs // train_global_batch_size) * 2
+    eval_steps = FLAGS.eval_steps or int(
+        math.ceil(num_eval_examples / val_global_batch_size))
 
-    except TypeError:
-        return False
+    epoch_steps = int(round(num_train_examples / train_global_batch_size))
+    checkpoint_steps = (FLAGS.checkpoint_steps or (
+        FLAGS.checkpoint_epochs * epoch_steps))
 
+    logging.info('# train examples: %d', num_train_examples)
+    logging.info('# train_steps: %d', train_steps)
+    logging.info('# eval examples: %d', num_eval_examples)
+    logging.info('# eval steps: %d', eval_steps)
 
-def save(model, global_step):
-    """Export as SavedModel for finetuning and inference."""
-    saved_model = build_saved_model(model)
-    export_dir = os.path.join(FLAGS.model_dir, 'saved_model')
-    checkpoint_export_dir = os.path.join(export_dir, str(global_step))
-
-    if tf.io.gfile.exists(checkpoint_export_dir):
-        tf.io.gfile.rmtree(checkpoint_export_dir)
-    tf.saved_model.save(saved_model, checkpoint_export_dir)
-
-    if FLAGS.keep_hub_module_max > 0:
-        # Delete old exported SavedModels.
-        exported_steps = []
-        for subdir in tf.io.gfile.listdir(export_dir):
-            if not subdir.isdigit():
-                continue
-            exported_steps.append(int(subdir))
-        exported_steps.sort()
-        for step_to_delete in exported_steps[:-FLAGS.keep_hub_module_max]:
-            tf.io.gfile.rmtree(os.path.join(export_dir, str(step_to_delete)))
-
-
-def _restore_latest_or_from_pretrain(checkpoint_manager):
-    """Restores the latest ckpt if training already.
-    Or restores from FLAGS.checkpoint if in finetune mode.
-    Args:
-    checkpoint_manager: tf.traiin.CheckpointManager.
-    """
-    latest_ckpt = checkpoint_manager.latest_checkpoint
-
-    if latest_ckpt:
-        # The model is not build yet so some variables may not be available in
-        # the object graph. Those are lazily initialized. To suppress the warning
-        # in that case we specify `expect_partial`.
-        logging.info('Restoring from %s', latest_ckpt)
-        checkpoint_manager.checkpoint.restore(latest_ckpt).expect_partial()
-
-    elif FLAGS.train_mode == 'finetune':
-        # Restore from pretrain checkpoint.
-        assert FLAGS.checkpoint, 'Missing pretrain checkpoint.'
-        logging.info('Restoring from %s', FLAGS.checkpoint)
-        checkpoint_manager.checkpoint.restore(
-            FLAGS.checkpoint).expect_partial()
-        # TODO(iamtingchen): Can we instead use a zeros initializer for the
-        # supervised head?
-
-    if FLAGS.zero_init_logits_layer:
-        model = checkpoint_manager.checkpoint.model
-        output_layer_parameters = model.supervised_head.trainable_weights
-        logging.info('Initializing output layer parameters %s to zero',
-                     [x.op.name for x in output_layer_parameters])
-
-        for x in output_layer_parameters:
-            x.assign(tf.zeros_like(x))
-
-# Perform Testing Step Here
-
-
-def perform_evaluation(model, val_ds, val_steps, ckpt, strategy):
-    """Perform evaluation.--> Only Inference to measure the pretrain model representation"""
-
-    if FLAGS.train_mode == 'pretrain' and not FLAGS.lineareval_while_pretraining:
-        logging.info('Skipping eval during pretraining without linear eval.')
-        return
-
-    # Tensorboard enable
-    summary_writer = tf.summary.create_file_writer(FLAGS.model_dir)
-
-    # Building the Supervised metrics
+    # Configure the Encoder Architecture.
     with strategy.scope():
-
-        regularization_loss = tf.keras.metrics.Mean('eval/regularization_loss')
-        label_top_1_accuracy = tf.keras.metrics.Accuracy(
-            "eval/label_top_1_accuracy")
-        label_top_5_accuracy = tf.keras.metrics.TopKCategoricalAccuracy(
-            5, 'eval/label_top_5_accuracy')
-
-        all_metrics = [
-            regularization_loss, label_top_1_accuracy, label_top_5_accuracy
-        ]
-
-        # Restore model checkpoint
-        logging.info('Restoring from %s', ckpt)
-        checkpoint = tf.train.Checkpoint(
-            model=model, global_step=tf.Variable(0, dtype=tf.int64))
-        checkpoint.restore(ckpt).expect_partial()
-        global_step = checkpoint.global_step
-        logging.info('Performing eval at step %d', global_step.numpy())
-
-    # Scaling the loss  -- Update the sum up all the gradient
-    @tf.function
-    def single_step(features, labels):
-        # Logits output
-        _, supervised_head_outputs = model(features, training=False)
-        assert supervised_head_outputs is not None
-        outputs = supervised_head_outputs
-
-        metrics.update_finetune_metrics_eval(
-            label_top_1_accuracy, label_top_5_accuracy, outputs, labels)
-
-        # Single machine loss
-        reg_loss = all_model.add_weight_decay(model, adjust_per_optimizer=True)
-        regularization_loss.update_state(reg_loss)
-
-    with strategy.scope():
-
-        @tf.function
-        def run_single_step(iterator):
-            images, labels = next(iterator)
-            strategy.run(single_step, (images, labels))
-
-    iterator = iter(val_ds)
-    for i in range(val_steps):
-        run_single_step(iterator)
-        logging.info("Complete validation for %d step ", i+1, val_steps)
-
-    # At this step of training with Ckpt Complete evaluate model performance
-    logging.info('Finished eval for %s', ckpt)
-
-    # Logging to tensorboard for the information
-    # Write summaries
-    cur_step = global_step.numpy()
-    logging.info('Writing summaries for %d step', cur_step)
-
-    with summary_writer.as_default():
-        metrics.log_and_write_metrics_to_summary(all_metrics, cur_step)
-        summary_writer.flush()
-
-    # Record results as Json.
-    result_json_path = os.path.join(FLAGS.model_dir, 'result.jsoin')
-    result = {metric.name: metric.result().numpy() for metric in all_metrics}
-    result['global_step'] = global_step.numpy()
-    logging.info(result)
-
-    with tf.io.gfile.GFile(result_json_path, 'w') as f:
-        json.dump({k: float(v) for k, v in result.items()}, f)
-    result_json_path = os.path.join(
-        FLAGS.model_dir, 'result_%d.json' % result['global_step'])
-
-    with tf.io.gfile.GFile(result_json_path, 'w') as f:
-        json.dump({k: float(v) for k, v in result.items()}, f)
-    flag_json_path = os.path.join(FLAGS.model_dir, 'flags.json')
-
-    with tf.io.gfile.GFile(flag_json_path, 'w') as f:
-        serializable_flags = {}
-        for key, val in FLAGS.flag_values_dict().items():
-            # Some flag value types e.g. datetime.timedelta are not json serializable,
-            # filter those out.
-            if json_serializable(val):
-                serializable_flags[key] = val
-            json.dump(serializable_flags, f)
-
-    # Export as SavedModel for finetuning and inference.
-    save(model, global_step=result['global_step'])
-
-    return result
-
-
-def chief_worker(task_type, task_id):
-    return task_type is None or task_type == 'chief' or (task_type == 'worker' and task_id == 0)
-
-
-def _get_temp_dir(dirpath, task_id):
-
-    base_dirpath = 'workertemp_' + str(task_id)
-    # Note future will just define our custom saving dir
-    temp_dir = os.path.join(dirpath, base_dirpath)
-    tf.io.gfile.makedirs(temp_dir)
-    return temp_dir
-
-
-def write_filepath(filepath, task_type, task_id):
-    dirpath = os.path.dirname(filepath)
-
-    base = os.path.basename(filepath)
-
-    if not chief_worker(task_type, task_id):
-        dirpath = _get_temp_dir(dirpath, task_id)
-
-    return os.path.join(dirpath, base)
-# Restore the checkpoint forom the file
-
-
-def multi_node_try_restore_from_checkpoint(model, global_step, optimizer, task_type, task_id):
-    """Restores the latest ckpt if it exists, otherwise check FLAGS.checkpoint."""
-    checkpoint = tf.train.Checkpoint(
-        model=model, global_step=global_step, optimizer=optimizer)
-
-    write_checkpoint_dir = write_filepath(FLAGS.model_dir, task_type, task_id)
-
-    checkpoint_manager = tf.train.CheckpointManager(
-        checkpoint,
-        directory=write_checkpoint_dir,
-        max_to_keep=FLAGS.keep_checkpoint_max)
-    latest_ckpt = checkpoint_manager.latest_checkpoint
-
-    if latest_ckpt:
-        # Restore model weights, global step, optimizer states
-        logging.info('Restoring from latest checkpoint: %s', latest_ckpt)
-        checkpoint_manager.checkpoint.restore(latest_ckpt).expect_partial()
-
-    elif FLAGS.checkpoint:
-        # Restore model weights only, but not global step and optimizer states
-        logging.info('Restoring from given checkpoint: %s', FLAGS.checkpoint)
-        checkpoint_manager2 = tf.train.CheckpointManager(
-            tf.train.Checkpoint(model=model),
-            directory=FLAGS.model_dir,
-            max_to_keep=FLAGS.keep_checkpoint_max)
-        checkpoint_manager2.checkpoint.restore(
-            FLAGS.checkpoint).expect_partial()
-
-    if FLAGS.zero_init_logits_layer:
-        model = checkpoint_manager2.checkpoint.model
-        output_layer_parameters = model.supervised_head.trainable_weights
-        logging.info('Initializing output layer parameters %s to zero',
-                     [x.op.name for x in output_layer_parameters])
-        for x in output_layer_parameters:
-            x.assign(tf.zeros_like(x))
-
-    return checkpoint_manager, write_checkpoint_dir
-
-
-if FLAGS.communication_method == "NCCL":
-
-    communication_options = tf.distribute.experimental.CommunicationOptions(
-        implementation=tf.distribute.experimental.CommunicationImplementation.NCCL)
-
-elif FLAGS.communication_method == "auto":
-    communication_options = tf.distribute.experimental.CommunicationOptions(
-        implementation=tf.distribute.experimental.CollectiveCommunication.AUTO)
-
-strategy = tf.distribute.MultiWorkerMirroredStrategy(
-    communication_options=communication_options)
-
-
-with strategy.scope():
-    def main():
-
-        # ------------------------------------------
-        # Communication methods
-        # ------------------------------------------
-
-        # ------------------------------------------
-        # Preparing dataset
-        # ------------------------------------------
-        # Number of Machines use for Training
-        per_worker_train_batch_size = FLAGS.single_machine_train_batch_size
-        per_worker_val_batch_size = FLAGS.single_machine_val_batch_size
-
-        train_global_batch_size = per_worker_train_batch_size * FLAGS.num_workers
-        val_global_batch_size = per_worker_val_batch_size * FLAGS.num_workers
-
-        dataset_loader = imagenet_dataset_multi_machine(img_size=FLAGS.image_size, train_batch=train_global_batch_size,
-                                                        val_batch=val_global_batch_size,
-                                                        strategy=strategy, train_path=FLAGS.train_path,
-                                                        val_path=FLAGS.val_path,
-                                                        mask_path=FLAGS.mask_path, bi_mask=False,
-                                                        train_label=FLAGS.train_label, val_label=FLAGS.val_label,
-                                                        subset_class_num=FLAGS.num_classes)
-
-        train_multi_worker_dataset = strategy.distribute_datasets_from_function(
-            lambda input_context: dataset_loader.simclr_inception_style_crop(input_context))
-
-        val_multi_worker_dataset = strategy.distribute_datasets_from_function(
-            lambda input_context: dataset_loader.supervised_validation(input_context))
-
-        num_train_examples, num_eval_examples = dataset_loader.get_data_size()
-
-        train_steps = FLAGS.eval_steps or int(
-            num_train_examples * FLAGS.train_epochs // train_global_batch_size) * 2
-        eval_steps = FLAGS.eval_steps or int(
-            math.ceil(num_eval_examples / val_global_batch_size))
-
-        epoch_steps = int(round(num_train_examples / train_global_batch_size))
-        checkpoint_steps = (FLAGS.checkpoint_steps or (
-            FLAGS.checkpoint_epochs * epoch_steps))
-
-        logging.info('# train examples: %d', num_train_examples)
-        logging.info('# train_steps: %d', train_steps)
-        logging.info('# eval examples: %d', num_eval_examples)
-        logging.info('# eval steps: %d', eval_steps)
-
-        # Configure the Encoder Architecture.
-        # with strategy.scope():
         online_model = all_model.online_model(FLAGS.num_classes)
         prediction_model = all_model.prediction_head_model()
         target_model = all_model.online_model(FLAGS.num_classes)
 
-        # Configure Wandb Training
-        # Weight&Bias Tracking Experiment
-        configs = {
+    # Configure Wandb Training
+    # Weight&Bias Tracking Experiment
+    configs = {
 
-            "Model_Arch": "ResNet50",
-            "Training mode": "Multi_machine SSL",
-            "DataAugmentation_types": "SimCLR_Inception_style_Croping",
-            "Dataset": "ImageNet1k",
+        "Model_Arch": "ResNet50",
+        "Training mode": "Multi_machine SSL",
+        "DataAugmentation_types": "SimCLR_Inception_style_Croping",
+        "Dataset": "ImageNet1k",
 
-            "IMG_SIZE": FLAGS.image_size,
-            "Epochs": FLAGS.train_epochs,
-            "Batch_size": train_global_batch_size,
-            "Learning_rate": FLAGS.base_lr,
-            "Temperature": FLAGS.temperature,
-            "Optimizer": FLAGS.optimizer,
-            "SEED": FLAGS.SEED,
-            "Loss type": FLAGS.loss_options,
-        }
+        "IMG_SIZE": FLAGS.image_size,
+        "Epochs": FLAGS.train_epochs,
+        "Batch_size": train_global_batch_size,
+        "Learning_rate": FLAGS.base_lr,
+        "Temperature": FLAGS.temperature,
+        "Optimizer": FLAGS.optimizer,
+        "SEED": FLAGS.SEED,
 
-        wandb.init(project="heuristic_attention_representation_learning",
-                   sync_tensorboard=True, config=configs)
+    }
 
-        # Training Configuration
-        # *****************************************************************
-        # Only Evaluate model
-        # *****************************************************************
+    wandb.init(project="heuristic_attention_representation_learning",
+               sync_tensorboard=True, config=configs)
 
-        if FLAGS.mode == "eval":
-            # can choose different min_interval
-            for ckpt in tf.train.checkpoints_iterator(FLAGS.model_dir, min_interval_secs=15):
-                result = perform_evaluation(
-                    online_model, val_multi_worker_dataset, eval_steps, ckpt, strategy)
-                # global_step from ckpt
-                if result['global_step'] >= train_steps:
-                    logging.info('Evaluation complete. Existing-->')
+    # Training Configuration
+    # *****************************************************************
+    # Only Evaluate model
+    # *****************************************************************
 
-        # *****************************************************************
-        # Pre-Training and Evaluate
-        # *****************************************************************
-        else:
-            summary_writer = tf.summary.create_file_writer(FLAGS.model_dir)
+    if FLAGS.mode == "eval":
+        # can choose different min_interval
+        for ckpt in tf.train.checkpoints_iterator(FLAGS.model_dir, min_interval_secs=15):
+            result = perform_evaluation(
+                online_model, val_multi_worker_dataset, eval_steps, ckpt, strategy)
+            # global_step from ckpt
+            if result['global_step'] >= train_steps:
+                logging.info('Evaluation complete. Existing-->')
 
-            # with strategy.scope():
+    # *****************************************************************
+    # Pre-Training and Evaluate
+    # *****************************************************************
+    else:
+        summary_writer = tf.summary.create_file_writer(FLAGS.model_dir)
+
+        with strategy.scope():
 
             # Configure the learning rate
             base_lr = FLAGS.base_lr
@@ -453,13 +193,17 @@ with strategy.scope():
                 train_epochs=train_epochs, train_steps=train_steps)
 
             # Current Implement the Mixpercision optimizer
-            optimizer = all_model.build_optimizer_multi_machine(lr_schedule)
+            optimizer = all_model.build_optimizer(lr_schedule)
 
             # Build tracking metrics
             all_metrics = []
             # Linear classfiy metric
             weight_decay_metric = tf.keras.metrics.Mean('train/weight_decay')
             total_loss_metric = tf.keras.metrics.Mean('train/total_loss')
+            # weight_decay_metric = tf.keras.metrics.Accuracy(
+            #     'train/weight_decay')
+            # total_loss_metric = tf.keras.metrics.Accuracy('train/total_loss')
+
             all_metrics.extend([weight_decay_metric, total_loss_metric])
 
             if FLAGS.train_mode == 'pretrain':
@@ -501,7 +245,7 @@ with strategy.scope():
             steps_per_loop = checkpoint_steps
 
             # Scale loss  --> Aggregating all Gradients
-            @tf.function
+            # @tf.function
             def distributed_loss(x1, x2):
 
                 # each GPU loss per_replica batch loss
@@ -511,17 +255,20 @@ with strategy.scope():
                 # total sum loss //Global batch_size
                 # (0.8/1024)*8
                 # loss = tf.reduce_sum(per_example_loss) * (1./len(gpus))### harry try : (1./8)
+                # loss = (tf.reduce_sum(per_example_loss)
+                #         * (1./16))
                 loss = 2 - 2 * (tf.reduce_sum(per_example_loss)
                                 * (1./train_global_batch_size))
                 return loss, logits_ab, labels
 
             @tf.function
-            def train_step(ds_one, ds_two):
+            def train_step_fc(ds_one, ds_two):
                 # Get the data from
                 images_one, lable_one = ds_one
                 images_two, lable_two = ds_two
-
-                with tf.GradientTape() as tape:
+                # lable_one = tf.cast(lable_one, dtype=tf.float16)
+                # lable_two = tf.cast(lable_two, dtype=tf.float16)
+                with tf.GradientTape(persistent=True) as tape:
 
                     if FLAGS.loss_type == "symmetrized":
                         logging.info("You implement Symmetrized loss")
@@ -582,12 +329,12 @@ with strategy.scope():
                             else:
                                 loss += loss
 
-                            # Update Self-Supervised Metrics
-                            metrics.update_pretrain_metrics_train(contrast_loss_metric,
-                                                                  contrast_acc_metric,
-                                                                  contrast_entropy_metric,
-                                                                  loss, logits_ab,
-                                                                  labels)
+                            # # Update Self-Supervised Metrics
+                            # metrics.update_pretrain_metrics_train_multi_machine(contrast_loss_metric,
+                            #                                                     contrast_acc_metric,
+                            #                                                     contrast_entropy_metric,
+                            #                                                     loss, logits_ab,
+                            #                                                     labels)
 
                     elif FLAGS.loss_type == "asymmetrized":
                         logging.info("You implement Asymmetrized loss")
@@ -618,40 +365,16 @@ with strategy.scope():
                             else:
                                 loss += loss
 
-                            # Update Self-Supervised Metrics
-                            metrics.update_pretrain_metrics_train(contrast_loss_metric,
-                                                                  contrast_acc_metric,
-                                                                  contrast_entropy_metric,
-                                                                  loss, logits_ab,
-                                                                  labels)
+                            # # Update Self-Supervised Metrics
+                            metrics.update_pretrain_metrics_train_multi_machine(contrast_loss_metric,
+                                                                                contrast_acc_metric,
+                                                                                contrast_entropy_metric,
+                                                                                loss, logits_ab,
+                                                                                labels)
 
                     else:
                         raise ValueError(
                             'invalid loss type check your loss type')
-
-                    # Compute Contrastive Train Loss -->
-                    loss = None
-                    if proj_head_output_1 is not None:
-
-                        scale_con_loss, logit_ab, lables = distributed_loss(
-                            proj_head_output_1, proj_head_output_2)
-
-                        # Reduce loss Precision to 16 Bits
-                        # scale_con_loss = optimizer.get_scaled_loss(
-                        #     scale_con_loss)
-
-                        # Output to Update Contrastive
-                        if loss is None:
-                            loss = scale_con_loss
-                        else:
-                            loss += scale_con_loss
-
-                        # Update Self-Supervised Metrics
-                        metrics.update_pretrain_metrics_train(contrast_loss_metric,
-                                                              contrast_acc_metric,
-                                                              contrast_entropy_metric,
-                                                              scale_con_loss, logit_ab,
-                                                              lables)
 
                     # Compute the Supervised train Loss
                     if supervised_head_output_1 is not None:
@@ -667,7 +390,7 @@ with strategy.scope():
                                 labels=supervised_lable, logits=outputs)
                             # scale_sup_loss = tf.reduce_sum(
                             #     sup_loss) * (1. / train_global_batch_size)
-                            scale_sup_loss = tf.nn.compute_averageper_example_loss_loss(
+                            scale_sup_loss = tf.nn.compute_average_loss(
                                 sup_loss, global_batch_size=train_global_batch_size)
 
                             # Reduce loss Precision to 16 Bits
@@ -675,7 +398,7 @@ with strategy.scope():
                             # scale_sup_loss = optimizer.get_scaled_loss(
                             #     scale_sup_loss)
 
-                            # Update Supervised Metrics
+                            # # Update Supervised Metrics
                             metrics.update_finetune_metrics_train(supervised_loss_metric,
                                                                   supervised_acc_metric, scale_sup_loss,
                                                                   supervised_lable, outputs)
@@ -706,12 +429,13 @@ with strategy.scope():
                     # --> This Only Use for Supervised Head
                     weight_decay_loss = all_model.add_weight_decay(
                         online_model, adjust_per_optimizer=True)
-                # Under experiment Scale loss after adding Regularization and scaled by Batch_size
+                   # Under experiment Scale loss after adding Regularization and scaled by Batch_size
                     # weight_decay_loss = tf.nn.scale_regularization_loss(
                     #     weight_decay_loss)
 
                     weight_decay_metric.update_state(weight_decay_loss)
-
+                    weight_decay_loss = tf.cast(
+                        weight_decay_loss, dtype=tf.float32)
                     loss += weight_decay_loss
                     # Contrast loss + Supervised loss + Regularize loss
                     total_loss_metric.update_state(loss)
@@ -738,9 +462,9 @@ with strategy.scope():
                         ).all_reduce(tf.distribute.ReduceOp.SUM, scaled_gradients)
 
                         gradients_online = optimizer.get_unscaled_gradients(
-                            all_reduce_fp16_grads_online)
-                        optimizer.apply_gradients(zip(
-                            gradients_online, online_model.trainable_variables), experimental_aggregate_gradients=False)
+                            scaled_gradients)
+                        optimizer.apply_gradients(
+                            zip(gradients_online, online_model.trainable_variables))
 
                         # Update Prediction Head model
                         scaled_grads_pred = tape.gradient(
@@ -749,9 +473,9 @@ with strategy.scope():
                         ).all_reduce(tf.distribute.ReduceOp.SUM, scaled_grads_pred)
 
                         gradients_pred = optimizer.get_unscaled_gradients(
-                            all_reduce_fp16_grads_pred)
+                            scaled_grads_pred)
                         optimizer.apply_gradients(
-                            zip(gradients_pred, prediction_model.trainable_variables), experimental_aggregate_gradients=False)
+                            zip(gradients_pred, prediction_model.trainable_variables))
 
                     # Method 2
                     if FLAGS.precision_method == "custome":
@@ -760,7 +484,7 @@ with strategy.scope():
                         grads_online = tape.gradient(
                             loss, online_model.trainable_variables)
                         fp16_grads_online = [
-                            tf.cast(grad, 'float16')for grad in grads_online]
+                            tf.cast(grad, dtype=tf.float16) for grad in grads_online]
 
                         # Optional
                         if FLAGS.collective_hint:
@@ -772,19 +496,20 @@ with strategy.scope():
                             all_reduce_fp16_grads_online = tf.distribute.get_replica_context(
                             ).all_reduce(tf.distribute.ReduceOp.SUM, fp16_grads_online)
 
-                        #all_reduce_fp32_grads = [tf.cast(grad, 'float32') for grad in all_reduce_fp16_grads]
-                        all_reduce_fp32_grads_online = optimizer.get_unscaled_gradients(
-                            all_reduce_fp16_grads_online)
-                        # all_reduce_fp32_grads = optimizer.get_unscaled_gradients(
-                        #     all_reduce_fp32_grads)
+                        # all_reduce_fp32_grads = [tf.cast(grad, 'float32') for grad in all_reduce_fp16_grads]
+                        # all_reduce_fp32_grads_online = optimizer.get_unscaled_gradients(
+                        #     all_reduce_fp16_grads_online)
+                        all_reduce_fp32_grads_online = [
+                            tf.cast(grad, dtype=tf.float16) for grad in all_reduce_fp16_grads_online]
+
                         optimizer.apply_gradients(zip(
-                            all_reduce_fp32_grads_online, online_model.trainable_variables), experimental_aggregate_gradients=False)
+                            all_reduce_fp32_grads_online, online_model.trainable_variables),)
 
                         # Prediction Model
                         grads_pred = tape.gradient(
                             loss, prediction_model.trainable_variables)
                         fp16_grads_pred = [
-                            tf.cast(grad, 'float16')for grad in grads_pred]
+                            tf.cast(grad, dtype=tf.float16) for grad in grads_pred]
 
                         if FLAGS.collective_hint:
                             hints = tf.distribute.experimental.CollectiveHints(
@@ -797,13 +522,14 @@ with strategy.scope():
                         # Optional
                         # hints = tf.distribute.experimental.CollectiveHints( bytes_per_pack=32 * 1024 * 1024)
                         # all_reduce_fp16_grads = tf.distribute.get_replica_context().all_reduce(tf.distribute.ReduceOp.SUM, fp16_grads, options=hints)
-                        #all_reduce_fp32_grads = [tf.cast(grad, 'float32') for grad in all_reduce_fp16_grads]
-                        all_reduce_fp32_grads_pred = optimizer.get_unscaled_gradients(
-                            all_reduce_fp16_grads_pred)
+                        all_reduce_fp32_grads_pred = [
+                            tf.cast(grad, dtype=tf.float32) for grad in all_reduce_fp16_grads_pred]
+                        # all_reduce_fp32_grads_pred = optimizer.get_unscaled_gradients(
+                        #     all_reduce_fp16_grads_pred)
                         # all_reduce_fp32_grads = optimizer.get_unscaled_gradients(
                         #     all_reduce_fp32_grads)
                         optimizer.apply_gradients(zip(
-                            all_reduce_fp32_grads_pred, prediction_model.trainable_variables), experimental_aggregate_gradients=False)
+                            all_reduce_fp32_grads_pred, prediction_model.trainable_variables))
 
                 elif FLAGS.mixprecision == "fp32":
                     logging.info("you implement original_Fp precision")
@@ -811,18 +537,25 @@ with strategy.scope():
                     # Update Encoder and Projection head weight
                     grads_online = tape.gradient(
                         loss, online_model.trainable_variables)
+
                     if FLAGS.collective_hint:
                         hints = tf.distribute.experimental.CollectiveHints(
-                            bytes_per_pack=25 * 1024 * 1024)
+                            bytes_per_pack=50 * 1024 * 1024)
+                        # options = tf.distribute.experimental.CommunicationOptions(
+                        #     bytes_per_pack=50 * 1024 * 1024,
+                        #     timeout_seconds=120.0,
+                        #     implementation=tf.distribute.experimental.CommunicationImplementation.NCCL
+                        # )
 
                         grads_online = tf.distribute.get_replica_context().all_reduce(
                             tf.distribute.ReduceOp.SUM, grads_online, options=hints)
                     else:
                         grads_online = tf.distribute.get_replica_context().all_reduce(
                             tf.distribute.ReduceOp.SUM, grads_online, )
+                        #print("Grad Local")
 
                     optimizer.apply_gradients(
-                        zip(grads_online, online_model.trainable_variables))
+                        zip(grads_online, online_model.trainable_variables), experimental_aggregate_gradients=False)  #
 
                     # Update Prediction Head model
                     grads_pred = tape.gradient(
@@ -830,16 +563,21 @@ with strategy.scope():
 
                     if FLAGS.collective_hint:
                         hints = tf.distribute.experimental.CollectiveHints(
-                            bytes_per_pack=25 * 1024 * 1024)
+                            bytes_per_pack=50 * 1024 * 1024)
+                        # options = tf.distribute.experimental.CommunicationOptions(
+                        #     bytes_per_pack=50 * 1024 * 1024,
+                        #     timeout_seconds=120.0,
+                        #     implementation=tf.distribute.experimental.CommunicationImplementation.NCCL
+                        # )
 
                         grads_pred = tf.distribute.get_replica_context().all_reduce(
                             tf.distribute.ReduceOp.SUM, grads_pred, options=hints)
                     else:
                         grads_pred = tf.distribute.get_replica_context().all_reduce(
-                            tf.distribute.ReduceOp.SUM, grads_pred, options=hints)
+                            tf.distribute.ReduceOp.SUM, grads_pred)
+                        #print("grad local")
                     optimizer.apply_gradients(
-                        zip(grads_pred, prediction_model.trainable_variables))
-
+                        zip(grads_pred, prediction_model.trainable_variables), experimental_aggregate_gradients=False)  # we do gradient cast custom
                 else:
                     raise ValueError(
                         "Invalid Implement optimization floating precision")
@@ -849,7 +587,7 @@ with strategy.scope():
             @tf.function
             def distributed_train_step(ds_one, ds_two):
                 per_replica_losses = strategy.run(
-                    train_step, args=(ds_one, ds_two))
+                    train_step_fc, args=(ds_one, ds_two))
                 return strategy.reduce(tf.distribute.ReduceOp.SUM, per_replica_losses, axis=None)
 
             # ------------------------------------------
@@ -893,8 +631,11 @@ with strategy.scope():
 
                     with summary_writer.as_default():
                         cur_step = global_step.numpy()
-
                         checkpoint_manager.save(cur_step)
+                        # Removing the checkpoint if it is not Chief Worker
+                        if not chief_worker(task_type, task_id):
+                            tf.io.gfile.rmtree(write_checkpoint_dir)
+
                         logging.info('Completed: %d / %d steps',
                                      cur_step, train_steps)
                         metrics.log_and_write_metrics_to_summary(
@@ -906,7 +647,7 @@ with strategy.scope():
                 epoch_loss = total_loss/num_batches
 
                 if (epoch+1) % 10 == 0:
-                    result = perform_evaluation(online_model, val_ds, eval_steps,
+                    result = perform_evaluation(online_model, val_multi_worker_dataset, eval_steps,
                                                 checkpoint_manager.latest_checkpoint, strategy)
                     wandb.log({
                         "eval/label_top_1_accuracy": result["eval/label_top_1_accuracy"],
@@ -940,21 +681,22 @@ with strategy.scope():
 
             logging.info('Training Complete ...')
 
-            if FLAGS.mode == 'train_then_eval':
-                perform_evaluation(online_model, val_multi_worker_dataset, eval_steps,
-                                   checkpoint_manager.latest_checkpoint, strategy)
+        if FLAGS.mode == 'train_then_eval':
+            perform_evaluation(online_model, val_multi_worker_dataset, eval_steps,
+                               checkpoint_manager.latest_checkpoint, strategy)
 
-            save_encoder = os.path.join(
-                FLAGS.model_dir, "encoder_model_latest.h5")
-            save_online_model = os.path.join(
-                FLAGS.model_dir, "online_model_latest.h5")
-            save_target_model = os.path.join(
-                FLAGS.model_dir, "target_model_latest.h5")
-            online_model.resnet_model.save_weights(save_encoder)
-            online_model.save_weights(save_online_model)
-            target_model.save_weights(save_target_model)
+        save_encoder = os.path.join(
+            FLAGS.model_dir, "encoder_model_latest.h5")
+        save_online_model = os.path.join(
+            FLAGS.model_dir, "online_model_latest.h5")
+        save_target_model = os.path.join(
+            FLAGS.model_dir, "target_model_latest.h5")
+        online_model.resnet_model.save_weights(save_encoder)
+        online_model.save_weights(save_online_model)
+        target_model.save_weights(save_target_model)
 
-        # Pre-Training and Finetune
-    if __name__ == '__main__':
 
-        main()
+    # Pre-Training and Finetune
+if __name__ == '__main__':
+
+    main()

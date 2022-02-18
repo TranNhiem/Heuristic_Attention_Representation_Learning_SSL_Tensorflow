@@ -10,22 +10,26 @@ from config.absl_mock import Mock_Flag
 from byol_simclr_multi_croping_augmentation import simclr_augment_randcrop_global_views, simclr_augment_inception_style, \
     supervised_augment_eval, simclr_augment_randcrop_global_view_image_mask, simclr_augment_inception_style_image_mask, simclr_augment_inception_style_image_mask_tf_py, simclr_augment_randcrop_global_view_image_mask_tf_py
 
+# import nvidia.dali as dali
+# import nvidia.dali.plugin.tf as dali_tf
+
+
 AUTO = tf.data.AUTOTUNE
 flag = Mock_Flag()
 FLAGS = flag.FLAGS
 
 
 # Experimental options
-# tf.data.experimental.DistributeOptions()
+tf.data.experimental.DistributeOptions()
 options = tf.data.Options()
+
 options.experimental_optimization.noop_elimination = True
 # options.experimental_optimization.map_vectorization.enabled = True
-options.experimental_optimization.map_and_batch_fusion = True
-options.experimental_optimization.map_parallelization = True
-options.experimental_optimization.apply_default_optimizations = True
-#options.experimental_deterministic = False
+# options.experimental_optimization.map_and_batch_fusion = True
+# options.experimental_optimization.map_parallelization = True
+# options.experimental_optimization.apply_default_optimizations = True
+# options.experimental_deterministic = False
 # options.experimental_threading.max_intra_op_parallelism = 1
-# Shard policy using multi-machines training
 options.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.DATA
 
 
@@ -292,7 +296,7 @@ class imagenet_dataset_multi_machine():
         ds = tf.data.Dataset.from_tensor_slices((self.x_train, self.x_train_lable)) \
             .map(lambda x, y: (self.parse_images_lable_pair(x, y))) \
             .shuffle(self.BATCH_SIZE * 100, seed=self.seed) \
-            .map(lambda x, y: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE)), y),).cache()
+            .map(lambda x, y: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE)), y),)  # .cache()
 
         train_ds = ds.map(lambda x, y: ((simclr_augment_inception_style(x, self.IMG_SIZE), y), (
             simclr_augment_inception_style(x, self.IMG_SIZE), y)), num_parallel_calls=AUTO)
@@ -304,9 +308,16 @@ class imagenet_dataset_multi_machine():
             logging.info("You implement data loader Without option")
             train_ds = train_ds
 
+        # if FLAGS.Nvidia_dali:
+        #     train_ds= dali_tf.DALIDataset(
+        #         train_ds,
+        #         batch_size=dis_tributed_batch,
+        #         device_id=input_context.input_pipeline_id
+        #     )
+
+        # else:
         train_ds = train_ds.shard(input_context.num_input_pipelines,
                                   input_context.input_pipeline_id)
-
         train_ds = train_ds.batch(dis_tributed_batch)
         train_ds = train_ds.prefetch(AUTO)
 
@@ -327,7 +338,7 @@ class imagenet_dataset_multi_machine():
         ds = tf.data.Dataset.from_tensor_slices((self.x_train, self.x_train_lable)) \
             .map(lambda x, y: (self.parse_images_lable_pair(x, y))) \
             .shuffle(self.BATCH_SIZE * 100, seed=self.seed) \
-            .map(lambda x, y: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE)), y),)  # .cache()
+            .map(lambda x, y: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE)), y),).cache()
 
         # option = tf.data.Options()
         # option.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.DATA
@@ -346,6 +357,7 @@ class imagenet_dataset_multi_machine():
                                   input_context.input_pipeline_id)
         train_ds = train_ds.batch(dis_tributed_batch)
         train_ds = train_ds.prefetch(AUTO)
+
         return train_ds
 
     def simclr_inception_style_crop_image_mask(self, input_context):
@@ -362,7 +374,7 @@ class imagenet_dataset_multi_machine():
 
         ds = tf.data.Dataset.from_tensor_slices((self.x_train_image_mask, self.x_train_lable)) \
             .shuffle(self.BATCH_SIZE * 100, seed=self.seed) \
-            .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)), num_parallel_calls=AUTO)  # .cache()
+            .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)), num_parallel_calls=AUTO).cache()
 
         train_ds = ds.map(lambda x, y, z: ((simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z),
                                            (simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z)),
@@ -396,7 +408,7 @@ class imagenet_dataset_multi_machine():
         # option.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.DATA
         ds = tf.data.Dataset.from_tensor_slices((self.x_train_image_mask, self.x_train_lable)) \
             .shuffle(self.BATCH_SIZE * 100, seed=self.seed) \
-            .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)), num_parallel_calls=AUTO)  # .cache()
+            .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)), num_parallel_calls=AUTO).cache()
 
         train_ds = ds.map(lambda x, y, z: ((simclr_augment_randcrop_global_view_image_mask(x, y, self.IMG_SIZE), z),
                                            (simclr_augment_randcrop_global_view_image_mask(x, y, self.IMG_SIZE), z)),

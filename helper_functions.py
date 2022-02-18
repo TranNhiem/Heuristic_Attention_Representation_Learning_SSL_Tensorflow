@@ -133,7 +133,7 @@ def try_restore_from_checkpoint(model, global_step, optimizer):
                 FLAGS.checkpoint).expect_partial()
     else:
         logging.info('You are Not Restore from Checkpoint: %s', latest_ckpt)
-        
+
     if FLAGS.zero_init_logits_layer:
         print("in2")
         model = checkpoint_manager2.checkpoint.model
@@ -281,3 +281,66 @@ def perform_evaluation(model, val_ds, val_steps, ckpt, strategy):
     # save(model, global_step=result['global_step'])
 
     return result
+
+def chief_worker(task_type, task_id):
+    return task_type is None or task_type == 'chief' or (task_type == 'worker' and task_id == 0)
+
+
+def _get_temp_dir(dirpath, task_id):
+
+    base_dirpath = 'workertemp_' + str(task_id)
+    # Note future will just define our custom saving dir
+    temp_dir = os.path.join(dirpath, base_dirpath)
+    tf.io.gfile.makedirs(temp_dir)
+    return temp_dir
+
+
+def write_filepath(filepath, task_type, task_id):
+    dirpath = os.path.dirname(filepath)
+
+    base = os.path.basename(filepath)
+
+    if not chief_worker(task_type, task_id):
+        dirpath = _get_temp_dir(dirpath, task_id)
+
+    return os.path.join(dirpath, base)
+# Restore the checkpoint forom the file
+
+
+def multi_node_try_restore_from_checkpoint(model, global_step, optimizer, task_type, task_id):
+    """Restores the latest ckpt if it exists, otherwise check FLAGS.checkpoint."""
+    checkpoint = tf.train.Checkpoint(
+        model=model, global_step=global_step, optimizer=optimizer)
+
+    write_checkpoint_dir = write_filepath(FLAGS.model_dir, task_type, task_id)
+
+    checkpoint_manager = tf.train.CheckpointManager(
+        checkpoint,
+        directory=write_checkpoint_dir,
+        max_to_keep=FLAGS.keep_checkpoint_max)
+    latest_ckpt = checkpoint_manager.latest_checkpoint
+
+    if latest_ckpt:
+        # Restore model weights, global step, optimizer states
+        logging.info('Restoring from latest checkpoint: %s', latest_ckpt)
+        checkpoint_manager.checkpoint.restore(latest_ckpt).expect_partial()
+
+    elif FLAGS.checkpoint:
+        # Restore model weights only, but not global step and optimizer states
+        logging.info('Restoring from given checkpoint: %s', FLAGS.checkpoint)
+        checkpoint_manager2 = tf.train.CheckpointManager(
+            tf.train.Checkpoint(model=model),
+            directory=FLAGS.model_dir,
+            max_to_keep=FLAGS.keep_checkpoint_max)
+        checkpoint_manager2.checkpoint.restore(
+            FLAGS.checkpoint).expect_partial()
+
+    if FLAGS.zero_init_logits_layer:
+        model = checkpoint_manager2.checkpoint.model
+        output_layer_parameters = model.supervised_head.trainable_weights
+        logging.info('Initializing output layer parameters %s to zero',
+                     [x.op.name for x in output_layer_parameters])
+        for x in output_layer_parameters:
+            x.assign(tf.zeros_like(x))
+
+    return checkpoint_manager, write_checkpoint_dir

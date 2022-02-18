@@ -24,17 +24,17 @@ from imutils import paths
 # policy = mixed_precision.Policy('mixed_float16')
 # mixed_precision.set_global_policy(policy)
 
-# Setting GPU
-# gpus = tf.config.experimental.list_physical_devices('GPU')
-# if gpus:
-#     try:
-#         for gpu in gpus:
-#             tf.config.experimental.set_memory_growth(gpu, True)
-#         tf.config.experimental.set_visible_devices(gpus[0:8], 'GPU')
-#         logical_gpus = tf.config.experimental.list_logical_devices('GPU')
-#         print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPU")
-#     except RuntimeError as e:
-#         print(e)
+# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+os.environ.pop('TF_CONFIG', None)
+
+tf.keras.backend.clear_session()
+gpus = tf.config.experimental.list_physical_devices('GPU')
+if gpus:
+    try:
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
+    except RuntimeError as e:
+        print(e)
 
 
 read_cfg()
@@ -50,36 +50,46 @@ flag.save_config(os.path.join(FLAGS.model_dir, "config.cfg"))
 
 # For setting GPUs Thread reduce kernel Luanch Delay
 # https://github.com/tensorflow/tensorflow/issues/25724
-# os.environ['TF_GPU_THREAD_MODE'] = 'gpu_private'
-# os.environ['TF_GPU_THREAD_COUNT'] = '2'
+os.environ['TF_GPU_THREAD_MODE'] = 'gpu_private'
+os.environ['TF_GPU_THREAD_COUNT'] = '2'
 
 
 def main():
-
     # ------------------------------------------
     # Communication methods
     # ------------------------------------------
     if FLAGS.communication_method == "NCCL":
 
         communication_options = tf.distribute.experimental.CommunicationOptions(
-            implementation=tf.distribute.experimental.CommunicationImplementation.NCCL)
+            implementation=tf.distribute.experimental.CollectiveCommunication.NCCL)
+
+    elif FLAGS.communication_method == "RING":
+
+        communication_options = tf.distribute.experimental.CommunicationOptions(
+            implementation=tf.distribute.experimental.CollectiveCommunication.RING)
 
     elif FLAGS.communication_method == "auto":
         communication_options = tf.distribute.experimental.CommunicationOptions(
             implementation=tf.distribute.experimental.CollectiveCommunication.AUTO)
 
-    strategy = tf.distribute.MultiWorkerMirroredStrategy(
-        communication_options=communication_options)
+    else:
+        raise ValueError("Invalida communication method")
+    # strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy(
+    # communication=tf.distribute.experimental.CollectiveCommunication.AUTO,
+    # cluster_resolver=None)
+    resolver = tf.distribute.cluster_resolver.TFConfigClusterResolver()
+    strategy = tf.distribute.MultiWorkerMirroredStrategy(communication_options=communication_options, cluster_resolver=resolver
+                                                         )  # communication_options=communication_options
 
     # ------------------------------------------
     # Preparing dataset
     # ------------------------------------------
     # Number of Machines use for Training
-    per_worker_train_batch_size = FLAGS.single_machine_train_batch_size
-    per_worker_val_batch_size = FLAGS.single_machine_val_batch_size
+    per_gpu_train_batch = FLAGS.per_gpu_train_batch
+    per_gpu_val_batch = FLAGS.per_gpu_val_batch
 
-    train_global_batch_size = per_worker_train_batch_size * FLAGS.num_workers
-    val_global_batch_size = per_worker_val_batch_size * FLAGS.num_workers
+    train_global_batch_size = per_gpu_train_batch * strategy.num_replicas_in_sync
+    val_global_batch_size = per_gpu_val_batch * strategy.num_replicas_in_sync
 
     dataset_loader = imagenet_dataset_multi_machine(img_size=FLAGS.image_size, train_batch=train_global_batch_size,
                                                     val_batch=val_global_batch_size,
@@ -90,9 +100,9 @@ def main():
                                                     subset_class_num=FLAGS.num_classes, subset_percentage=FLAGS.subset_percentage)
 
     train_multi_worker_dataset = strategy.distribute_datasets_from_function(
-        lambda input_context: dataset_loader.simclr_random_global_crop_image_mask(input_context))
+        lambda input_context: dataset_loader.simclr_inception_style_crop_image_mask(input_context))
 
-    val_multi_worker_dataset = strategy.supervised_validation(
+    val_multi_worker_dataset = strategy.distribute_datasets_from_function(
         lambda input_context: dataset_loader.supervised_validation(input_context))
 
     num_train_examples, num_eval_examples = dataset_loader.get_data_size()
@@ -112,13 +122,13 @@ def main():
     logging.info('# eval examples: %d', num_eval_examples)
     logging.info('# eval steps: %d', eval_steps)
 
-    # Configure the Encoder Architecture.
     with strategy.scope():
         online_model = all_model.Binary_online_model(
             FLAGS.num_classes, Upsample=FLAGS.feature_upsample, Downsample=FLAGS.downsample_mod)
         prediction_model = all_model.prediction_head_model()
         target_model = all_model.Binary_target_model(
             FLAGS.num_classes, Upsample=FLAGS.feature_upsample, Downsample=FLAGS.downsample_mod)
+    # end first strategy
 
     # Configure Wandb Training
     # Weight&Bias Tracking Experiment
@@ -212,13 +222,13 @@ def main():
             task_type, task_id = (strategy.cluster_resolver.task_type,
                                   strategy.cluster_resolver.task_id)
 
-            checkpoint_manager = multi_node_try_restore_from_checkpoint(
+            checkpoint_manager, write_checkpoint_dir = multi_node_try_restore_from_checkpoint(
                 online_model, optimizer.iterations, optimizer, task_type, task_id)
             steps_per_loop = checkpoint_steps
 
             # Scale loss  --> Aggregating all Gradients
 
-            @tf.function
+            # @tf.function
             def distributed_loss(o1, o2, b1, b2, f1=None, f2=None, alpha=0.5, weight=0.5):
 
                 if FLAGS.non_contrast_binary_loss == 'original_add_backgroud':
@@ -237,28 +247,37 @@ def main():
                 elif FLAGS.non_contrast_binary_loss == 'sum_symetrize_l2_loss_object_backg_add_original':
                     per_example_loss, logits_ab, labels = sum_symetrize_l2_loss_object_backg_add_original(
                         o1, o2, b1, b2, f1, f2, alpha=alpha, temperature=FLAGS.temperature, weight_loss=weight)
-
+                else:
+                    raise ValueError("Invalid Loss Type")
                 # total sum loss //Global batch_size
                 loss = 2 - 2*(tf.reduce_sum(per_example_loss)
                               * (1. / train_global_batch_size))
+                # loss = tf.reduce_sum(per_example_loss) * \
+                #     (1. / strategy.num_replicas_in_sync)
 
                 return loss, logits_ab, labels
 
             @tf.function
             def train_step(ds_one, ds_two, alpha, weight_loss):
                 # Get the data from
-                images_mask_one, lable_1, = ds_one  # lable_one
-                images_mask_two, lable_2, = ds_two  # lable_two
+                images_mask_one, m11, m12, lable_1, = ds_one  # lable_one
+                images_mask_two, m21, m22, lable_2, = ds_two  # lable_two
 
+                '''
+                Attention to Symetrize the loss --> Need to switch image_1, image_2 to (Online -- Target Network)
+                loss 1= L2_loss*[online_model(image1), target_model(image_2)]
+                loss 2=  L2_loss*[online_model(image2), target_model(image_1)]
+                symetrize_loss= (loss 1+ loss_2)/ 2
+                '''
+                # Currently Our Loss function is Asymetrize L2_Loss
                 with tf.GradientTape(persistent=True) as tape:
 
                     if FLAGS.loss_type == "symmetrized":
-                        # -------------------------------------------------------------
+
                         # Passing image 1, image 2 to Online Encoder , Target Encoder
                         # -------------------------------------------------------------
-
                         obj_1, backg_1, proj_head_output_1, supervised_head_output_1 = online_model(
-                            [images_mask_one[0], tf.expand_dims(images_mask_one[1], axis=-1)], training=True)
+                            [images_mask_one, m11, m12], training=True)
                         # Vector Representation from Online encoder go into Projection head again
                         obj_1 = prediction_model(obj_1, training=True)
                         backg_1 = prediction_model(backg_1, training=True)
@@ -267,13 +286,13 @@ def main():
                             proj_head_output_1, training=True)
 
                         obj_2, backg_2, proj_head_output_2, supervised_head_output_2 = target_model(
-                            [images_mask_two[0], tf.expand_dims(images_mask_two[1], axis=-1)], training=True)
+                            [images_mask_two, m21, m22], training=True)
 
                         # -------------------------------------------------------------
                         # Passing Image 1, Image 2 to Target Encoder,  Online Encoder
                         # -------------------------------------------------------------
                         obj_2_online, backg_2_online, proj_head_output_2_online, _ = online_model(
-                            [images_mask_two[0], tf.expand_dims(images_mask_two[1], axis=-1)], training=True)
+                            [images_mask_two, m21, m22], training=True)
                         # Vector Representation from Online encoder go into Projection head again
                         obj_2_online = prediction_model(
                             obj_2_online, training=True)
@@ -284,8 +303,8 @@ def main():
                             proj_head_output_2_online, training=True)
 
                         obj_1_target, backg_1_target, proj_head_output_1_target, _ = \
-                            target_model([images_mask_one[0], tf.expand_dims(
-                                images_mask_one[1], axis=-1)], training=True)
+                            target_model(
+                                [images_mask_one, m11, m12], training=True)
 
                         # Compute Contrastive Train Loss -->
                         loss = None
@@ -309,15 +328,15 @@ def main():
                                 loss += loss
 
                             # Update Self-Supervised Metrics
-                            metrics.update_pretrain_metrics_train(contrast_loss_metric,
-                                                                  contrast_acc_metric,
-                                                                  contrast_entropy_metric,
-                                                                  loss, logits_o_ab,
-                                                                  labels)
+                            metrics.update_pretrain_metrics_train_multi_machine(contrast_loss_metric,
+                                                                                contrast_acc_metric,
+                                                                                contrast_entropy_metric,
+                                                                                loss, logits_o_ab,
+                                                                                labels)
 
                     elif FLAGS.loss_type == "asymmetrized":
                         obj_1, backg_1, proj_head_output_1, supervised_head_output_1 = online_model(
-                            [images_mask_one[0], tf.expand_dims(images_mask_one[1], axis=-1)], training=True)
+                            [images_mask_one, m11, m12], training=True)
                         # Vector Representation from Online encoder go into Projection head again
                         obj_1 = prediction_model(obj_1, training=True)
                         backg_1 = prediction_model(backg_1, training=True)
@@ -325,7 +344,7 @@ def main():
                             proj_head_output_1, training=True)
 
                         obj_2, backg_2, proj_head_output_2, supervised_head_output_2 = target_model(
-                            [images_mask_two[0], tf.expand_dims(images_mask_two[1], axis=-1)], training=True)
+                            [images_mask_two, m21, m22], training=True)
 
                         # Compute Contrastive Train Loss -->
                         loss = None
@@ -340,11 +359,12 @@ def main():
                                 loss += loss
 
                             # Update Self-Supervised Metrics
-                            metrics.update_pretrain_metrics_train(contrast_loss_metric,
-                                                                  contrast_acc_metric,
-                                                                  contrast_entropy_metric,
-                                                                  loss, logits_o_ab,
-                                                                  labels)
+                            metrics.update_pretrain_metrics_train_multi_machine(contrast_loss_metric,
+                                                                                contrast_acc_metric,
+                                                                                contrast_entropy_metric,
+                                                                                loss, logits_o_ab,
+                                                                                labels)
+
                     else:
                         raise ValueError(
                             'invalid loss type check your loss type')
@@ -364,7 +384,7 @@ def main():
                                 labels=supervise_lable, logits=outputs)
 
                             scale_sup_loss = tf.nn.compute_average_loss(
-                                sup_loss, global_batch_size=train_global_batch)
+                                sup_loss, global_batch_size=train_global_batch_size)
                             # scale_sup_loss = tf.reduce_sum(
                             #     sup_loss) * (1./train_global_batch)
                             # Update Supervised Metrics
@@ -421,24 +441,24 @@ def main():
                         # Update the Encoder
                         scaled_gradients = tape.gradient(
                             scaled_loss, online_model.trainable_variables)
-                        all_reduce_fp16_grads_online = tf.distribute.get_replica_context(
-                        ).all_reduce(tf.distribute.ReduceOp.SUM, scaled_gradients)
+                        # all_reduce_fp16_grads_online = tf.distribute.get_replica_context(
+                        # ).all_reduce(tf.distribute.ReduceOp.SUM, scaled_gradients)
 
                         gradients_online = optimizer.get_unscaled_gradients(
-                            all_reduce_fp16_grads_online)
+                            scaled_gradients)
                         optimizer.apply_gradients(zip(
-                            gradients_online, online_model.trainable_variables), experimental_aggregate_gradients=False)
+                            gradients_online, online_model.trainable_variables), )
 
                         # Update Prediction Head model
                         scaled_grads_pred = tape.gradient(
                             scaled_loss, prediction_model.trainable_variables)
-                        all_reduce_fp16_grads_pred = tf.distribute.get_replica_context(
-                        ).all_reduce(tf.distribute.ReduceOp.SUM, scaled_grads_pred)
+                        # all_reduce_fp16_grads_pred = tf.distribute.get_replica_context(
+                        # ).all_reduce(tf.distribute.ReduceOp.SUM, scaled_grads_pred)
 
                         gradients_pred = optimizer.get_unscaled_gradients(
-                            all_reduce_fp16_grads_pred)
+                            scaled_grads_pred)
                         optimizer.apply_gradients(
-                            zip(gradients_pred, prediction_model.trainable_variables), experimental_aggregate_gradients=False)
+                            zip(gradients_pred, prediction_model.trainable_variables), )
 
                     # Method 2
                     if FLAGS.precision_method == "custome":
@@ -451,17 +471,24 @@ def main():
 
                         # Optional
                         if FLAGS.collective_hint:
-                            hints = tf.distribute.experimental.CollectiveHints(
-                                bytes_per_pack=32 * 1024 * 1024)
+                            # hints = tf.distribute.experimental.CollectiveHints(
+                            #     bytes_per_pack=32 * 1024 * 1024
+                            #     )
+                            hints = tf.distribute.experimental.CommunicationOptions(
+                                bytes_per_pack=50 * 1024 * 1024,
+                                timeout_seconds=120.0,
+                                implementation=tf.distribute.experimental.CommunicationImplementation.NCCL
+                            )
                             all_reduce_fp16_grads_online = tf.distribute.get_replica_context().all_reduce(
                                 tf.distribute.ReduceOp.SUM, fp16_grads_online, options=hints)
                         else:
                             all_reduce_fp16_grads_online = tf.distribute.get_replica_context(
                             ).all_reduce(tf.distribute.ReduceOp.SUM, fp16_grads_online)
 
-                        #all_reduce_fp32_grads = [tf.cast(grad, 'float32') for grad in all_reduce_fp16_grads]
-                        all_reduce_fp32_grads_online = optimizer.get_unscaled_gradients(
-                            all_reduce_fp16_grads_online)
+                        all_reduce_fp32_grads_online = [
+                            tf.cast(grad, 'float32') for grad in all_reduce_fp16_grads_online]
+                        # all_reduce_fp32_grads_online = optimizer.get_unscaled_gradients(
+                        #     all_reduce_fp16_grads_online)
                         # all_reduce_fp32_grads = optimizer.get_unscaled_gradients(
                         #     all_reduce_fp32_grads)
                         optimizer.apply_gradients(zip(
@@ -474,19 +501,22 @@ def main():
                             tf.cast(grad, 'float16')for grad in grads_pred]
 
                         if FLAGS.collective_hint:
-                            hints = tf.distribute.experimental.CollectiveHints(
-                                bytes_per_pack=32 * 1024 * 1024)
+                            # hints = tf.distribute.experimental.CollectiveHints(
+                            #     bytes_per_pack=32 * 1024 * 1024)
+                            hints = tf.distribute.experimental.CommunicationOptions(
+                                bytes_per_pack=50 * 1024 * 1024,
+                                timeout_seconds=120.0,
+                                implementation=tf.distribute.experimental.CommunicationImplementation.NCCL
+                            )
                             all_reduce_fp16_grads_pred = tf.distribute.get_replica_context().all_reduce(
                                 tf.distribute.ReduceOp.SUM, fp16_grads_pred, options=hints)
                         else:
                             all_reduce_fp16_grads_pred = tf.distribute.get_replica_context(
                             ).all_reduce(tf.distribute.ReduceOp.SUM, fp16_grads_pred)
-                        # Optional
-                        # hints = tf.distribute.experimental.CollectiveHints( bytes_per_pack=32 * 1024 * 1024)
-                        # all_reduce_fp16_grads = tf.distribute.get_replica_context().all_reduce(tf.distribute.ReduceOp.SUM, fp16_grads, options=hints)
-                        #all_reduce_fp32_grads = [tf.cast(grad, 'float32') for grad in all_reduce_fp16_grads]
-                        all_reduce_fp32_grads_pred = optimizer.get_unscaled_gradients(
-                            all_reduce_fp16_grads_pred)
+
+                        all_reduce_fp32_grads_pred = [
+                            tf.cast(grad, 'float32') for grad in all_reduce_fp16_grads_pred]
+
                         # all_reduce_fp32_grads = optimizer.get_unscaled_gradients(
                         #     all_reduce_fp32_grads)
                         optimizer.apply_gradients(zip(
@@ -500,16 +530,20 @@ def main():
                         loss, online_model.trainable_variables)
                     if FLAGS.collective_hint:
                         hints = tf.distribute.experimental.CollectiveHints(
-                            bytes_per_pack=25 * 1024 * 1024)
-
+                            bytes_per_pack=50 * 1024 * 1024)
+                        # options = tf.distribute.experimental.CommunicationOptions(
+                        #     bytes_per_pack=50 * 1024 * 1024,
+                        #     timeout_seconds=120.0,
+                        #     implementation=tf.distribute.experimental.CommunicationImplementation.NCCL
+                        # )
                         grads_online = tf.distribute.get_replica_context().all_reduce(
                             tf.distribute.ReduceOp.SUM, grads_online, options=hints)
                     else:
                         grads_online = tf.distribute.get_replica_context().all_reduce(
-                            tf.distribute.ReduceOp.SUM, grads_online, )
-
+                            tf.distribute.ReduceOp.SUM, grads_online)
+                        print("local_grad")
                     optimizer.apply_gradients(
-                        zip(grads_online, online_model.trainable_variables))
+                        zip(grads_online, online_model.trainable_variables), experimental_aggregate_gradients=False)
 
                     # Update Prediction Head model
                     grads_pred = tape.gradient(
@@ -517,15 +551,22 @@ def main():
 
                     if FLAGS.collective_hint:
                         hints = tf.distribute.experimental.CollectiveHints(
-                            bytes_per_pack=25 * 1024 * 1024)
+                            bytes_per_pack=50 * 1024 * 1024)
+                        # options = tf.distribute.experimental.CommunicationOptions(
+                        #     bytes_per_pack=50 * 1024 * 1024,
+                        #     timeout_seconds=120.0,
+                        #     implementation=tf.distribute.experimental.CommunicationImplementation.NCCL
+                        # )
 
                         grads_pred = tf.distribute.get_replica_context().all_reduce(
                             tf.distribute.ReduceOp.SUM, grads_pred, options=hints)
                     else:
+                        print("local_grad")
                         grads_pred = tf.distribute.get_replica_context().all_reduce(
-                            tf.distribute.ReduceOp.SUM, grads_pred, options=hints)
+                            tf.distribute.ReduceOp.SUM, grads_pred)
+
                     optimizer.apply_gradients(
-                        zip(grads_pred, prediction_model.trainable_variables))
+                        zip(grads_pred, prediction_model.trainable_variables), experimental_aggregate_gradients=False)  # all_reduce_sum_gradients=FalseUpdate gradient Customize
                 else:
                     raise ValueError(
                         "Invalid Implement optimization floating precision")
@@ -616,7 +657,7 @@ def main():
 
                 epoch_loss = total_loss / num_batches
                 # Configure for Visualize the Model Training
-                if (epoch + 1) % 2 == 0:
+                if (epoch + 1) % 10 == 0:
                     FLAGS.train_mode = 'finetune'
                     result = perform_evaluation(online_model, val_multi_worker_dataset, eval_steps,
                                                 checkpoint_manager.latest_checkpoint, strategy)
@@ -655,6 +696,8 @@ def main():
                     target_model.save_weights(save_target_model)
 
             logging.info('Training Complete ...')
+
+        # end second strategy
 
         if FLAGS.mode == 'train_then_eval':
             perform_evaluation(online_model, val_multi_worker_dataset, eval_steps,

@@ -73,7 +73,7 @@ def build_optimizer(lr_schedule):
         raise ValueError(" FLAGS.Optimizer type is invalid please check again")
     #optimizer_mix_percision = mixed_precision.LossScaleOptimizer(optimizer)
 
-    if FLAGS.mixprecision == "fp16":
+    if FLAGS.mixprecision == "fp16" and FLAGS.precision_method == "API":
         optimizer = mixed_precision.LossScaleOptimizer(optimizer)
 
     return optimizer
@@ -235,7 +235,7 @@ class ProjectionHead(tf.keras.layers.Layer):
                     elif j != FLAGS.num_proj_layers - 1:
                         # for the middle layers, use bias and relu for the output.
                         if FLAGS.reduce_linear_dimention:
-                            #print("You Implement reduction")
+                            print("You Implement reduction")
                             self.linear_layers.append(
                                 modify_LinearLayer(
                                     num_classes=lambda input_shape: int(
@@ -468,7 +468,7 @@ class PredictionHead(tf.keras.layers.Layer):
                     elif j != FLAGS.num_proj_layers - 1:
                         # for the middle layers, use bias and relu for the output.
                         if FLAGS.reduce_linear_dimention:
-                            #print("Implement reduce dimention")
+                            print("Implement reduce dimention")
                             self.linear_layers.append(
                                 modify_LinearLayer(
                                     num_classes=lambda input_shape: int(
@@ -629,9 +629,9 @@ class Indexer(tf.keras.layers.Layer):
         feature_map = input[0]
         mask_obj = input[1]
         mask_bak = input[2]
-        #if feature_map.shape[1] != mask.shape[1] and feature_map.shape[2] != mask.shape[2]:
-            # mask = tf.image.resize(
-            #     mask, (feature_map.shape[1], feature_map.shape[2]))
+        # if feature_map.shape[1] != mask.shape[1] and feature_map.shape[2] != mask.shape[2]:
+        # mask = tf.image.resize(
+        #     mask, (feature_map.shape[1], feature_map.shape[2]))
 
         # mask = tf.cast(mask, dtype=tf.bool)
         # mask = tf.cast(mask, dtype=feature_map.dtype)
@@ -640,18 +640,8 @@ class Indexer(tf.keras.layers.Layer):
         # mask = tf.logical_not(mask)
         # mask = tf.cast(mask, dtype=feature_map.dtype)
         # back = tf.multiply(feature_map, mask)
-        #tf.print("feature_map",feature_map)
         obj = tf.multiply(feature_map, mask_obj)
         back = tf.multiply(feature_map, mask_bak)
-
-        # mask_obj_sum = tf.reduce_sum(mask_obj, axis=[1,2])
-        # mask_back_sum = tf.reduce_sum(mask_obj, axis=[1,2])
-        #print("indexer mask: ", mask_obj_sum.shape, mask_back_sum.shape)
-        #tf.print(obj[0])
-        # obj = obj / mask_obj_sum
-        # back = back / mask_back_sum
-        #print("indexer : ",obj.shape, back.shape)
-
         return obj, back
 
 
@@ -802,7 +792,7 @@ class Downsample_Layear(tf.keras.layers.Layer):
             pool_size=(2, 2), strides=FLAGS.downsample_magnification)
         self.flatten = tf.keras.layers.Flatten()
 
-    def call(self, x, mask=None,k=1):
+    def call(self, x, k=1):
         # if k == 1:
         #     x = self.globalaveragepooling(x)
         # el
@@ -815,16 +805,7 @@ class Downsample_Layear(tf.keras.layers.Layer):
         else:
             if k != 1:
                 x = tf.nn.space_to_depth(x, k)
-            if mask != None:
-                x = tf.reduce_sum(x, axis=[1,2])
-                # print(x.shape)
-                # print(mask)
-                mask = tf.reduce_sum(mask, axis=[1,2])+1
-                # print(mask.shape)
-                x = x/mask
-            else:
-                x = self.globalaveragepooling(x)
-            # print(x.shape)
+            x = self.globalaveragepooling(x)
         return x
 
 
@@ -877,18 +858,21 @@ class Binary_online_model(tf.keras.models.Model):
             if FLAGS.fine_tune_after_block > -1:
                 raise ValueError('Does not support layer freezing during pretraining,'
                                  'should set fine_tune_after_block<=-1 for safety.')
+            # if inputs.shape[3] is None:
+            #     raise ValueError('The input channels dimension must be statically known '
+            #                      f'(got input shape {inputs.shape})')
 
         # Base network forward pass
         final_feature_map = None
         if FLAGS.Middle_layer_output == None:
             feature_map = self.encoder(inputs, training=training)
-            #print("feature_map output size : ", feature_map.shape)
+            print("feature_map output size : ", feature_map.shape)
         else:
             final_feature_map, feature_map = self.encoder(
                 inputs, training=training)
             feature_map = feature_map[0]
-            #print("middle_map output size : ", feature_map.shape)
-            #print("final_feature_map output size : ", final_feature_map.shape)
+            print("middle_map output size : ", feature_map.shape)
+            print("final_feature_map output size : ", final_feature_map.shape)
 
         if self.Upsample:
             # Pixel shuffle
@@ -904,23 +888,25 @@ class Binary_online_model(tf.keras.models.Model):
         # Add heads
         if FLAGS.train_mode == 'pretrain':
             # object and background indexer
-            obj, back = self.indexer([feature_map_upsample, mask_obj,mask_bak])
-            obj = self.downsample_layear(obj,mask_obj, self.magnification)
-            obj, _ = self.projection_head(obj, training=training)
-            back = self.downsample_layear(back, mask_bak, self.magnification)
-            back, _ = self.projection_head(back , training=training)
+            obj, back = self.indexer(
+                [feature_map_upsample, mask_obj, mask_bak])
+            obj, _ = self.projection_head(self.downsample_layear(
+                obj, self.magnification), training=training)
+            back, _ = self.projection_head(self.downsample_layear(
+                back, self.magnification), training=training)
 
         if final_feature_map != None and FLAGS.non_contrast_binary_loss == "sum_symetrize_l2_loss_object_backg_add_original":
-            final_feature_map = self.downsample_layear(final_feature_map,None , self.magnification)
-            #print(final_feature_map.shape)
+            final_feature_map = self.downsample_layear(
+                final_feature_map, self.magnification)
+            print(final_feature_map.shape)
             projection_head_outputs, supervised_head_inputs = self.full_image_projection_head(
                 final_feature_map, training=training)
         else:
             projection_head_outputs, supervised_head_inputs = self.projection_head(
-                self.downsample_layear(feature_map_upsample,None, self.magnification), training=training)
+                self.downsample_layear(feature_map_upsample, self.magnification), training=training)
 
         if FLAGS.train_mode == 'finetune':
-            #print(supervised_head_inputs)
+            print(supervised_head_inputs)
             supervised_head_outputs = self.supervised_head(
                 supervised_head_inputs, training)
             return None, supervised_head_outputs
@@ -989,8 +975,6 @@ class Binary_target_model(tf.keras.models.Model):
             mask_bak = inputs[2]
             inputs = inputs[0]
 
-
-
         if training and FLAGS.train_mode == 'pretrain':
             if FLAGS.fine_tune_after_block > -1:
                 raise ValueError('Does not support layer freezing during pretraining,'
@@ -1003,13 +987,13 @@ class Binary_target_model(tf.keras.models.Model):
         final_feature_map = None
         if FLAGS.Middle_layer_output == None:
             feature_map = self.encoder(inputs, training=training)
-            #print("feature_map output size : ", feature_map.shape)
+            print("feature_map output size : ", feature_map.shape)
         else:
             final_feature_map, feature_map = self.encoder(
                 inputs, training=training)
             feature_map = feature_map[0]
-            #print("middle_map output size : ", feature_map.shape)
-            #print("final_feature_map output size : ", final_feature_map.shape)
+            print("middle_map output size : ", feature_map.shape)
+            print("final_feature_map output size : ", final_feature_map.shape)
 
         # Pixel shuffle
         if self.Upsample:
@@ -1025,23 +1009,25 @@ class Binary_target_model(tf.keras.models.Model):
         # Add heads
         if FLAGS.train_mode == 'pretrain':
             # object and background indexer
-            obj, back = self.indexer([feature_map_upsample, mask_obj,mask_bak])
-            obj = self.downsample_layear(obj,mask_obj, self.magnification)
-            obj, _ = self.projection_head(obj, training=training)
-            back = self.downsample_layear(back, mask_bak, self.magnification)
-            back, _ = self.projection_head(back , training=training)
+            obj, back = self.indexer(
+                [feature_map_upsample, mask_obj, mask_bak])
+            obj, _ = self.projection_head(self.downsample_layear(
+                obj, self.magnification), training=training)
+            back, _ = self.projection_head(self.downsample_layear(
+                back, self.magnification), training=training)
             # if FLAGS.visualize:
             #     self.visualize.plot_feature_map("obj",obj)
             #     self.visualize.plot_feature_map("back",obj)
 
         if final_feature_map != None and FLAGS.non_contrast_binary_loss == "sum_symetrize_l2_loss_object_backg_add_original":
-            final_feature_map = self.downsample_layear(final_feature_map,None , self.magnification)
-            #print(final_feature_map.shape)
+            final_feature_map = self.downsample_layear(
+                final_feature_map, self.magnification)
+            print(final_feature_map.shape)
             projection_head_outputs, supervised_head_inputs = self.full_image_projection_head(
                 final_feature_map, training=training)
         else:
             projection_head_outputs, supervised_head_inputs = self.projection_head(
-                self.downsample_layear(feature_map_upsample,None, self.magnification), training=training)
+                self.downsample_layear(feature_map_upsample, self.magnification), training=training)
         if FLAGS.train_mode == 'finetune':
             supervised_head_outputs = self.supervised_head(
                 supervised_head_inputs, training)
@@ -1061,17 +1047,3 @@ class Binary_target_model(tf.keras.models.Model):
 
         return obj, back, feature_map_upsample
         # return feature_map_upsample
-
-
-# if __name__ == '__main__':
-#     x = tf.random.uniform(shape=[2,1,1,512])
-#     y = tf.constant([[[[1]]],[[[[0]]]])
-#
-#     obj = tf.reduce_sum(tf.multiply(x, y), axis=[1, 2])
-#     mask_obj_sum = tf.reduce_sum(y, axis=[1, 2])
-#
-#     tf.print(obj)
-#     tf.print(mask_obj_sum)
-
-
-

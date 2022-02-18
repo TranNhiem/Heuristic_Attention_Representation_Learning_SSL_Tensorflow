@@ -29,10 +29,8 @@ if gpus:
     try:
         for gpu in gpus:
             tf.config.experimental.set_memory_growth(gpu, True)
-            #tf.config.set_logical_device_configuration(gpu, [tf.config.LogicalDeviceConfiguration(memory_limit=40000)])
         tf.config.experimental.set_visible_devices(gpus[0:8], 'GPU')
         logical_gpus = tf.config.experimental.list_logical_devices('GPU')
-
         print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPU")
     except RuntimeError as e:
         print(e)
@@ -70,7 +68,7 @@ def main():
                                                     val_path=FLAGS.val_path,
                                                     mask_path=FLAGS.mask_path, bi_mask=False,
                                                     train_label=FLAGS.train_label, val_label=FLAGS.val_label,
-                                                    subset_class_num=FLAGS.num_classes,subset_percentage=FLAGS.subset_percentage)
+                                                    subset_class_num=FLAGS.num_classes, subset_percentage=FLAGS.subset_percentage)
 
     train_ds = train_dataset.simclr_inception_style_crop()
 
@@ -85,7 +83,8 @@ def main():
         math.ceil(num_eval_examples / val_global_batch))
 
     epoch_steps = int(round(num_train_examples / train_global_batch))
-    checkpoint_steps = (FLAGS.checkpoint_steps or (FLAGS.checkpoint_epochs * epoch_steps))
+    checkpoint_steps = (FLAGS.checkpoint_steps or (
+        FLAGS.checkpoint_epochs * epoch_steps))
 
     logging.info("# Subset_training class %d", FLAGS.num_classes)
     logging.info('# train examples: %d', num_train_examples)
@@ -116,7 +115,7 @@ def main():
         "Subset_dataset": f"Class : {FLAGS.num_classes}, Percentage : {FLAGS.subset_percentage*100}%",
         "Loss type": FLAGS.aggregate_loss,
         "opt": FLAGS.up_scale,
-        "Encoder output size" : str((math.pow(2,list(FLAGS.Encoder_block_strides.values()).count(1))-1) * 7),
+        "Encoder output size": str((math.pow(2, list(FLAGS.Encoder_block_strides.values()).count(1))-1) * 7),
     }
 
     wandb.init(project=FLAGS.wandb_project_name, name=FLAGS.wandb_run_name, mode=FLAGS.wandb_mod,
@@ -198,10 +197,10 @@ def main():
                     x1, x2,  temperature=FLAGS.temperature)
 
                 # total sum loss //Global batch_size
-                #(0.8/1024)*8
-                #loss = tf.reduce_sum(per_example_loss) * (1./len(gpus))### harry try : (1./8)
-                loss = 2 - 2 * (tf.reduce_sum(per_example_loss) * (1./train_global_batch))
-                #loss = tf.reduce_sum(per_example_loss) * (1./len(gpus))
+                # (0.8/1024)*8
+                # loss = tf.reduce_sum(per_example_loss) * (1./len(gpus))### harry try : (1./8)
+                loss = 2 - 2 * (tf.reduce_sum(per_example_loss)
+                                * (1./train_global_batch))
                 return loss, logits_ab, labels
 
             @tf.function
@@ -453,12 +452,14 @@ def main():
                     # Update Encoder and Projection head weight
                     grads = tape.gradient(
                         loss, online_model.trainable_variables)
+
                     optimizer.apply_gradients(
                         zip(grads, online_model.trainable_variables))
 
                     # Update Prediction Head model
                     grads = tape.gradient(
                         loss, prediction_model.trainable_variables)
+
                     optimizer.apply_gradients(
                         zip(grads, prediction_model.trainable_variables))
                 else:
@@ -515,7 +516,6 @@ def main():
 
                     with summary_writer.as_default():
                         cur_step = global_step.numpy()
-
                         checkpoint_manager.save(cur_step)
                         logging.info('Completed: %d / %d steps',
                                      cur_step, train_steps)
@@ -584,5 +584,5 @@ def main():
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
+
     main()
-    os.system('shutdown -s -f -t 60')
