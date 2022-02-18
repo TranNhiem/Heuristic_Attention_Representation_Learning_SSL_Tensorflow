@@ -7,8 +7,12 @@ import numpy as np
 import tensorflow as tf
 from imutils import paths
 from config.absl_mock import Mock_Flag
+# from byol_simclr_multi_croping_augmentation import simclr_augment_randcrop_global_views, simclr_augment_inception_style, \
+#     supervised_augment_eval, simclr_augment_randcrop_global_view_image_mask, simclr_augment_inception_style_image_mask, simclr_augment_inception_style_image_mask_tf_py, simclr_augment_randcrop_global_view_image_mask_tf_py
+
+
 from byol_simclr_multi_croping_augmentation import simclr_augment_randcrop_global_views, simclr_augment_inception_style, \
-    supervised_augment_eval, simclr_augment_randcrop_global_view_image_mask, simclr_augment_inception_style_image_mask, simclr_augment_inception_style_image_mask_tf_py, simclr_augment_randcrop_global_view_image_mask_tf_py
+    supervised_augment_eval, simclr_augment_randcrop_global_view_image_mask, simclr_augment_inception_style_image_mask
 
 # import nvidia.dali as dali
 # import nvidia.dali.plugin.tf as dali_tf

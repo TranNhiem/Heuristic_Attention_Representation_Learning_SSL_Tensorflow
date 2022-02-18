@@ -5,6 +5,8 @@ import tensorflow as tf
 from imutils import paths
 from byol_simclr_multi_croping_augmentation import simclr_augment_randcrop_global_views, simclr_augment_inception_style, \
     supervised_augment_eval, simclr_augment_randcrop_global_view_image_mask, simclr_augment_inception_style_image_mask
+
+
 from absl import logging
 import numpy as np
 import random
@@ -345,7 +347,7 @@ class imagenet_dataset_single_machine():
         ds = tf.data.Dataset.from_tensor_slices((self.x_train_image_mask, self.x_train_lable)) \
             .shuffle(self.BATCH_SIZE * 100, seed=self.seed) \
             .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)), num_parallel_calls=AUTO).cache()
-            
+
         train_ds = (ds.map(lambda x, y_obj, y_back, z: ((simclr_augment_randcrop_global_view_image_mask(x, y_obj, y_back, self.IMG_SIZE,self.feature_size), z),
                                                 (simclr_augment_randcrop_global_view_image_mask(x, y_obj, y_back, self.IMG_SIZE,self.feature_size), z)),
                                num_parallel_calls=AUTO)
