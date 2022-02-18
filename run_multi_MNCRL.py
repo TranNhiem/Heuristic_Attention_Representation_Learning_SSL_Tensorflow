@@ -260,8 +260,8 @@ def main():
             @tf.function
             def train_step(ds_one, ds_two, alpha, weight_loss):
                 # Get the data from
-                images_mask_one, m11, m12, lable_1, = ds_one  # lable_one
-                images_mask_two, m21, m22, lable_2, = ds_two  # lable_two
+                images_mask_one,  lable_1, = ds_one  # lable_one, m11, m12,
+                images_mask_two,  lable_2, = ds_two  # lable_two, m21, m22,
 
                 '''
                 Attention to Symetrize the loss --> Need to switch image_1, image_2 to (Online -- Target Network)
@@ -277,7 +277,7 @@ def main():
                         # Passing image 1, image 2 to Online Encoder , Target Encoder
                         # -------------------------------------------------------------
                         obj_1, backg_1, proj_head_output_1, supervised_head_output_1 = online_model(
-                            [images_mask_one, m11, m12], training=True)
+                            images_mask_one, training=True)
                         # Vector Representation from Online encoder go into Projection head again
                         obj_1 = prediction_model(obj_1, training=True)
                         backg_1 = prediction_model(backg_1, training=True)
@@ -286,13 +286,13 @@ def main():
                             proj_head_output_1, training=True)
 
                         obj_2, backg_2, proj_head_output_2, supervised_head_output_2 = target_model(
-                            [images_mask_two, m21, m22], training=True)
+                            images_mask_two,  training=True)
 
                         # -------------------------------------------------------------
                         # Passing Image 1, Image 2 to Target Encoder,  Online Encoder
                         # -------------------------------------------------------------
                         obj_2_online, backg_2_online, proj_head_output_2_online, _ = online_model(
-                            [images_mask_two, m21, m22], training=True)
+                            images_mask_two,  training=True)
                         # Vector Representation from Online encoder go into Projection head again
                         obj_2_online = prediction_model(
                             obj_2_online, training=True)
@@ -304,7 +304,7 @@ def main():
 
                         obj_1_target, backg_1_target, proj_head_output_1_target, _ = \
                             target_model(
-                                [images_mask_one, m11, m12], training=True)
+                                images_mask_one,  training=True)
 
                         # Compute Contrastive Train Loss -->
                         loss = None
@@ -336,7 +336,7 @@ def main():
 
                     elif FLAGS.loss_type == "asymmetrized":
                         obj_1, backg_1, proj_head_output_1, supervised_head_output_1 = online_model(
-                            [images_mask_one, m11, m12], training=True)
+                            images_mask_one, training=True)
                         # Vector Representation from Online encoder go into Projection head again
                         obj_1 = prediction_model(obj_1, training=True)
                         backg_1 = prediction_model(backg_1, training=True)
@@ -344,7 +344,7 @@ def main():
                             proj_head_output_1, training=True)
 
                         obj_2, backg_2, proj_head_output_2, supervised_head_output_2 = target_model(
-                            [images_mask_two, m21, m22], training=True)
+                            images_mask_two, training=True)
 
                         # Compute Contrastive Train Loss -->
                         loss = None
