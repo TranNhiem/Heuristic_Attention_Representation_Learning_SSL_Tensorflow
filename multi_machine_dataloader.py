@@ -187,6 +187,31 @@ class imagenet_dataset_multi_machine():
 
         return img, lable
 
+    # @classmethod
+    # def parse_images_mask_lable_pair(self, image_mask_path, lable, IMG_SIZE):
+    #     # Loading and reading Image
+    #     # print(image_mask_path[0])
+    #     # print(image_mask_path[1])
+    #     image_path, mask_path = image_mask_path[0], image_mask_path[1]
+    #     img = tf.io.read_file(image_path)
+    #     img = tf.io.decode_jpeg(img, channels=3)
+    #     img = tf.image.convert_image_dtype(img, tf.float32)
+    #     img = tf.image.resize(img, (IMG_SIZE, IMG_SIZE))
+
+    #     bi_mask = tf.io.read_file(mask_path)
+    #     bi_mask = tf.io.decode_jpeg(bi_mask, channels=1)
+    #     bi_mask = tf.image.resize(bi_mask, (IMG_SIZE, IMG_SIZE))
+    #     print(bi_mask)
+
+    #     return img, bi_mask, lable
+
+    @classmethod
+    def parse_images_label(self, image_path):
+        img = tf.io.read_file(image_path)
+        img = tf.io.decode_jpeg(img, channels=3)
+        label = tf.strings.split(image_path, os.path.sep)[4]
+        return img, label
+
     @classmethod
     def parse_images_mask_lable_pair(self, image_mask_path, lable, IMG_SIZE):
         # Loading and reading Image
@@ -201,16 +226,12 @@ class imagenet_dataset_multi_machine():
         bi_mask = tf.io.read_file(mask_path)
         bi_mask = tf.io.decode_jpeg(bi_mask, channels=1)
         bi_mask = tf.image.resize(bi_mask, (IMG_SIZE, IMG_SIZE))
-        print(bi_mask)
 
-        return img, bi_mask, lable
-
-    @classmethod
-    def parse_images_label(self, image_path):
-        img = tf.io.read_file(image_path)
-        img = tf.io.decode_jpeg(img, channels=3)
-        label = tf.strings.split(image_path, os.path.sep)[4]
-        return img, label
+        mask = tf.cast(bi_mask, dtype=tf.bool)
+        mask1_obj = tf.cast(mask, dtype=tf.float32)
+        mask1_bak = tf.logical_not(mask)
+        mask1_bak = tf.cast(mask1_bak, dtype=tf.float32)
+        return img, mask1_obj, mask1_bak, lable
 
     def prepare_mask(self, v1, v2):
         images_mask_1, lable_1, = v1
@@ -376,10 +397,13 @@ class imagenet_dataset_multi_machine():
             .shuffle(self.BATCH_SIZE * 100, seed=self.seed) \
             .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)), num_parallel_calls=AUTO).cache()
 
-        train_ds = ds.map(lambda x, y, z: ((simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z),
-                                           (simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z)),
-                          num_parallel_calls=AUTO) \
-            .map(lambda x, y: self.prepare_mask(x, y), num_parallel_calls=AUTO)
+        # train_ds = ds.map(lambda x, y, z: ((simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z),
+        #                                    (simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z)),
+        #                   num_parallel_calls=AUTO) \
+        #     .map(lambda x, y: self.prepare_mask(x, y), num_parallel_calls=AUTO)
+        train_ds = ds.map(lambda x, y_obj, y_back, z: ((simclr_augment_inception_style_image_mask(x, y_obj, y_back, self.IMG_SIZE, self.feature_size), z),
+                                                       (simclr_augment_inception_style_image_mask(x, y_obj, y_back, self.IMG_SIZE, self.feature_size), z)),
+                          num_parallel_calls=AUTO)
 
         if FLAGS.with_option:
             logging.info("You implement data loader with option")
@@ -410,10 +434,13 @@ class imagenet_dataset_multi_machine():
             .shuffle(self.BATCH_SIZE * 100, seed=self.seed) \
             .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)), num_parallel_calls=AUTO).cache()
 
-        train_ds = ds.map(lambda x, y, z: ((simclr_augment_randcrop_global_view_image_mask(x, y, self.IMG_SIZE), z),
-                                           (simclr_augment_randcrop_global_view_image_mask(x, y, self.IMG_SIZE), z)),
-                          num_parallel_calls=AUTO) \
-            .map(lambda x, y: self.prepare_mask(x, y), num_parallel_calls=AUTO)
+        # train_ds = ds.map(lambda x, y, z: ((simclr_augment_randcrop_global_view_image_mask(x, y, self.IMG_SIZE), z),
+        #                                    (simclr_augment_randcrop_global_view_image_mask(x, y, self.IMG_SIZE), z)),
+        #                   num_parallel_calls=AUTO) \
+        #     .map(lambda x, y: self.prepare_mask(x, y), num_parallel_calls=AUTO)
+        train_ds = ds.map(lambda x, y_obj, y_back, z: ((simclr_augment_randcrop_global_view_image_mask(x, y_obj, y_back, self.IMG_SIZE, self.feature_size), z),
+                                                       (simclr_augment_randcrop_global_view_image_mask(x, y_obj, y_back, self.IMG_SIZE, self.feature_size), z)),
+                          num_parallel_calls=AUTO)
 
         if FLAGS.with_option:
             logging.info("You implement data loader with option")
