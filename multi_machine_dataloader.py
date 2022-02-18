@@ -28,7 +28,7 @@ tf.data.experimental.DistributeOptions()
 options = tf.data.Options()
 
 options.experimental_optimization.noop_elimination = True
-#options.experimental_optimization.map_vectorization.enabled = True
+# options.experimental_optimization.map_vectorization.enabled = True
 options.experimental_optimization.map_and_batch_fusion = True
 options.experimental_optimization.map_parallelization = True
 options.experimental_optimization.apply_default_optimizations = True
@@ -189,7 +189,7 @@ class imagenet_dataset_multi_machine():
         return img
 
     @classmethod
-    def parse_images_lable_pair(self, image_path, lable,IMG_SIZE):
+    def parse_images_lable_pair(self, image_path, lable, IMG_SIZE):
         # Loading and reading Image
         img = tf.io.read_file(image_path)
         img = tf.io.decode_jpeg(img, channels=3)
@@ -266,31 +266,37 @@ class imagenet_dataset_multi_machine():
         # options = tf.data.Options()
         # options.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.DATA
 
+        # val_ds = (tf.data.Dataset.from_tensor_slices((self.x_val, self.x_val_lable))
+        #           .shuffle(self.val_batch * 100, seed=self.seed)
+        #           .map(lambda x, y: (self.parse_images_lable_pair(x, y)), num_parallel_calls=AUTO)
+
+        #           .map(lambda x, y: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE)), y),
+        #                num_parallel_calls=AUTO, )
+        #           .map(lambda x, y: (
+        #               supervised_augment_eval(
+        #                   x, FLAGS.IMG_height, FLAGS.IMG_width, FLAGS.randaug_transform, FLAGS.randaug_magnitude),
+        #               y), num_parallel_calls=AUTO)
+
+        #           )
+
         val_ds = (tf.data.Dataset.from_tensor_slices((self.x_val, self.x_val_lable))
                   .shuffle(self.val_batch * 100, seed=self.seed)
-                  .map(lambda x, y: (self.parse_images_lable_pair(x, y)), num_parallel_calls=AUTO)
-
-                  .map(lambda x, y: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE)), y),
-                       num_parallel_calls=AUTO, )
-                  .map(lambda x, y: (
-                      supervised_augment_eval(
-                          x, FLAGS.IMG_height, FLAGS.IMG_width, FLAGS.randaug_transform, FLAGS.randaug_magnitude),
-                      y), num_parallel_calls=AUTO)
-
-                  )
+                  .map(lambda x, y: (self.parse_images_lable_pair(x, y, self.IMG_SIZE)), num_parallel_calls=AUTO)
+                  .map(lambda x, y: (supervised_augment_eval(x, FLAGS.IMG_height, FLAGS.IMG_width, FLAGS.randaug_transform, FLAGS.randaug_magnitude),
+                                     y), num_parallel_calls=AUTO)
 
         if FLAGS.with_option:
             logging.info("You implement data loader with option")
             val_ds.with_options(options)
         else:
             logging.info("You implement data loader Without option")
-            val_ds = val_ds
+            val_ds=val_ds
 
-        val_ds = val_ds.shard(
+        val_ds=val_ds.shard(
             input_context.num_input_pipelines, input_context.input_pipeline_id)
-        val_ds = val_ds.batch(dis_tributed_batch)
+        val_ds=val_ds.batch(dis_tributed_batch)
         # 2. modify dataset with prefetch
-        val_ds = val_ds.prefetch(AUTO)
+        val_ds=val_ds.prefetch(AUTO)
 
         return val_ds
 
@@ -298,7 +304,7 @@ class imagenet_dataset_multi_machine():
         '''
         This class property return self-supervised training data
         '''
-        dis_tributed_batch = input_context.get_per_replica_batch_size(
+        dis_tributed_batch=input_context.get_per_replica_batch_size(
             self.BATCH_SIZE)
 
         logging.info('Global batch size: %d', self.BATCH_SIZE)
@@ -307,12 +313,12 @@ class imagenet_dataset_multi_machine():
                      input_context.num_input_pipelines)
         # option = tf.data.Options()
         # option.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.DATA
-        ds = tf.data.Dataset.from_tensor_slices((self.x_train, self.x_train_lable)) \
+        ds=tf.data.Dataset.from_tensor_slices((self.x_train, self.x_train_lable)) \
             .map(lambda x, y: (self.parse_images_lable_pair(x, y))) \
             .shuffle(self.BATCH_SIZE * 100, seed=self.seed) \
             .map(lambda x, y: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE)), y),)  # .cache()
 
-        train_ds = ds.map(lambda x, y: ((simclr_augment_inception_style(x, self.IMG_SIZE), y), (
+        train_ds=ds.map(lambda x, y: ((simclr_augment_inception_style(x, self.IMG_SIZE), y), (
             simclr_augment_inception_style(x, self.IMG_SIZE), y)), num_parallel_calls=AUTO)
 
         if FLAGS.with_option:
@@ -320,7 +326,7 @@ class imagenet_dataset_multi_machine():
             train_ds.with_options(options)
         else:
             logging.info("You implement data loader Without option")
-            train_ds = train_ds
+            train_ds=train_ds
 
         # if FLAGS.Nvidia_dali:
         #     train_ds= dali_tf.DALIDataset(
@@ -330,10 +336,10 @@ class imagenet_dataset_multi_machine():
         #     )
 
         # else:
-        train_ds = train_ds.shard(input_context.num_input_pipelines,
+        train_ds=train_ds.shard(input_context.num_input_pipelines,
                                   input_context.input_pipeline_id)
-        train_ds = train_ds.batch(dis_tributed_batch)
-        train_ds = train_ds.prefetch(AUTO)
+        train_ds=train_ds.batch(dis_tributed_batch)
+        train_ds=train_ds.prefetch(AUTO)
 
         return train_ds
 
@@ -342,14 +348,14 @@ class imagenet_dataset_multi_machine():
             This class property return self-supervised training data
         '''
 
-        dis_tributed_batch = input_context.get_per_replica_batch_size(
+        dis_tributed_batch=input_context.get_per_replica_batch_size(
             self.BATCH_SIZE)
         logging.info('Global batch size: %d', self.BATCH_SIZE)
         logging.info('Per-replica batch size: %d', dis_tributed_batch)
         logging.info('num_input_pipelines: %d',
                      input_context.num_input_pipelines)
 
-        ds = tf.data.Dataset.from_tensor_slices((self.x_train, self.x_train_lable)) \
+        ds=tf.data.Dataset.from_tensor_slices((self.x_train, self.x_train_lable)) \
             .map(lambda x, y: (self.parse_images_lable_pair(x, y))) \
             .shuffle(self.BATCH_SIZE * 100, seed=self.seed) \
             .map(lambda x, y: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE)), y),).cache()
@@ -357,7 +363,7 @@ class imagenet_dataset_multi_machine():
         # option = tf.data.Options()
         # option.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.DATA
 
-        train_ds = ds.map(lambda x, y: ((simclr_augment_randcrop_global_views(x, self.IMG_SIZE), y), (simclr_augment_randcrop_global_views(x, self.IMG_SIZE), y)), num_parallel_calls=AUTO)\
+        train_ds=ds.map(lambda x, y: ((simclr_augment_randcrop_global_views(x, self.IMG_SIZE), y), (simclr_augment_randcrop_global_views(x, self.IMG_SIZE), y)), num_parallel_calls=AUTO)\
 
 
         if FLAGS.with_option:
@@ -365,18 +371,18 @@ class imagenet_dataset_multi_machine():
             train_ds.with_options(options)
         else:
             logging.info("You implement data loader Without option")
-            train_ds = train_ds
+            train_ds=train_ds
 
-        train_ds = train_ds.shard(input_context.num_input_pipelines,
+        train_ds=train_ds.shard(input_context.num_input_pipelines,
                                   input_context.input_pipeline_id)
-        train_ds = train_ds.batch(dis_tributed_batch)
-        train_ds = train_ds.prefetch(AUTO)
+        train_ds=train_ds.batch(dis_tributed_batch)
+        train_ds=train_ds.prefetch(AUTO)
 
         return train_ds
 
     def simclr_inception_style_crop_image_mask(self, input_context):
 
-        dis_tributed_batch = input_context.get_per_replica_batch_size(
+        dis_tributed_batch=input_context.get_per_replica_batch_size(
             self.BATCH_SIZE)
         logging.info('Global batch size: %d', self.BATCH_SIZE)
         logging.info('Per-replica batch size: %d', dis_tributed_batch)
@@ -386,7 +392,7 @@ class imagenet_dataset_multi_machine():
         # option = tf.data.Options()
         # option.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.DATA
 
-        ds = tf.data.Dataset.from_tensor_slices((self.x_train_image_mask, self.x_train_lable)) \
+        ds=tf.data.Dataset.from_tensor_slices((self.x_train_image_mask, self.x_train_lable)) \
             .shuffle(self.BATCH_SIZE * 100, seed=self.seed) \
             .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)), num_parallel_calls=AUTO).cache()
 
@@ -394,7 +400,7 @@ class imagenet_dataset_multi_machine():
         #                                    (simclr_augment_inception_style_image_mask(x, y, self.IMG_SIZE), z)),
         #                   num_parallel_calls=AUTO) \
         #     .map(lambda x, y: self.prepare_mask(x, y), num_parallel_calls=AUTO)
-        train_ds = ds.map(lambda x, y_obj, y_back, z: ((simclr_augment_inception_style_image_mask(x, y_obj, y_back, self.IMG_SIZE, self.feature_size), z),
+        train_ds=ds.map(lambda x, y_obj, y_back, z: ((simclr_augment_inception_style_image_mask(x, y_obj, y_back, self.IMG_SIZE, self.feature_size), z),
                                                        (simclr_augment_inception_style_image_mask(x, y_obj, y_back, self.IMG_SIZE, self.feature_size), z)),
                           num_parallel_calls=AUTO)
 
@@ -403,18 +409,18 @@ class imagenet_dataset_multi_machine():
             train_ds.with_options(options)
         else:
             logging.info("You implement data loader Without option")
-            train_ds = train_ds
+            train_ds=train_ds
 
-        train_ds = train_ds.shard(
+        train_ds=train_ds.shard(
             input_context.num_input_pipelines, input_context.input_pipeline_id)
-        train_ds = train_ds.batch(dis_tributed_batch)
-        train_ds = train_ds.prefetch(AUTO)
+        train_ds=train_ds.batch(dis_tributed_batch)
+        train_ds=train_ds.prefetch(AUTO)
 
         return train_ds
 
     def simclr_random_global_crop_image_mask(self, input_context):
 
-        dis_tributed_batch = input_context.get_per_replica_batch_size(
+        dis_tributed_batch=input_context.get_per_replica_batch_size(
             self.BATCH_SIZE)
         logging.info('Global batch size: %d', self.BATCH_SIZE)
         logging.info('Per-replica batch size: %d', dis_tributed_batch)
@@ -423,7 +429,7 @@ class imagenet_dataset_multi_machine():
 
         # option = tf.data.Options()
         # option.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.DATA
-        ds = tf.data.Dataset.from_tensor_slices((self.x_train_image_mask, self.x_train_lable)) \
+        ds=tf.data.Dataset.from_tensor_slices((self.x_train_image_mask, self.x_train_lable)) \
             .shuffle(self.BATCH_SIZE * 100, seed=self.seed) \
             .map(lambda x, y: (self.parse_images_mask_lable_pair(x, y, self.IMG_SIZE)), num_parallel_calls=AUTO).cache()
 
@@ -431,7 +437,7 @@ class imagenet_dataset_multi_machine():
         #                                    (simclr_augment_randcrop_global_view_image_mask(x, y, self.IMG_SIZE), z)),
         #                   num_parallel_calls=AUTO) \
         #     .map(lambda x, y: self.prepare_mask(x, y), num_parallel_calls=AUTO)
-        train_ds = ds.map(lambda x, y_obj, y_back, z: ((simclr_augment_randcrop_global_view_image_mask(x, y_obj, y_back, self.IMG_SIZE, self.feature_size), z),
+        train_ds=ds.map(lambda x, y_obj, y_back, z: ((simclr_augment_randcrop_global_view_image_mask(x, y_obj, y_back, self.IMG_SIZE, self.feature_size), z),
                                                        (simclr_augment_randcrop_global_view_image_mask(x, y_obj, y_back, self.IMG_SIZE, self.feature_size), z)),
                           num_parallel_calls=AUTO)
 
@@ -440,12 +446,12 @@ class imagenet_dataset_multi_machine():
             train_ds.with_options(options)
         else:
             logging.info("You implement data loader Without option")
-            train_ds = train_ds
+            train_ds=train_ds
 
-        train_ds = train_ds.shard(input_context.num_input_pipelines,
+        train_ds=train_ds.shard(input_context.num_input_pipelines,
                                   input_context.input_pipeline_id)
-        train_ds = train_ds.batch(dis_tributed_batch)
-        train_ds = train_ds.prefetch(AUTO)
+        train_ds=train_ds.batch(dis_tributed_batch)
+        train_ds=train_ds.prefetch(AUTO)
 
         return train_ds
 
