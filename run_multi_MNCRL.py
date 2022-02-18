@@ -61,12 +61,12 @@ def main():
     if FLAGS.communication_method == "NCCL":
 
         communication_options = tf.distribute.experimental.CommunicationOptions(
-            implementation=tf.distribute.experimental.CommunicationImplementation.NCCL)
+            implementation=tf.distribute.experimental.CollectiveCommunication.NCCL)
 
     elif FLAGS.communication_method == "RING":
 
         communication_options = tf.distribute.experimental.CommunicationOptions(
-            implementation=tf.distribute.experimental.CommunicationImplementation.RING)
+            implementation=tf.distribute.experimental.CollectiveCommunication.RING)
 
     elif FLAGS.communication_method == "auto":
         communication_options = tf.distribute.experimental.CommunicationOptions(
@@ -100,7 +100,7 @@ def main():
                                                     subset_class_num=FLAGS.num_classes, subset_percentage=FLAGS.subset_percentage)
 
     train_multi_worker_dataset = strategy.distribute_datasets_from_function(
-        lambda input_context: dataset_loader.simclr_random_global_crop_image_mask(input_context))
+        lambda input_context: dataset_loader.simclr_inception_style_crop_image_mask(input_context))
 
     val_multi_worker_dataset = strategy.distribute_datasets_from_function(
         lambda input_context: dataset_loader.supervised_validation(input_context))
