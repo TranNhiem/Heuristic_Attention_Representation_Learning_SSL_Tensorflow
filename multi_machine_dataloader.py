@@ -25,11 +25,11 @@ options = tf.data.Options()
 
 options.experimental_optimization.noop_elimination = True
 # options.experimental_optimization.map_vectorization.enabled = True
-options.experimental_optimization.map_and_batch_fusion = True
-options.experimental_optimization.map_parallelization = True
-options.experimental_optimization.apply_default_optimizations = True
-options.experimental_deterministic = False
-options.experimental_threading.max_intra_op_parallelism = 1
+# options.experimental_optimization.map_and_batch_fusion = True
+# options.experimental_optimization.map_parallelization = True
+# options.experimental_optimization.apply_default_optimizations = True
+# options.experimental_deterministic = False
+# options.experimental_threading.max_intra_op_parallelism = 1
 options.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.DATA
 
 
@@ -308,16 +308,16 @@ class imagenet_dataset_multi_machine():
             logging.info("You implement data loader Without option")
             train_ds = train_ds
 
-        # if FLAGS.Nvidia_dali: 
+        # if FLAGS.Nvidia_dali:
         #     train_ds= dali_tf.DALIDataset(
-        #         train_ds, 
+        #         train_ds,
         #         batch_size=dis_tributed_batch,
         #         device_id=input_context.input_pipeline_id
         #     )
 
-        # else: 
+        # else:
         train_ds = train_ds.shard(input_context.num_input_pipelines,
-                                input_context.input_pipeline_id)
+                                  input_context.input_pipeline_id)
         train_ds = train_ds.batch(dis_tributed_batch)
         train_ds = train_ds.prefetch(AUTO)
 
