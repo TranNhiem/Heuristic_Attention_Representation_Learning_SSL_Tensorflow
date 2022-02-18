@@ -13,7 +13,7 @@ def read_cfg(mod="non_contrastive"):
     #FLAGS.mask_path = "train_binary_mask_by_DRFI"
     FLAGS.dataloader = 'ds_1_2_options'
     FLAGS.wandb_project_name = "heuristic_attention_representation_learning_Paper_correction"
-    FLAGS.wandb_run_name = "Baseline_(14_14_2048)_100epoch_subset"
+    FLAGS.wandb_run_name = "test_code"
     FLAGS.wandb_mod = "run"
     FLAGS.restore_checkpoint = True  # Restore Checkpoint or Not
 
@@ -32,7 +32,7 @@ def read_cfg(mod="non_contrastive"):
     FLAGS.XLA_compiler = "original"
     FLAGS.base_lr = 0.5
 
-    FLAGS.non_contrast_binary_loss = "baseline loss" # sum_symetrize_l2_loss_object_backg_add_original
+    FLAGS.non_contrast_binary_loss = "sum_symetrize_l2_loss_object_backg_add_original" # sum_symetrize_l2_loss_object_backg_add_original
     # cosine schedule will increasing depending on training steps
     # ['cosine_schedule', 'custom_schedule' , 'fixed'],
     FLAGS.alpha_schedule = "custom_schedule"
@@ -46,5 +46,5 @@ def read_cfg(mod="non_contrastive"):
     FLAGS.train_batch_size = 128
     FLAGS.val_batch_size = 128
 
-    FLAGS.model_dir = "/data1/resnet_byol/resnet50_correction/Baseline_(14_14_2048)_100epoch_subset"
+    FLAGS.model_dir = "/data1/resnet_byol/resnet50_correction/test_code"
     #FLAGS.train_mode = "finetune"

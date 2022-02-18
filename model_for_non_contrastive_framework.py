@@ -929,7 +929,6 @@ class Binary_online_model(tf.keras.models.Model):
 
 # Consideration take Supervised evaluate From the Target model
 
-
 class Binary_target_model(tf.keras.models.Model):
     """Resnet model with projection or supervised layer."""
 
