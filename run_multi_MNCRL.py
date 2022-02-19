@@ -471,14 +471,14 @@ def main():
 
                         # Optional
                         if FLAGS.collective_hint:
-                            # hints = tf.distribute.experimental.CollectiveHints(
-                            #     bytes_per_pack=32 * 1024 * 1024
-                            #     )
-                            hints = tf.distribute.experimental.CommunicationOptions(
-                                bytes_per_pack=32 * 1024 * 1024,
-                                timeout_seconds=120.0,
-                                implementation=tf.distribute.experimental.CommunicationImplementation.NCCL
+                            hints = tf.distribute.experimental.CollectiveHints(
+                                bytes_per_pack=50 * 1024 * 1024
                             )
+                            # hints = tf.distribute.experimental.CommunicationOptions(
+                            #     bytes_per_pack=50 * 1024 * 1024,
+                            #     timeout_seconds=120.0,
+                            #     implementation=tf.distribute.experimental.CommunicationImplementation.NCCL
+                            # )
                             all_reduce_fp16_grads_online = tf.distribute.get_replica_context().all_reduce(
                                 tf.distribute.ReduceOp.SUM, fp16_grads_online, options=hints)
                         else:
@@ -501,13 +501,13 @@ def main():
                             tf.cast(grad, 'float16')for grad in grads_pred]
 
                         if FLAGS.collective_hint:
-                            # hints = tf.distribute.experimental.CollectiveHints(
-                            #     bytes_per_pack=32 * 1024 * 1024)
-                            hints = tf.distribute.experimental.CommunicationOptions(
-                                bytes_per_pack=32 * 1024 * 1024,
-                                timeout_seconds=120.0,
-                                implementation=tf.distribute.experimental.CommunicationImplementation.NCCL
-                            )
+                            hints = tf.distribute.experimental.CollectiveHints(
+                                bytes_per_pack=50 * 1024 * 1024)
+                            # hints = tf.distribute.experimental.CommunicationOptions(
+                            #     bytes_per_pack=32 * 1024 * 1024,
+                            #     timeout_seconds=120.0,
+                            #     implementation=tf.distribute.experimental.CommunicationImplementation.NCCL
+                            # )
                             all_reduce_fp16_grads_pred = tf.distribute.get_replica_context().all_reduce(
                                 tf.distribute.ReduceOp.SUM, fp16_grads_pred, options=hints)
                         else:
@@ -718,6 +718,7 @@ def main():
 #     'checkpoint', None,
 #     'Loading from the given checkpoint for fine-tuning if a finetuning '
 #     'checkpoint does not already exist in model_dir.')
+
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
