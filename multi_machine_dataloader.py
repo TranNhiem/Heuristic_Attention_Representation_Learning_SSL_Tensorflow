@@ -409,7 +409,7 @@ class imagenet_dataset_multi_machine():
             train_ds.with_options(options)
         else:
             logging.info("You implement data loader Without option")
-            train_ds = train_ds
+           
 
         train_ds = train_ds.shard(
             input_context.num_input_pipelines, input_context.input_pipeline_id)
@@ -446,7 +446,7 @@ class imagenet_dataset_multi_machine():
             train_ds.with_options(options)
         else:
             logging.info("You implement data loader Without option")
-            train_ds = train_ds
+            
 
         train_ds = train_ds.shard(input_context.num_input_pipelines,
                                   input_context.input_pipeline_id)
