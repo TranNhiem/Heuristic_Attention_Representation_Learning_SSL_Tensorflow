@@ -25,7 +25,7 @@ from imutils import paths
 # mixed_precision.set_global_policy(policy)
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-os.environ.pop('TF_CONFIG', None)
+# os.environ.pop('TF_CONFIG', None)
 
 tf.keras.backend.clear_session()
 gpus = tf.config.experimental.list_physical_devices('GPU')
