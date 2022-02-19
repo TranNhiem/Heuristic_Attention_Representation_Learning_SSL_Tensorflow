@@ -66,7 +66,7 @@ def main():
     elif FLAGS.communication_method == "RING":
 
         communication_options = tf.distribute.experimental.CommunicationOptions(
-            implementation=tf.distribute.experimental.CommunicationImplementation.RING)
+            implementation=tf.distribute.experimental.CollectiveCommunication.RING)
 
     elif FLAGS.communication_method == "auto":
         communication_options = tf.distribute.experimental.CommunicationOptions(
@@ -78,8 +78,8 @@ def main():
     # communication=tf.distribute.experimental.CollectiveCommunication.AUTO,
     # cluster_resolver=None)
     resolver = tf.distribute.cluster_resolver.TFConfigClusterResolver()
-    strategy = tf.distribute.MultiWorkerMirroredStrategy(communication_options=communication_options, 
-                                                         )  #cluster_resolver=resolver communication_options=communication_options
+    strategy = tf.distribute.MultiWorkerMirroredStrategy(communication_options=communication_options,
+                                                         )  # cluster_resolver=resolver communication_options=communication_options
 
     # ------------------------------------------
     # Preparing dataset
@@ -718,7 +718,6 @@ def main():
 #     'checkpoint', None,
 #     'Loading from the given checkpoint for fine-tuning if a finetuning '
 #     'checkpoint does not already exist in model_dir.')
-
 
     # Pre-Training and Finetune
 if __name__ == '__main__':
