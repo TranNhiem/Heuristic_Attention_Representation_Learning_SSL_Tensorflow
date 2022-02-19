@@ -66,7 +66,7 @@ def main():
     elif FLAGS.communication_method == "RING":
 
         communication_options = tf.distribute.experimental.CommunicationOptions(
-            implementation=tf.distribute.experimental.CollectiveCommunication.RING)
+            implementation=tf.distribute.experimental.CommunicationImplementation.RING)
 
     elif FLAGS.communication_method == "auto":
         communication_options = tf.distribute.experimental.CommunicationOptions(
