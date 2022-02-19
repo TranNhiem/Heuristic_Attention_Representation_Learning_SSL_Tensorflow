@@ -657,7 +657,7 @@ def main():
 
                 epoch_loss = total_loss / num_batches
                 # Configure for Visualize the Model Training
-                if (epoch + 1) % 2 == 0:
+                if (epoch + 1) % 4 == 0:
                     FLAGS.train_mode = 'finetune'
                     result = perform_evaluation(online_model, val_multi_worker_dataset, eval_steps,
                                                 checkpoint_manager.latest_checkpoint, strategy)
