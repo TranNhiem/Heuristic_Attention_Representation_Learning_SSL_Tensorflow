@@ -413,7 +413,7 @@ class imagenet_dataset_multi_machine():
         train_ds = train_ds.shard(
             input_context.num_input_pipelines, input_context.input_pipeline_id)
         train_ds = train_ds.batch(dis_tributed_batch)
-        train_ds = train_ds.prefetch(50)
+        train_ds = train_ds.prefetch(AUTO)
 
         return train_ds
 
