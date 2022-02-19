@@ -61,10 +61,10 @@ class imagenet_dataset_multi_machine():
         self.x_val = []
 
         self.feature_size = self.IMG_SIZE / 2
-
         for key in list(FLAGS.Encoder_block_strides.keys()):
-            feature_size = self.feature_size / FLAGS.Encoder_block_strides[key]
-        self.feature_size = int(feature_size)
+            self.feature_size = self.feature_size / \
+                FLAGS.Encoder_block_strides[key]
+        self.feature_size = int(self.feature_size)
 
         self.label, self.class_name = self.get_label(train_label)
         numeric_train_cls = []
