@@ -472,7 +472,7 @@ def main():
                         # Optional
                         if FLAGS.collective_hint:
                             hints = tf.distribute.experimental.CollectiveHints(
-                                bytes_per_pack=50 * 1024 * 1024
+                                bytes_per_pack=64 * 1024 * 1024
                             )
                             # hints = tf.distribute.experimental.CommunicationOptions(
                             #     bytes_per_pack=50 * 1024 * 1024,
@@ -502,7 +502,7 @@ def main():
 
                         if FLAGS.collective_hint:
                             hints = tf.distribute.experimental.CollectiveHints(
-                                bytes_per_pack=50 * 1024 * 1024)
+                                bytes_per_pack=64 * 1024 * 1024)
                             # hints = tf.distribute.experimental.CommunicationOptions(
                             #     bytes_per_pack=32 * 1024 * 1024,
                             #     timeout_seconds=120.0,
