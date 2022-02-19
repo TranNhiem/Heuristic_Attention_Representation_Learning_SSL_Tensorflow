@@ -316,7 +316,7 @@ class imagenet_dataset_multi_machine():
         ds = tf.data.Dataset.from_tensor_slices((self.x_train, self.x_train_lable)) \
             .map(lambda x, y: (self.parse_images_lable_pair(x, y))) \
             .shuffle(self.BATCH_SIZE * 100, seed=self.seed) \
-            .map(lambda x, y: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE)), y),)  # .cache()
+            .map(lambda x, y: (tf.image.resize(x, (self.IMG_SIZE, self.IMG_SIZE)), y),).cache()
 
         train_ds = ds.map(lambda x, y: ((simclr_augment_inception_style(x, self.IMG_SIZE), y), (
             simclr_augment_inception_style(x, self.IMG_SIZE), y)), num_parallel_calls=AUTO)
@@ -414,7 +414,7 @@ class imagenet_dataset_multi_machine():
         train_ds = train_ds.shard(
             input_context.num_input_pipelines, input_context.input_pipeline_id)
         train_ds = train_ds.batch(dis_tributed_batch)
-        train_ds = train_ds.prefetch(AUTO)
+        train_ds = train_ds.prefetch(25)
 
         return train_ds
 
