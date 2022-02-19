@@ -47,6 +47,6 @@ def read_cfg(mod="non_contrastive"):
     FLAGS.subset_percentage = 1.0
     FLAGS.per_gpu_train_batch = 256
     FLAGS.per_gpu_val_batch = 256
-    FLAGS.model_dir = "/data1/resnet_byol/resne50_official/test_multi_machine_22"
+    FLAGS.model_dir = "/data1/resnet_byol/resne50_official/worker_machine"
 
     #FLAGS.train_mode = "finetune"
