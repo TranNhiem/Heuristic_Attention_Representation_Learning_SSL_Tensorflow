@@ -13,7 +13,7 @@ def read_cfg(mod="non_contrastive"):
     FLAGS.collective_hint = True
     FLAGS.with_option = True
     FLAGS.wandb_project_name = "heuristic_attention_representation_learning_Paper_correction"
-    FLAGS.wandb_run_name = "MNCRL_ResNet50_1000epochs_worker"
+    FLAGS.wandb_run_name = "MNCRL_ResNet50_1000epochs_chief"
     FLAGS.wandb_mod = "run"
     FLAGS.restore_checkpoint = True  # Restore Checkpoint or Not
 
@@ -47,6 +47,6 @@ def read_cfg(mod="non_contrastive"):
     FLAGS.subset_percentage = 1.0
     FLAGS.per_gpu_train_batch = 256
     FLAGS.per_gpu_val_batch = 256
-    FLAGS.model_dir = "/data1/resnet_byol/resne50_official/worker_machine"
+    FLAGS.model_dir = "/data1/resnet_byol/resne50_official/chief_machine"
 
     #FLAGS.train_mode = "finetune"
