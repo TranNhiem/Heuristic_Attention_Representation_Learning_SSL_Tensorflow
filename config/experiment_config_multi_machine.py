@@ -13,7 +13,7 @@ def read_cfg(mod="non_contrastive"):
     FLAGS.collective_hint = True
     FLAGS.with_option = True
     FLAGS.wandb_project_name = "heuristic_attention_representation_learning_Paper_correction"
-    FLAGS.wandb_run_name = "MNCRL_ResNet50_1000epochs_chief_machine"
+    FLAGS.wandb_run_name = "MNCRL_ResNet50_1000epochs_worker_machine"
     FLAGS.wandb_mod = "run"
     FLAGS.restore_checkpoint = True  # Restore Checkpoint or Not
 
