@@ -27,7 +27,7 @@ from imutils import paths
 # os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 # os.environ.pop('TF_CONFIG', None)
 
-tf.keras.backend.clear_session()
+# tf.keras.backend.clear_session()
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if gpus:
     try:
