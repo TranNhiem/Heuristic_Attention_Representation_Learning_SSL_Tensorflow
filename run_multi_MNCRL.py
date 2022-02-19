@@ -77,7 +77,7 @@ def main():
     # strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy(
     # communication=tf.distribute.experimental.CollectiveCommunication.AUTO,
     # cluster_resolver=None)
-    resolver = tf.distribute.cluster_resolver.TFConfigClusterResolver()
+    #resolver = tf.distribute.cluster_resolver.TFConfigClusterResolver()
     strategy = tf.distribute.MultiWorkerMirroredStrategy(communication_options=communication_options,
                                                          )  # cluster_resolver=resolver communication_options=communication_options
 
