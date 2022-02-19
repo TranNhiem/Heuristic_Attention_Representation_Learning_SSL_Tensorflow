@@ -91,7 +91,7 @@ def main():
     #                                                      )  # communication_options=communication_options  #
     resolver = tf.distribute.cluster_resolver.TFConfigClusterResolver()
     strategy = tf.distribute.MultiWorkerMirroredStrategy(
-        communication_options=communication_options, cluster_resolver=resolver)
+        communication_options=communication_options, )#cluster_resolver=resolvers
     # ------------------------------------------
     # Preparing dataset
     # ------------------------------------------
