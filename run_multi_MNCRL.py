@@ -47,7 +47,7 @@ if gpus:
     try:
         for gpu in gpus:
             tf.config.experimental.set_memory_growth(gpu, True)
-        tf.config.experimental.set_visible_devices(gpus[0:4], 'GPU')
+        tf.config.experimental.set_visible_devices(gpus[0:8], 'GPU')
     except RuntimeError as e:
         print(e)
 
@@ -66,7 +66,7 @@ flag.save_config(os.path.join(FLAGS.model_dir, "config.cfg"))
 # For setting GPUs Thread reduce kernel Luanch Delay
 # https://github.com/tensorflow/tensorflow/issues/25724
 os.environ['TF_GPU_THREAD_MODE'] = 'gpu_shared'
-os.environ['TF_GPU_THREAD_COUNT'] = '8'
+os.environ['TF_GPU_THREAD_COUNT'] = '16'
 verbose=1
 
 def main():
@@ -92,7 +92,9 @@ def main():
         raise ValueError("Invalida communication method")
     #strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy()#   communication=communication_options
     # cluster_resolver=None)
-    resolver = tf.distribute.cluster_resolver.TFConfigClusterResolver()
+
+    #resolver = tf.distribute.cluster_resolver.TFConfigClusterResolver()
+    resolver=tf.distribute.cluster_resolver()
     strategy = tf.distribute.MultiWorkerMirroredStrategy(communication_options=communication_options,  cluster_resolver=resolver)
     #communication_options=communication_options, #cluster_resolver=resolver # communication_options=communication_options
     
