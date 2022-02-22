@@ -25,7 +25,21 @@ from imutils import paths
 # mixed_precision.set_global_policy(policy)
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-# os.environ.pop('TF_CONFIG', None)
+os.environ.pop('TF_CONFIG', None)
+tf.keras.backend.clear_session()
+
+os.environ['TF_CONFIG']=json.dumps({"cluster": {"worker": ["10.0.0.4:12345","10.0.0.5:12345","10.0.0.6:12345"]}, "task": {"index": 2, "type": "worker"}})
+
+##NCCL_SOCKET_NTHREADS=8 NCCL_NSOCKS_PERTHREAD=8 TF_CONFIG='{"cluster": {"worker": ["10.0.0.4:12345","10.0.0.5:12345"]}, "task": {"index": 0, "type": "worker"}}' python run_multi_MNCRL.py
+
+# Setting Socket and Other
+# Information of Microsft Azure Machine (80GB ; 40GB)
+# 80gG-- https://docs.microsoft.com/en-us/azure/virtual-machines/ndm-a100-v4-series
+# Setting NCCL_SOCKET_NTHREADS=8 NCCL_NSOCKS_PERTHREAD=8
+#  https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/env.html
+# Some suggestion for Setting the NCCL -- Communication
+# https://github.com/NVIDIA/nccl/issues/450
+
 
 # tf.keras.backend.clear_session()
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -33,6 +47,7 @@ if gpus:
     try:
         for gpu in gpus:
             tf.config.experimental.set_memory_growth(gpu, True)
+        tf.config.experimental.set_visible_devices(gpus[0:4], 'GPU')
     except RuntimeError as e:
         print(e)
 
@@ -50,9 +65,9 @@ flag.save_config(os.path.join(FLAGS.model_dir, "config.cfg"))
 
 # For setting GPUs Thread reduce kernel Luanch Delay
 # https://github.com/tensorflow/tensorflow/issues/25724
-os.environ['TF_GPU_THREAD_MODE'] = 'gpu_private'
-os.environ['TF_GPU_THREAD_COUNT'] = '2'
-
+os.environ['TF_GPU_THREAD_MODE'] = 'gpu_shared'
+os.environ['TF_GPU_THREAD_COUNT'] = '8'
+verbose=1
 
 def main():
     # ------------------------------------------
@@ -61,7 +76,8 @@ def main():
     if FLAGS.communication_method == "NCCL":
 
         communication_options = tf.distribute.experimental.CommunicationOptions(
-            implementation=tf.distribute.experimental.CollectiveCommunication.NCCL)
+            implementation=tf.distribute.experimental.CommunicationImplementation.NCCL) 
+            #implementation=tf.distribute.experimental.CollectiveCommunication.NCCL)
 
     elif FLAGS.communication_method == "RING":
 
@@ -70,17 +86,17 @@ def main():
 
     elif FLAGS.communication_method == "auto":
         communication_options = tf.distribute.experimental.CommunicationOptions(
-            implementation=tf.distribute.experimental.CollectiveCommunication.AUTO)
+            implementation=tf.distribute.experimental.CommunicationImplementation.AUTO)
 
     else:
         raise ValueError("Invalida communication method")
-    # strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy(
-    # communication=tf.distribute.experimental.CollectiveCommunication.AUTO,
+    #strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy()#   communication=communication_options
     # cluster_resolver=None)
     resolver = tf.distribute.cluster_resolver.TFConfigClusterResolver()
-    strategy = tf.distribute.MultiWorkerMirroredStrategy(communication_options=communication_options, cluster_resolver=resolver
-                                                         )  # communication_options=communication_options
-
+    strategy = tf.distribute.MultiWorkerMirroredStrategy(communication_options=communication_options,  cluster_resolver=resolver)
+    #communication_options=communication_options, #cluster_resolver=resolver # communication_options=communication_options
+    
+    #strategy=tf.distribute.get_strategy()
     # ------------------------------------------
     # Preparing dataset
     # ------------------------------------------
@@ -472,7 +488,7 @@ def main():
                         # Optional
                         if FLAGS.collective_hint:
                             hints = tf.distribute.experimental.CollectiveHints(
-                                bytes_per_pack=32 * 1024 * 1024
+                                bytes_per_pack=128 * 1024 * 1024
                             )
                             # hints = tf.distribute.experimental.CommunicationOptions(
                             #     bytes_per_pack=50 * 1024 * 1024,
@@ -502,7 +518,7 @@ def main():
 
                         if FLAGS.collective_hint:
                             hints = tf.distribute.experimental.CollectiveHints(
-                                bytes_per_pack=32 * 1024 * 1024)
+                                bytes_per_pack=128 * 1024 * 1024)
                             # hints = tf.distribute.experimental.CommunicationOptions(
                             #     bytes_per_pack=32 * 1024 * 1024,
                             #     timeout_seconds=120.0,
@@ -656,16 +672,16 @@ def main():
                         summary_writer.flush()
 
                 epoch_loss = total_loss / num_batches
-                # Configure for Visualize the Model Training
-                if (epoch + 1) % 4 == 0:
-                    FLAGS.train_mode = 'finetune'
-                    result = perform_evaluation(online_model, val_multi_worker_dataset, eval_steps,
-                                                checkpoint_manager.latest_checkpoint, strategy)
-                    wandb.log({
-                        "eval/label_top_1_accuracy": result["eval/label_top_1_accuracy"],
-                        "eval/label_top_5_accuracy": result["eval/label_top_5_accuracy"],
-                    })
-                    FLAGS.train_mode = 'pretrain'
+                # # Configure for Visualize the Model Training
+                # if (epoch + 1) % 4 == 0:
+                #     FLAGS.train_mode = 'finetune'
+                #     result = perform_evaluation(online_model, val_multi_worker_dataset, eval_steps,
+                #                                 checkpoint_manager.latest_checkpoint, strategy)
+                #     wandb.log({
+                #         "eval/label_top_1_accuracy": result["eval/label_top_1_accuracy"],
+                #         "eval/label_top_5_accuracy": result["eval/label_top_5_accuracy"],
+                #     })
+                #     FLAGS.train_mode = 'pretrain'
 
                 wandb.log({
                     "epochs": epoch + 1,
@@ -684,7 +700,7 @@ def main():
                     metric.reset_states()
                 # Saving Entire Model
 
-                if (epoch + 1) % 2 == 0:
+                if (epoch + 1) % 100 == 0:
                     save_encoder = os.path.join(
                         FLAGS.model_dir, "encoder_model_" + str(epoch) + ".h5")
                     save_online_model = os.path.join(
