@@ -24,7 +24,7 @@ FLAGS = flag.FLAGS
 
 
 # Experimental options
-tf.data.experimental.DistributeOptions()
+# tf.data.experimental.DistributeOptions()
 options = tf.data.Options()
 
 options.experimental_optimization.noop_elimination = True
