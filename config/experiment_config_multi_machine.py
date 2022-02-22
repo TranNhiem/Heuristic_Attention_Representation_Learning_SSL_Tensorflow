@@ -42,11 +42,11 @@ def read_cfg(mod="non_contrastive"):
     FLAGS.alpha = 0.5
     FLAGS.weighted_loss = 0.5
     FLAGS.resnet_depth = 50
-    FLAGS.train_epochs = 1000
-    FLAGS.num_classes = 1000
+    FLAGS.train_epochs = 10
+    FLAGS.num_classes = 100
     FLAGS.subset_percentage = 1.0
-    FLAGS.per_gpu_train_batch = 256
-    FLAGS.per_gpu_val_batch = 256
+    FLAGS.per_gpu_train_batch = 342
+    FLAGS.per_gpu_val_batch = 342
     FLAGS.model_dir = "/data1/resnet_byol/resnet50_official/chief_machine"
 
     #FLAGS.train_mode = "finetune"
