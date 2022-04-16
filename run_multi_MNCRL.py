@@ -674,12 +674,8 @@ def main():
                         summary_writer.flush()
 
                 epoch_loss = total_loss / num_batches
-<<<<<<< HEAD
-                # # Configure for Visualize the Model Training
-=======
                 
                 # Configure for Visualize the Model Training
->>>>>>> f6826b8ab7edf67798f0b5bd60984c45651eeff0
                 # if (epoch + 1) % 4 == 0:
                 #     FLAGS.train_mode = 'finetune'
                 #     result = perform_evaluation(online_model, val_multi_worker_dataset, eval_steps,
