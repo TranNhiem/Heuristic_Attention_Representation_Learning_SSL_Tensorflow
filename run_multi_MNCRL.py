@@ -27,18 +27,8 @@ from imutils import paths
 # os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 os.environ.pop('TF_CONFIG', None)
 tf.keras.backend.clear_session()
-
-os.environ['TF_CONFIG']=json.dumps({"cluster": {"worker": ["10.0.0.4:12345","10.0.0.5:12345","10.0.0.6:12345"]}, "task": {"index": 2, "type": "worker"}})
-
-##NCCL_SOCKET_NTHREADS=8 NCCL_NSOCKS_PERTHREAD=8 TF_CONFIG='{"cluster": {"worker": ["10.0.0.4:12345","10.0.0.5:12345"]}, "task": {"index": 0, "type": "worker"}}' python run_multi_MNCRL.py
-
-# Setting Socket and Other
-# Information of Microsft Azure Machine (80GB ; 40GB)
-# 80gG-- https://docs.microsoft.com/en-us/azure/virtual-machines/ndm-a100-v4-series
-# Setting NCCL_SOCKET_NTHREADS=8 NCCL_NSOCKS_PERTHREAD=8
-#  https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/env.html
-# Some suggestion for Setting the NCCL -- Communication
-# https://github.com/NVIDIA/nccl/issues/450
+os.environ['TF_CONFIG']=json.dumps({"cluster": {"worker": ["10.0.0.5:2222","10.0.0.4:2222"]}, 
+                                        "task": {"index": 0, "type": "worker"}})
 
 
 # tf.keras.backend.clear_session()
@@ -47,7 +37,7 @@ if gpus:
     try:
         for gpu in gpus:
             tf.config.experimental.set_memory_growth(gpu, True)
-        tf.config.experimental.set_visible_devices(gpus[0:4], 'GPU')
+        tf.config.experimental.set_visible_devices(gpus[0:8], 'GPU')
     except RuntimeError as e:
         print(e)
 
@@ -66,9 +56,9 @@ flag.save_config(os.path.join(FLAGS.model_dir, "config.cfg"))
 # For setting GPUs Thread reduce kernel Luanch Delay
 # https://github.com/tensorflow/tensorflow/issues/25724
 os.environ['TF_GPU_THREAD_MODE'] = 'gpu_shared'
-os.environ['TF_GPU_THREAD_COUNT'] = '8'
-verbose=1
+os.environ['TF_GPU_THREAD_COUNT'] = '16'
 
+verbose=1
 def main():
     # ------------------------------------------
     # Communication methods
@@ -90,11 +80,23 @@ def main():
 
     else:
         raise ValueError("Invalida communication method")
+<<<<<<< HEAD
     #strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy()#   communication=communication_options
     # cluster_resolver=None)
     resolver = tf.distribute.cluster_resolver.TFConfigClusterResolver()
     strategy = tf.distribute.MultiWorkerMirroredStrategy(communication_options=communication_options,  cluster_resolver=resolver)
     #communication_options=communication_options, #cluster_resolver=resolver # communication_options=communication_options
+=======
+    strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy()
+    # strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy(
+    # communication=tf.distribute.experimental.CollectiveCommunication.AUTO,
+    # cluster_resolver=None)
+    # strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy(
+    # communication=tf.distribute.experimental.CollectiveCommunication.NCCL)
+    # resolver = tf.distribute.cluster_resolver.TFConfigClusterResolver()
+    #strategy = tf.distribute.MultiWorkerMirroredStrategy(communication_options=communication_options, cluster_resolver=None) 
+    #communication_options=communication_options,cluster_resolver=resolver # communication_options=communication_options
+>>>>>>> f6826b8ab7edf67798f0b5bd60984c45651eeff0
     
     #strategy=tf.distribute.get_strategy()
     # ------------------------------------------
@@ -672,7 +674,12 @@ def main():
                         summary_writer.flush()
 
                 epoch_loss = total_loss / num_batches
+<<<<<<< HEAD
                 # # Configure for Visualize the Model Training
+=======
+                
+                # Configure for Visualize the Model Training
+>>>>>>> f6826b8ab7edf67798f0b5bd60984c45651eeff0
                 # if (epoch + 1) % 4 == 0:
                 #     FLAGS.train_mode = 'finetune'
                 #     result = perform_evaluation(online_model, val_multi_worker_dataset, eval_steps,
