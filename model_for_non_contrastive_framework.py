@@ -19,13 +19,13 @@ import math
 from absl import flags
 
 
-import lars_optimizer
-import resnet
-from Model_resnet_harry import resnet as resnet_modify
+import HARL.utils.lars_optimizer as lars_optimizer
+import HARL.neural_net_architectures.resnet as resnet
+from HARL.neural_net_architectures.Model_resnet_harry import resnet as resnet_modify
 import tensorflow as tf
-from learning_rate_optimizer import get_optimizer
+from HARL.utils.learning_rate_optimizer import get_optimizer
 from tensorflow.keras import mixed_precision
-from visualize import Visualize
+from HARL.utils.visualize import Visualize
 
 
 #FLAGS = flags.FLAGS

@@ -10,14 +10,14 @@ from absl import logging
 from absl import app
 
 import tensorflow as tf
-from learning_rate_optimizer import WarmUpAndCosineDecay
-import metrics
-from helper_functions import *
-from multi_machine_dataloader import imagenet_dataset_multi_machine
-from self_supervised_losses import byol_symetrize_loss, symetrize_l2_loss_object_level_whole_image, \
+from HARL.utils.learning_rate_optimizer import WarmUpAndCosineDecay
+import HARL.utils.metrics as metrics
+from HARL.utils.helper_functions import *
+from HARL.DataAugmentations.multi_machine_dataloader import imagenet_dataset_multi_machine
+from HARL.loss.self_supervised_losses import byol_symetrize_loss, symetrize_l2_loss_object_level_whole_image, \
     sum_symetrize_l2_loss_object_backg, sum_symetrize_l2_loss_object_backg_add_original, byol_loss
 import model_for_non_contrastive_framework as all_model
-import objective as obj_lib
+import HARL.loss.objective as obj_lib
 from imutils import paths
 
 # from tensorflow.keras import mixed_precision

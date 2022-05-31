@@ -8,14 +8,14 @@ from absl import logging
 from absl import app
 
 import tensorflow as tf
-from learning_rate_optimizer import WarmUpAndCosineDecay
-import metrics
-from byol_simclr_imagenet_data_harry import imagenet_dataset_single_machine
+from HARL.utils.learning_rate_optimizer import WarmUpAndCosineDecay
+import HARL.utils.metrics as metrics
+from HARL.DataAugmentations.byol_simclr_imagenet_data_harry import imagenet_dataset_single_machine
 # binary_mask_nt_xent_object_backgroud_sum_loss
-from self_supervised_losses import *
-from Model_resnet_harry import SSL_train_model_Model
-from model import build_optimizer, add_weight_decay
-import objective as obj_lib
+from HARL.loss.self_supervised_losses import *
+from HARL.neural_net_architectures.Model_resnet_harry import SSL_train_model_Model
+from HARL.neural_net_architectures.model import build_optimizer, add_weight_decay
+import HARL.loss.objective as obj_lib
 from imutils import paths
 
 # Setting GPU

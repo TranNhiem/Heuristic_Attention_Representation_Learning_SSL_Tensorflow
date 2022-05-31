@@ -12,16 +12,16 @@ from absl import logging
 # from absl import app
 
 import tensorflow as tf
-from learning_rate_optimizer import WarmUpAndCosineDecay, CosineAnnealingDecayRestarts
-import metrics
-from helper_functions import *
-from byol_simclr_imagenet_data_harry import imagenet_dataset_single_machine
-from self_supervised_losses import byol_symetrize_loss, symetrize_l2_loss_object_level_whole_image, sum_symetrize_l2_loss_object_backg, sum_symetrize_l2_loss_object_backg_add_original
+from HARL.utils.learning_rate_optimizer import WarmUpAndCosineDecay, CosineAnnealingDecayRestarts
+import HARL.utils.metrics as metrics
+from HARL.utils.helper_functions import *
+from HARL.DataAugmentations.byol_simclr_imagenet_data_harry import imagenet_dataset_single_machine
+from HARL.loss.self_supervised_losses import byol_symetrize_loss, symetrize_l2_loss_object_level_whole_image, sum_symetrize_l2_loss_object_backg, sum_symetrize_l2_loss_object_backg_add_original
 import model_for_non_contrastive_framework as all_model
-import objective as obj_lib
+import HARL.loss.objective as obj_lib
 from imutils import paths
 from wandb.keras import WandbCallback
-from Model_resnet_harry import resnet
+from HARL.neural_net_architectures.Model_resnet_harry import resnet
 # Setting GPU
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if gpus:

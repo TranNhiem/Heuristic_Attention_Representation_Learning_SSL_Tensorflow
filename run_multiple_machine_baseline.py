@@ -5,19 +5,19 @@ from absl import flags
 from absl import logging
 from absl import app
 import tensorflow as tf
-import metrics
+import HARL.utils.metrics as metrics
 import wandb
 import json
 import math
 import random
 from imutils import paths
-import objective as obj_lib
+import HARL.loss.objective as obj_lib
 from wandb.keras import WandbCallback
-from self_supervised_losses import byol_symetrize_loss
+from HARL.loss.self_supervised_losses import byol_symetrize_loss
 import model_for_non_contrastive_framework as all_model
-from learning_rate_optimizer import WarmUpAndCosineDecay
-from multi_machine_dataloader import imagenet_dataset_multi_machine
-from helper_functions import *
+from HARL.utils.learning_rate_optimizer import WarmUpAndCosineDecay
+from HARL.DataAugmentations.multi_machine_dataloader import imagenet_dataset_multi_machine
+from HARL.utils.helper_functions import *
 import os
 
 

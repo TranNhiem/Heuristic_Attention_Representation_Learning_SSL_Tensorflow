@@ -3,13 +3,13 @@ from math import cos, pi
 from config.experiment_config import read_cfg
 
 import wandb
-from learning_rate_optimizer import WarmUpAndCosineDecay, CosineAnnealingDecayRestarts
-from helper_functions import *
-from byol_simclr_imagenet_data_harry import imagenet_dataset_single_machine
-from self_supervised_losses import byol_symetrize_loss, symetrize_l2_loss_object_level_whole_image, \
+from HARL.utils.learning_rate_optimizer import WarmUpAndCosineDecay, CosineAnnealingDecayRestarts
+from HARL.utils.helper_functions import *
+from HARL.DataAugmentations.byol_simclr_imagenet_data_harry import imagenet_dataset_single_machine
+from HARL.loss.self_supervised_losses import byol_symetrize_loss, symetrize_l2_loss_object_level_whole_image, \
     sum_symetrize_l2_loss_object_backg, sum_symetrize_l2_loss_object_backg_add_original
 import model_for_non_contrastive_framework as all_model
-import objective as obj_lib
+import HARL.loss.objective as obj_lib
 
 # Setting GPU
 gpus = tf.config.experimental.list_physical_devices('GPU')

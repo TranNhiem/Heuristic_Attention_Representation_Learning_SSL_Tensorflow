@@ -8,12 +8,12 @@ from absl import logging
 from absl import app
 
 import tensorflow as tf
-from learning_rate_optimizer import WarmUpAndCosineDecay
-import metrics
-from byol_simclr_imagenet_data_harry import imagenet_dataset_single_machine
-from self_supervised_losses import nt_xent_symetrize_loss_simcrl, nt_xent_asymetrize_loss_v2
-import model as all_model
-import objective as obj_lib
+from HARL.utils.learning_rate_optimizer import WarmUpAndCosineDecay
+import HARL.utils.metrics as metrics
+from HARL.DataAugmentations.byol_simclr_imagenet_data_harry import imagenet_dataset_single_machine
+from HARL.loss.self_supervised_losses import nt_xent_symetrize_loss_simcrl, nt_xent_asymetrize_loss_v2
+import HARL.neural_net_architectures.model as all_model
+import HARL.loss.objective as obj_lib
 from imutils import paths
 
 # Setting GPU
