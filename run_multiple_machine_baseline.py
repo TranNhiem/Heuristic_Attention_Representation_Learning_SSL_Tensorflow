@@ -14,7 +14,7 @@ from imutils import paths
 import HARL.loss.objective as obj_lib
 from wandb.keras import WandbCallback
 from HARL.loss.self_supervised_losses import byol_symetrize_loss
-import model_for_non_contrastive_framework as all_model
+import HARL.neural_net_architectures.model_for_non_contrastive_framework as all_model
 from HARL.utils.learning_rate_optimizer import WarmUpAndCosineDecay
 from HARL.DataAugmentations.multi_machine_dataloader import imagenet_dataset_multi_machine
 from HARL.utils.helper_functions import *
