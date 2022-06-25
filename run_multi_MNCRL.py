@@ -80,13 +80,6 @@ def main():
 
     else:
         raise ValueError("Invalida communication method")
-<<<<<<< HEAD
-    #strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy()#   communication=communication_options
-    # cluster_resolver=None)
-    resolver = tf.distribute.cluster_resolver.TFConfigClusterResolver()
-    strategy = tf.distribute.MultiWorkerMirroredStrategy(communication_options=communication_options,  cluster_resolver=resolver)
-    #communication_options=communication_options, #cluster_resolver=resolver # communication_options=communication_options
-=======
     strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy()
     # strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy(
     # communication=tf.distribute.experimental.CollectiveCommunication.AUTO,
@@ -96,7 +89,6 @@ def main():
     # resolver = tf.distribute.cluster_resolver.TFConfigClusterResolver()
     #strategy = tf.distribute.MultiWorkerMirroredStrategy(communication_options=communication_options, cluster_resolver=None) 
     #communication_options=communication_options,cluster_resolver=resolver # communication_options=communication_options
->>>>>>> f6826b8ab7edf67798f0b5bd60984c45651eeff0
     
     #strategy=tf.distribute.get_strategy()
     # ------------------------------------------
