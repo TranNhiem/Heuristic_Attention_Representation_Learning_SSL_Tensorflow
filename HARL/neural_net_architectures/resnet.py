@@ -500,7 +500,6 @@ class BottleneckBlock(tf.keras.layers.Layer):
 
         return tf.nn.relu(inputs + shortcut)
 
-
 class BlockGroup(tf.keras.layers.Layer):  # pylint: disable=missing-docstring
 
     def __init__(self,
