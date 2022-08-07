@@ -143,7 +143,12 @@ Implementations in Tensorflow 2:
 [HARL paper]():
 
 ```
-@article{
+@article{Tran2022HeuristicAR,
+  title={Heuristic Attention Representation Learning for Self-Supervised Pretraining},
+  author={Van-Nhiem Tran and Shenxiu Liu and Yung-hui Li and Jia-Ching Wang},
+  journal={Sensors (Basel, Switzerland)},
+  year={2022},
+  volume={22}
 }
 ```
 
