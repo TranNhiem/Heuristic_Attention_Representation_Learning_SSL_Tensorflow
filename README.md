@@ -13,9 +13,8 @@
 
 ## HARL Pre-trained models  
 
-<a href="colabs/finetuning.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
 
-We opensourced total 4 pretrained models here, corresponding to those in Table 1 of the <a href="">HARL</a> paper:
+We open-sourced total 4 pretrained models here, corresponding to those in Table 1 of the <a href="">HARL</a> paper:
 
 |   Depth | Width   | SK    |   Param (M)  |    Linear eval |   Supervised |
 |--------:|--------:|------:|--------:|-------------:|--------------:|
