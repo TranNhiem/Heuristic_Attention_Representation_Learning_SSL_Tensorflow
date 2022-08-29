@@ -13,7 +13,7 @@
 
 ## HARL Pre-trained models  
 
-We open-sourced the pretrained models here, corresponding to those in Table 1 of the <a href="">HARL</a> paper:
+We open-sourced the pretrained models here, corresponding to those in Table 1 of the <a href="https://pdfs.semanticscholar.org/0040/f14dac94ea4fd96072f2b98686b57dde2dfb.pdf?_ga=2.79292561.484170449.1659857629-2034857879.1659857629">HARL</a> paper:
 These checkpoints are stored in Google Drive Storage:
 
 |   Depth | Width   | SK    |   Param (M)  |    Linear eval |   Supervised |
@@ -89,7 +89,7 @@ Implementations in Pytorch Lightning:
 * [Official Implementation](https://github.com/TranNhiem/Heuristic_Attention_Represenation_Learning_SSL_Pytorch)
 
 ## Cite
-[HARL paper]():
+[HARL paper](https://pdfs.semanticscholar.org/0040/f14dac94ea4fd96072f2b98686b57dde2dfb.pdf?_ga=2.79292561.484170449.1659857629-2034857879.1659857629):
 
 ```
 @article{Tran2022HeuristicAR,
